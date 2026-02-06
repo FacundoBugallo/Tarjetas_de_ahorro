@@ -10,6 +10,14 @@ export default function UserSummaryModal({
   availableMonthly,
 }) {
   return (
+    <Modal
+      animationType="slide"
+      transparent
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <Pressable onPress={onClose} style={styles.backdrop}>
+        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
     <Modal animationType="slide" transparent visible={visible}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
@@ -37,6 +45,7 @@ export default function UserSummaryModal({
             <Text style={styles.value}>{formatCurrency(availableMonthly)}</Text>
           </View>
         </View>
+      </Pressable>
       </View>
     </Modal>
   );
