@@ -1,21 +1,27 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { formatCurrency } from '../utils/formatters';
 
-export default function HistoryCard() {
+export default function HistoryCard({ items = [] }) {
   return (
     <View style={styles.historyCard}>
-      <Text style={styles.historyTitle}>Historial de la semana</Text>
-      <View style={styles.historyItem}>
-        <Text style={styles.historyLabel}>Lunes</Text>
-        <Text style={styles.historyValue}>2/3 tarjetas aportaron</Text>
-      </View>
-      <View style={styles.historyItem}>
-        <Text style={styles.historyLabel}>Martes</Text>
-        <Text style={styles.historyValue}>Alerta: faltó 1 aporte</Text>
-      </View>
-      <View style={styles.historyItem}>
-        <Text style={styles.historyLabel}>Miércoles</Text>
-        <Text style={styles.historyValue}>+25 pts por ahorro anticipado</Text>
-      </View>
+      <Text style={styles.historyTitle}>Historial</Text>
+      {items.length === 0 ? (
+        <Text style={styles.historyEmpty}>
+          Aún no hay tarjetas completadas.
+        </Text>
+      ) : (
+        items.map((item) => (
+          <View key={item.id} style={styles.historyItem}>
+            <View>
+              <Text style={styles.historyLabel}>{item.name}</Text>
+              <Text style={styles.historyMeta}>
+                Meta: {formatCurrency(item.targetAmount)}
+              </Text>
+            </View>
+            <Text style={styles.historyValue}>+{item.points} pts</Text>
+          </View>
+        ))
+      )}
     </View>
   );
 }
@@ -39,8 +45,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
+  historyEmpty: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
   historyLabel: {
     fontSize: 13,
+    color: '#111827',
+    fontWeight: '600',
+  },
+  historyMeta: {
+    marginTop: 4,
+    fontSize: 12,
     color: '#6B7280',
   },
   historyValue: {

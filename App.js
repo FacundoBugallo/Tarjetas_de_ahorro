@@ -14,29 +14,58 @@ import savingsCards from './data/savingsCards';
 export default function App() {
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState('Camila');
-  const [levelLabel, setLevelLabel] = useState('Nivel 4 · Estratega constante');
-  const [pointsLabel] = useState('+120 pts');
+  const [points, setPoints] = useState(0);
   const [incomeStatus, setIncomeStatus] = useState('Estable');
   const [monthlyIncome, setMonthlyIncome] = useState(4200);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [bonusAvailable, setBonusAvailable] = useState(0);
   const totalTargetMonthly = cards.reduce(
     (sum, card) => sum + card.nextContribution,
     0,
   );
-  const availableMonthly = Math.max(monthlyIncome - totalTargetMonthly, 0);
+  const availableMonthly = Math.max(
+    monthlyIncome - totalTargetMonthly + bonusAvailable,
+    0,
+  );
+  const level = Math.floor(points / 100) + 1;
+  const levelLabel = `Nivel ${level}`;
+  const pointsLabel = `${points} pts`;
 
   const handleAddContribution = (cardId) => {
-    setCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === cardId
-          ? {
-              ...card,
-              savedAmount: card.savedAmount + card.nextContribution,
-            }
-          : card,
-      ),
-    );
+    setCards((prevCards) => {
+      const nextCards = [];
+      prevCards.forEach((card) => {
+        if (card.id !== cardId) {
+          nextCards.push(card);
+          return;
+        }
+
+        const updatedAmount = card.savedAmount + card.nextContribution;
+        if (updatedAmount >= card.targetAmount) {
+          const overflow = updatedAmount - card.targetAmount;
+          const earnedPoints = Math.round(card.targetAmount / 10);
+          setPoints((prevPoints) => prevPoints + earnedPoints);
+          setBonusAvailable((prevBonus) => prevBonus + overflow);
+          setHistoryItems((prevHistory) => [
+            {
+              id: `${card.id}-history-${Date.now()}`,
+              name: card.name,
+              targetAmount: card.targetAmount,
+              points: earnedPoints,
+            },
+            ...prevHistory,
+          ]);
+        } else {
+          nextCards.push({
+            ...card,
+            savedAmount: updatedAmount,
+          });
+        }
+      });
+      return nextCards;
+    });
   };
 
   const handleAddCard = (newCard) => {
@@ -46,7 +75,6 @@ export default function App() {
 
   const handleSaveUser = (updatedUser) => {
     setUserName(updatedUser.userName);
-    setLevelLabel(updatedUser.levelLabel);
     setIncomeStatus(updatedUser.incomeStatus);
     setMonthlyIncome(updatedUser.monthlyIncome);
   };
@@ -76,13 +104,14 @@ export default function App() {
           ))}
         </View>
 
-        <HistoryCard />
+        <HistoryCard items={historyItems} />
       </ScrollView>
       <UserSummaryModal
         visible={isSummaryVisible}
         onClose={() => setIsSummaryVisible(false)}
         userName={userName}
         levelLabel={levelLabel}
+        pointsLabel={pointsLabel}
         incomeStatus={incomeStatus}
         monthlyIncome={monthlyIncome}
         availableMonthly={availableMonthly}

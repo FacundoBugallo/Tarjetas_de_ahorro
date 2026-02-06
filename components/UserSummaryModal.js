@@ -14,6 +14,7 @@ export default function UserSummaryModal({
   onClose,
   userName,
   levelLabel,
+  pointsLabel,
   incomeStatus,
   monthlyIncome,
   availableMonthly,
@@ -21,7 +22,6 @@ export default function UserSummaryModal({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(userName);
-  const [draftLevel, setDraftLevel] = useState(levelLabel);
   const [draftIncomeStatus, setDraftIncomeStatus] = useState(incomeStatus);
   const [draftMonthlyIncome, setDraftMonthlyIncome] = useState(
     monthlyIncome.toString(),
@@ -30,18 +30,16 @@ export default function UserSummaryModal({
   useEffect(() => {
     if (visible) {
       setDraftName(userName);
-      setDraftLevel(levelLabel);
       setDraftIncomeStatus(incomeStatus);
       setDraftMonthlyIncome(monthlyIncome.toString());
       setIsEditing(false);
     }
-  }, [visible, userName, levelLabel, incomeStatus, monthlyIncome]);
+  }, [visible, userName, incomeStatus, monthlyIncome]);
 
   const handleSave = () => {
     const parsedIncome = Number(draftMonthlyIncome);
     onSave({
       userName: draftName.trim() || userName,
-      levelLabel: draftLevel.trim() || levelLabel,
       incomeStatus: draftIncomeStatus.trim() || incomeStatus,
       monthlyIncome: Number.isNaN(parsedIncome)
         ? monthlyIncome
@@ -90,15 +88,11 @@ export default function UserSummaryModal({
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Nivel</Text>
-            {isEditing ? (
-              <TextInput
-                value={draftLevel}
-                onChangeText={setDraftLevel}
-                style={styles.input}
-              />
-            ) : (
-              <Text style={styles.value}>{levelLabel}</Text>
-            )}
+            <Text style={styles.value}>{levelLabel}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Puntos</Text>
+            <Text style={styles.value}>{pointsLabel}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Nivel de ingresos</Text>
