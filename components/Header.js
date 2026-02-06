@@ -1,0 +1,45 @@
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+export default function Header({ onPress }) {
+  return (
+    <View style={styles.header}>
+      <View>
+        <Text style={styles.greeting}>Hola, Camila</Text>
+        <Text style={styles.level}>Nivel 4 · Estratega constante</Text>
+      </View>
+      <TouchableOpacity onPress={onPress} style={styles.levelBadge}>
+        <Text style={styles.levelBadgeText}>+120 pts</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  level: {
+    marginTop: 4,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  levelBadge: {
+    backgroundColor: '#111827',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  levelBadgeText: {
+    color: '#F9FAFB',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+});
