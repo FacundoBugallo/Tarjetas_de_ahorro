@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { clampPercentage, formatCurrency } from '../utils/formatters';
 
-export default function SavingsCard({ card }) {
+export default function SavingsCard({ card, onAddContribution }) {
   const percentage = clampPercentage(
     (card.savedAmount / card.targetAmount) * 100,
   );
@@ -28,7 +28,10 @@ export default function SavingsCard({ card }) {
           <Text style={styles.cardValue}>{formatCurrency(card.savedAmount)}</Text>
           <Text style={styles.cardCadence}>{card.cadence}</Text>
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity
+          onPress={() => onAddContribution(card.id)}
+          style={styles.addButton}
+        >
           <Text style={styles.addButtonText}>
             +{formatCurrency(card.nextContribution)}
           </Text>

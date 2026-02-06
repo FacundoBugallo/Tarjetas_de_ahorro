@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '../utils/formatters';
 
-export default function SummaryCard({ availableMonthly }) {
+export default function SummaryCard({ availableMonthly, incomeStatus }) {
   return (
     <View style={styles.summaryCard}>
       <View>
         <Text style={styles.summaryLabel}>Nivel de ingresos</Text>
-        <Text style={styles.summaryValue}>Estable</Text>
+        <Text style={styles.summaryValue}>{incomeStatus}</Text>
       </View>
       <View style={styles.summaryDivider} />
       <View>

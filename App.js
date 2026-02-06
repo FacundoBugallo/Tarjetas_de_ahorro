@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { useState } from 'react';
 
+import CreateCardModal from './components/CreateCardModal';
 import Header from './components/Header';
 import HistoryCard from './components/HistoryCard';
 import SavingsCard from './components/SavingsCard';
@@ -10,19 +11,45 @@ import SummaryCard from './components/SummaryCard';
 import UserSummaryModal from './components/UserSummaryModal';
 import savingsCards from './data/savingsCards';
 
-const userName = 'Camila';
-const levelLabel = 'Nivel 4 · Estratega constante';
-const pointsLabel = '+120 pts';
-const incomeStatus = 'Estable';
-
 export default function App() {
+  const [cards, setCards] = useState(savingsCards);
+  const [userName, setUserName] = useState('Camila');
+  const [levelLabel, setLevelLabel] = useState('Nivel 4 · Estratega constante');
+  const [pointsLabel] = useState('+120 pts');
+  const [incomeStatus, setIncomeStatus] = useState('Estable');
+  const [monthlyIncome, setMonthlyIncome] = useState(4200);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
-  const totalTargetMonthly = savingsCards.reduce(
+  const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
+  const totalTargetMonthly = cards.reduce(
     (sum, card) => sum + card.nextContribution,
     0,
   );
-  const monthlyIncome = 4200;
   const availableMonthly = Math.max(monthlyIncome - totalTargetMonthly, 0);
+
+  const handleAddContribution = (cardId) => {
+    setCards((prevCards) =>
+      prevCards.map((card) =>
+        card.id === cardId
+          ? {
+              ...card,
+              savedAmount: card.savedAmount + card.nextContribution,
+            }
+          : card,
+      ),
+    );
+  };
+
+  const handleAddCard = (newCard) => {
+    setCards((prevCards) => [...prevCards, newCard]);
+    setIsCreateCardVisible(false);
+  };
+
+  const handleSaveUser = (updatedUser) => {
+    setUserName(updatedUser.userName);
+    setLevelLabel(updatedUser.levelLabel);
+    setIncomeStatus(updatedUser.incomeStatus);
+    setMonthlyIncome(updatedUser.monthlyIncome);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -33,12 +60,19 @@ export default function App() {
           levelLabel={levelLabel}
           pointsLabel={pointsLabel}
         />
-        <SummaryCard availableMonthly={availableMonthly} />
-        <SectionHeader />
+        <SummaryCard
+          availableMonthly={availableMonthly}
+          incomeStatus={incomeStatus}
+        />
+        <SectionHeader onCreate={() => setIsCreateCardVisible(true)} />
 
         <View style={styles.cardList}>
-          {savingsCards.map((card) => (
-            <SavingsCard key={card.id} card={card} />
+          {cards.map((card) => (
+            <SavingsCard
+              key={card.id}
+              card={card}
+              onAddContribution={handleAddContribution}
+            />
           ))}
         </View>
 
@@ -50,7 +84,15 @@ export default function App() {
         userName={userName}
         levelLabel={levelLabel}
         incomeStatus={incomeStatus}
+        monthlyIncome={monthlyIncome}
         availableMonthly={availableMonthly}
+        onSave={handleSaveUser}
+      />
+      <CreateCardModal
+        visible={isCreateCardVisible}
+        onClose={() => setIsCreateCardVisible(false)}
+        onSubmit={handleAddCard}
+        index={cards.length}
       />
       <StatusBar style="dark" />
     </SafeAreaView>

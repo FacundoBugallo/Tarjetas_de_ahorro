@@ -1,10 +1,10 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function SectionHeader() {
+export default function SectionHeader({ onCreate }) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>Tus tarjetas de ahorro</Text>
-      <TouchableOpacity style={styles.createButton}>
+      <TouchableOpacity onPress={onCreate} style={styles.createButton}>
         <Text style={styles.createButtonText}>Crear tarjeta</Text>
       </TouchableOpacity>
     </View>
