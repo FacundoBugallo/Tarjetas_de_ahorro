@@ -18,6 +18,9 @@ export default function UserSummaryModal({
     >
       <Pressable onPress={onClose} style={styles.backdrop}>
         <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+    <Modal animationType="slide" transparent visible={visible}>
+      <View style={styles.backdrop}>
+        <View style={styles.sheet}>
           <View style={styles.headerRow}>
             <Text style={styles.title}>Resumen del usuario</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
@@ -43,6 +46,7 @@ export default function UserSummaryModal({
           </View>
         </View>
       </Pressable>
+      </View>
     </Modal>
   );
 }

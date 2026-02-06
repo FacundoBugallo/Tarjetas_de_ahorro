@@ -7,6 +7,7 @@ export default function Header({ onPress, userName, levelLabel, pointsLabel }) {
       onPress={onPress}
       style={styles.header}
     >
+    <View style={styles.header}>
       <View>
         <Text style={styles.greeting}>Hola, {userName}</Text>
         <Text style={styles.level}>{levelLabel}</Text>
@@ -15,6 +16,10 @@ export default function Header({ onPress, userName, levelLabel, pointsLabel }) {
         <Text style={styles.levelBadgeText}>{pointsLabel}</Text>
       </View>
     </TouchableOpacity>
+      <TouchableOpacity onPress={onPress} style={styles.levelBadge}>
+        <Text style={styles.levelBadgeText}>{pointsLabel}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
