@@ -1,14 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 
 import Header from './components/Header';
 import HistoryCard from './components/HistoryCard';
 import SavingsCard from './components/SavingsCard';
 import SectionHeader from './components/SectionHeader';
 import SummaryCard from './components/SummaryCard';
+import UserSummaryModal from './components/UserSummaryModal';
 import savingsCards from './data/savingsCards';
 
+const userName = 'Camila';
+const levelLabel = 'Nivel 4 · Estratega constante';
+const pointsLabel = '+120 pts';
+const incomeStatus = 'Estable';
+
 export default function App() {
+  const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const totalTargetMonthly = savingsCards.reduce(
     (sum, card) => sum + card.nextContribution,
     0,
@@ -19,7 +27,12 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Header />
+        <Header
+          onPress={() => setIsSummaryVisible(true)}
+          userName={userName}
+          levelLabel={levelLabel}
+          pointsLabel={pointsLabel}
+        />
         <SummaryCard availableMonthly={availableMonthly} />
         <SectionHeader />
 
@@ -31,6 +44,14 @@ export default function App() {
 
         <HistoryCard />
       </ScrollView>
+      <UserSummaryModal
+        visible={isSummaryVisible}
+        onClose={() => setIsSummaryVisible(false)}
+        userName={userName}
+        levelLabel={levelLabel}
+        incomeStatus={incomeStatus}
+        availableMonthly={availableMonthly}
+      />
       <StatusBar style="dark" />
     </SafeAreaView>
   );

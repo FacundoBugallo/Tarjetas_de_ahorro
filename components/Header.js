@@ -1,15 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function Header() {
+export default function Header({ onPress, userName, levelLabel, pointsLabel }) {
   return (
     <View style={styles.header}>
       <View>
-        <Text style={styles.greeting}>Hola, Camila</Text>
-        <Text style={styles.level}>Nivel 4 · Estratega constante</Text>
+        <Text style={styles.greeting}>Hola, {userName}</Text>
+        <Text style={styles.level}>{levelLabel}</Text>
       </View>
-      <View style={styles.levelBadge}>
-        <Text style={styles.levelBadgeText}>+120 pts</Text>
-      </View>
+      <TouchableOpacity onPress={onPress} style={styles.levelBadge}>
+        <Text style={styles.levelBadgeText}>{pointsLabel}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
