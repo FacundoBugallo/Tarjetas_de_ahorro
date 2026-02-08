@@ -15,7 +15,7 @@ export default function App() {
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState('Camila');
   const [points, setPoints] = useState(0);
-  const [incomeStatus, setIncomeStatus] = useState('Estable');
+  const [incomeStatus, setIncomeStatus] = useState('Ingresos fijo');
   const [monthlyIncome, setMonthlyIncome] = useState(4200);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
@@ -121,7 +121,6 @@ export default function App() {
         visible={isCreateCardVisible}
         onClose={() => setIsCreateCardVisible(false)}
         onSubmit={handleAddCard}
-        index={cards.length}
       />
       <StatusBar style="dark" />
     </SafeAreaView>

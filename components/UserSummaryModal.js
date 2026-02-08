@@ -26,6 +26,11 @@ export default function UserSummaryModal({
   const [draftMonthlyIncome, setDraftMonthlyIncome] = useState(
     monthlyIncome.toString(),
   );
+  const incomeOptions = [
+    'Ingresos fijo',
+    'Estimado por comisión',
+    'Estimado por monotributo',
+  ];
 
   useEffect(() => {
     if (visible) {
@@ -97,11 +102,30 @@ export default function UserSummaryModal({
           <View style={styles.row}>
             <Text style={styles.label}>Nivel de ingresos</Text>
             {isEditing ? (
-              <TextInput
-                value={draftIncomeStatus}
-                onChangeText={setDraftIncomeStatus}
-                style={styles.input}
-              />
+              <View style={styles.optionRow}>
+                {incomeOptions.map((option) => {
+                  const isActive = draftIncomeStatus === option;
+                  return (
+                    <Pressable
+                      key={option}
+                      onPress={() => setDraftIncomeStatus(option)}
+                      style={[
+                        styles.optionButton,
+                        isActive && styles.optionButtonActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          isActive && styles.optionTextActive,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             ) : (
               <Text style={styles.value}>{incomeStatus}</Text>
             )}
@@ -137,11 +161,11 @@ export default function UserSummaryModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    backgroundColor: 'rgba(2, 6, 23, 0.7)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#111827',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -161,21 +185,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#F9FAFB',
   },
   secondaryButton: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#1F2937',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
   },
   secondaryButtonText: {
-    color: '#111827',
+    color: '#E5E7EB',
     fontSize: 12,
     fontWeight: '600',
   },
   closeButton: {
-    backgroundColor: '#111827',
+    backgroundColor: '#2563EB',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
@@ -188,32 +212,58 @@ const styles = StyleSheet.create({
   row: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#1F2937',
   },
   rowNoDivider: {
     borderBottomWidth: 0,
   },
+  optionRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionButton: {
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  optionButtonActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  optionText: {
+    fontSize: 12,
+    color: '#E5E7EB',
+    fontWeight: '600',
+  },
+  optionTextActive: {
+    color: '#FFFFFF',
+  },
   input: {
     marginTop: 6,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#374151',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
-    color: '#111827',
+    color: '#F9FAFB',
+    backgroundColor: '#0F172A',
   },
   label: {
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-    color: '#6B7280',
+    color: '#9CA3AF',
   },
   value: {
     marginTop: 6,
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: '#F9FAFB',
   },
   saveButton: {
     marginTop: 4,

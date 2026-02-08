@@ -9,15 +9,15 @@ import {
 } from 'react-native';
 
 const colorPalette = ['#FFE9D2', '#E2F4FF', '#EFE6FF', '#DCFCE7', '#FCE7F3'];
+const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
 
-const getNextColor = (index) => colorPalette[index % colorPalette.length];
-
-export default function CreateCardModal({ visible, onClose, onSubmit, index }) {
+export default function CreateCardModal({ visible, onClose, onSubmit }) {
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [savedAmount, setSavedAmount] = useState('');
   const [cadence, setCadence] = useState('Mensual');
   const [nextContribution, setNextContribution] = useState('');
+  const [selectedColor, setSelectedColor] = useState(colorPalette[0]);
 
   useEffect(() => {
     if (visible) {
@@ -26,6 +26,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, index }) {
       setSavedAmount('');
       setCadence('Mensual');
       setNextContribution('');
+      setSelectedColor(colorPalette[0]);
     }
   }, [visible]);
 
@@ -45,7 +46,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, index }) {
       savedAmount: Number.isNaN(parsedSaved) ? 0 : parsedSaved,
       cadence: cadence.trim() || 'Mensual',
       nextContribution: parsedContribution,
-      color: getNextColor(index),
+      color: selectedColor,
     });
   };
 
@@ -89,7 +90,30 @@ export default function CreateCardModal({ visible, onClose, onSubmit, index }) {
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>Cadencia</Text>
-            <TextInput value={cadence} onChangeText={setCadence} style={styles.input} />
+            <View style={styles.optionRow}>
+              {cadenceOptions.map((option) => {
+                const isActive = cadence === option;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => setCadence(option)}
+                    style={[
+                      styles.optionButton,
+                      isActive && styles.optionButtonActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        isActive && styles.optionTextActive,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>Próximo aporte</Text>
@@ -99,6 +123,25 @@ export default function CreateCardModal({ visible, onClose, onSubmit, index }) {
               keyboardType="numeric"
               style={styles.input}
             />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Color</Text>
+            <View style={styles.colorRow}>
+              {colorPalette.map((color) => {
+                const isActive = selectedColor === color;
+                return (
+                  <Pressable
+                    key={color}
+                    onPress={() => setSelectedColor(color)}
+                    style={[
+                      styles.colorSwatch,
+                      { backgroundColor: color },
+                      isActive && styles.colorSwatchActive,
+                    ]}
+                  />
+                );
+              })}
+            </View>
           </View>
 
           <Pressable onPress={handleSubmit} style={styles.saveButton}>
@@ -148,6 +191,30 @@ const styles = StyleSheet.create({
   field: {
     gap: 6,
   },
+  optionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  optionButton: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  optionButtonActive: {
+    backgroundColor: '#111827',
+    borderColor: '#111827',
+  },
+  optionText: {
+    fontSize: 12,
+    color: '#111827',
+    fontWeight: '600',
+  },
+  optionTextActive: {
+    color: '#FFFFFF',
+  },
   label: {
     fontSize: 12,
     textTransform: 'uppercase',
@@ -169,6 +236,21 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 14,
     alignItems: 'center',
+  },
+  colorRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  colorSwatch: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorSwatchActive: {
+    borderColor: '#111827',
   },
   saveButtonText: {
     color: '#FFFFFF',
