@@ -3,9 +3,9 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function SectionHeader({ onCreate, isDarkMode }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, isDarkMode ? styles.sectionTitleDark : styles.sectionTitleLight]}>Tus tarjetas de ahorro</Text>
+      <Text style={[styles.sectionTitle, isDarkMode ? styles.sectionTitleDark : styles.sectionTitleLight]}>Tus tarjetas de ahorro 💳</Text>
       <TouchableOpacity onPress={onCreate} style={styles.createButton}>
-        <Text style={styles.createButtonText}>Crear tarjeta</Text>
+        <Text style={styles.createButtonText}>Crear tarjeta ➕</Text>
       </TouchableOpacity>
     </View>
   );

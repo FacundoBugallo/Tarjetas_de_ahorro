@@ -8,7 +8,7 @@ export default function SummaryCard({ plannedInvestment, actualInvestment, isDar
     <View style={[styles.summaryCard, isDarkMode ? styles.summaryCardDark : styles.summaryCardLight]}>
       <View>
         <Text style={[styles.summaryLabel, isDarkMode ? styles.summaryLabelDark : styles.summaryLabelLight]}>
-          Destinado a invertir
+          Destinado a invertir 🎯
         </Text>
         <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
           {formatCurrency(plannedInvestment, currencyCode)}
@@ -17,7 +17,7 @@ export default function SummaryCard({ plannedInvestment, actualInvestment, isDar
       <View style={[styles.summaryDivider, isDarkMode ? styles.summaryDividerDark : styles.summaryDividerLight]} />
       <View>
         <Text style={[styles.summaryLabel, isDarkMode ? styles.summaryLabelDark : styles.summaryLabelLight]}>
-          Invertido real
+          Invertido real 💰
         </Text>
         <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
           {formatCurrency(actualInvestment, currencyCode)}
