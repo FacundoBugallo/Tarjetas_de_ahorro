@@ -13,16 +13,15 @@ import savingsCards from './data/savingsCards';
 import { clampPercentage, formatCurrency } from './utils/formatters';
 
 const tabs = [
-  { key: 'inicio', label: 'Inicio' },
-  { key: 'graficos', label: 'Gráficos' },
-  { key: 'perfil', label: 'Perfil' },
+  { key: 'inicio', label: 'Inicio 🏠' },
+  { key: 'graficos', label: 'Gráficos 📊' },
+  { key: 'perfil', label: 'Perfil 👤' },
 ];
 
 export default function App() {
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState('');
   const [plannedInvestment, setPlannedInvestment] = useState(0);
-  const [totalInvestedThisMonth, setTotalInvestedThisMonth] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
@@ -37,7 +36,19 @@ export default function App() {
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
-  const points = Math.floor(Math.max(totalInvestedThisMonth, 0) / currencyBlockValue) * pointsPerBlock;
+  const currentMonthKey = useMemo(() => new Date().toISOString().slice(0, 7), []);
+
+  const monthlyTransactions = useMemo(
+    () => transactions.filter((tx) => tx.date.startsWith(currentMonthKey)),
+    [transactions, currentMonthKey],
+  );
+
+  const totalInvestedThisMonth = useMemo(() => {
+    const monthlyNet = monthlyTransactions.reduce((acc, tx) => acc + tx.delta, 0);
+    return Math.max(monthlyNet, 0);
+  }, [monthlyTransactions]);
+
+  const points = Math.floor(totalInvestedThisMonth / currencyBlockValue) * pointsPerBlock;
   const level = Math.floor(points / 100) + 1;
   const levelLabel = `Nivel ${level}`;
   const pointsLabel = `${points} pts`;
@@ -52,42 +63,12 @@ export default function App() {
   );
 
   const flowTotals = useMemo(() => {
-    return transactions.reduce(
-      (acc, tx) => {
-        if (tx.delta >= 0) {
-          acc.invested += tx.delta;
-        } else {
-          acc.withdrawn += Math.abs(tx.delta);
-        }
-        return acc;
-      },
-      { invested: 0, withdrawn: 0 },
-    );
-  }, [transactions]);
-
-  const lineChartData = useMemo(() => {
-    const numberOfDays = 10;
-    const today = new Date();
-    const groupedByDay = transactions.reduce((acc, tx) => {
-      acc[tx.date] = (acc[tx.date] || 0) + tx.delta;
-      return acc;
-    }, {});
-
-    let runningTotal = 0;
-    const data = [];
-
-    for (let offset = numberOfDays - 1; offset >= 0; offset -= 1) {
-      const day = new Date(today);
-      day.setDate(today.getDate() - offset);
-      const isoDate = day.toISOString().slice(0, 10);
-      const label = `${day.getDate()}/${day.getMonth() + 1}`;
-
-      runningTotal += groupedByDay[isoDate] || 0;
-      data.push({ label, value: Math.max(runningTotal, 0) });
-    }
-
-    return data;
-  }, [transactions]);
+    const monthlyNet = monthlyTransactions.reduce((acc, tx) => acc + tx.delta, 0);
+    return {
+      invested: Math.max(monthlyNet, 0),
+      withdrawn: Math.max(-monthlyNet, 0),
+    };
+  }, [monthlyTransactions]);
 
   const handleCompleteOnboarding = () => {
     const parsedInvestment = Number(draftPlannedInvestment);
@@ -122,7 +103,6 @@ export default function App() {
         }
 
         const updatedAmount = card.savedAmount + card.nextContribution;
-        setTotalInvestedThisMonth((prev) => prev + card.nextContribution);
         registerTransaction(card.nextContribution);
 
         if (updatedAmount >= card.targetAmount) {
@@ -161,7 +141,6 @@ export default function App() {
         return card;
       }
 
-      setTotalInvestedThisMonth((prev) => Math.max(prev - removableAmount, 0));
       registerTransaction(-removableAmount);
 
       return {
@@ -198,7 +177,7 @@ export default function App() {
       <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
         <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
           <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
-            Configuremos tu mes
+            Configuremos tu mes ✨
           </Text>
           <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
             Dinos tu nombre, tu moneda y cuánto crees que vas a invertir este mes.
@@ -308,7 +287,7 @@ export default function App() {
               Comparativo mensual
             </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-              Destinado a invertir vs invertido real.
+            Destinado a invertir vs invertido real (reinicio mensual).
             </Text>
 
             <View style={styles.chartRow}>
@@ -353,20 +332,28 @@ export default function App() {
             )}
 
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
-              Aportes vs retiros
+              Balance mensual de movimientos
             </Text>
             <View style={styles.chartRow}>
               <View style={styles.chartHeader}>
-                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Aportado</Text>
+                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Aporte neto</Text>
                 <Text style={styles.chartAmount}>{formatCurrency(flowTotals.invested, selectedCurrency)}</Text>
               </View>
               <View style={styles.chartTrack}>
-                <View style={[styles.chartFill, { width: '100%', backgroundColor: '#0284C7' }]} />
+                <View
+                  style={[
+                    styles.chartFill,
+                    {
+                      width: `${flowTotals.invested > 0 ? 100 : 0}%`,
+                      backgroundColor: '#0284C7',
+                    },
+                  ]}
+                />
               </View>
             </View>
             <View style={styles.chartRow}>
               <View style={styles.chartHeader}>
-                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Retirado</Text>
+                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Retiro neto</Text>
                 <Text style={styles.chartAmount}>{formatCurrency(flowTotals.withdrawn, selectedCurrency)}</Text>
               </View>
               <View style={styles.chartTrack}>
@@ -374,7 +361,7 @@ export default function App() {
                   style={[
                     styles.chartFill,
                     {
-                      width: `${flowTotals.invested > 0 ? clampPercentage((flowTotals.withdrawn / flowTotals.invested) * 100) : 0}%`,
+                      width: `${flowTotals.withdrawn > 0 ? 100 : 0}%`,
                       backgroundColor: '#6366F1',
                     },
                   ]}
@@ -382,61 +369,15 @@ export default function App() {
               </View>
             </View>
 
-            <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
-              Línea de inversión en el tiempo
-            </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-              Si inviertes sube, si no hay movimientos se mantiene y si retiras baja.
+              Este indicador muestra el balance neto del mes para evitar acumulaciones engañosas.
             </Text>
-            <View style={styles.lineChartBox}>
-              {lineChartData.map((point, index) => {
-                const maxValue = Math.max(...lineChartData.map((item) => item.value), 1);
-                const x = (index / Math.max(lineChartData.length - 1, 1)) * 100;
-                const y = 100 - (point.value / maxValue) * 100;
-
-                if (index === lineChartData.length - 1) {
-                  return (
-                    <View key={point.label} style={[styles.linePoint, { left: `${x}%`, top: `${y}%` }]} />
-                  );
-                }
-
-                const nextPoint = lineChartData[index + 1];
-                const nextX = ((index + 1) / Math.max(lineChartData.length - 1, 1)) * 100;
-                const nextY = 100 - (nextPoint.value / maxValue) * 100;
-                const dx = nextX - x;
-                const dy = nextY - y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-                return (
-                  <View key={point.label}>
-                    <View style={[styles.linePoint, { left: `${x}%`, top: `${y}%` }]} />
-                    <View
-                      style={[
-                        styles.lineSegment,
-                        {
-                          left: `${x}%`,
-                          top: `${y}%`,
-                          width: `${distance}%`,
-                          transform: [{ rotate: `${angle}deg` }],
-                        },
-                      ]}
-                    />
-                  </View>
-                );
-              })}
-            </View>
-            <View style={styles.lineLabelsRow}>
-              {lineChartData.map((point) => (
-                <Text key={point.label} style={styles.lineLabel}>{point.label}</Text>
-              ))}
-            </View>
           </View>
         )}
 
         {activeTab === 'perfil' && (
           <View style={[styles.panel, isDarkMode ? styles.panelDark : styles.panelLight]}>
-            <Text style={[styles.panelTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>Tu zona financiera</Text>
+            <Text style={[styles.panelTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>Tu zona financiera 💼</Text>
             <View style={styles.profileGrid}>
               <View style={styles.profileItem}>
                 <Text style={styles.profileLabel}>Puntos</Text>
@@ -657,36 +598,4 @@ const styles = StyleSheet.create({
   currencyButtonActive: { backgroundColor: '#2563EB', borderColor: '#1D4ED8' },
   currencyButtonText: { color: '#1E3A8A', fontWeight: '700' },
   currencyButtonTextActive: { color: '#FFFFFF' },
-  lineChartBox: {
-    marginTop: 8,
-    height: 170,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  linePoint: {
-    position: 'absolute',
-    width: 9,
-    height: 9,
-    borderRadius: 999,
-    backgroundColor: '#1D4ED8',
-    marginLeft: -4,
-    marginTop: -4,
-  },
-  lineSegment: {
-    position: 'absolute',
-    height: 2,
-    backgroundColor: '#1D4ED8',
-  },
-  lineLabelsRow: {
-    marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  lineLabel: { fontSize: 10, color: '#1E3A8A', fontWeight: '700' },
 });

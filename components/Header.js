@@ -5,7 +5,7 @@ export default function Header({ userName, levelLabel, pointsLabel, isDarkMode, 
     <View style={styles.wrapper}>
       <View style={[styles.header, isDarkMode ? styles.headerDark : styles.headerLight]}>
         <View>
-          <Text style={[styles.greeting, isDarkMode ? styles.greetingDark : styles.greetingLight]}>Hola, {userName}</Text>
+          <Text style={[styles.greeting, isDarkMode ? styles.greetingDark : styles.greetingLight]}>Hola, {userName} 👋</Text>
           <Text style={[styles.level, isDarkMode ? styles.levelDark : styles.levelLight]}>{levelLabel}</Text>
         </View>
         <View style={styles.levelBadge}>
