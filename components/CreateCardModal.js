@@ -11,14 +11,14 @@ import {
 import { monthDayOptions, weekdayOptions } from '../utils/schedule';
 
 const colorPalette = [
-  '#FDC5B3',
-  '#BFE4FF',
-  '#D6CCFF',
-  '#BDEFCF',
-  '#FFC7E5',
-  '#FFD9A8',
-  '#C5E9E7',
-  '#E1D3BA',
+  '#FFFFFF',
+  '#E5E7EB',
+  '#D4D4D4',
+  '#A3A3A3',
+  '#737373',
+  '#525252',
+  '#262626',
+  '#000000',
 ];
 const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
 
@@ -89,7 +89,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
         >
           <View style={styles.headerRow}>
             <Text style={[styles.title, isDarkMode && styles.titleDark]}>Crear tarjeta</Text>
-            <Pressable onPress={onClose} style={styles.closeButton}>
+            <Pressable onPress={onClose} style={[styles.closeButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
               <Text style={styles.closeButtonText}>Cerrar</Text>
             </Pressable>
           </View>
@@ -185,7 +185,6 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                       );
                     })}
                   </View>
-                </View>
               )}
 
               {cadence === 'Mensual' && (
@@ -217,7 +216,6 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                       );
                     })}
                   </View>
-                </View>
               )}
 
               <View style={styles.field}>
@@ -250,7 +248,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
               </View>
             </View>
           </ScrollView>
-          <Pressable onPress={handleSubmit} style={styles.saveButton}>
+          <Pressable onPress={handleSubmit} style={[styles.saveButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
             <Text style={styles.saveButtonText}>Agregar tarjeta</Text>
           </Pressable>
         </View>
@@ -286,11 +284,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#000000',
   },
   titleDark: { color: '#F8F6F0' },
   closeButton: {
-    backgroundColor: '#DC2626',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
@@ -300,6 +297,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  actionButtonDark: { backgroundColor: '#DC2626' },
+  actionButtonLight: { backgroundColor: '#000000' },
   field: {
     gap: 6,
   },
@@ -307,17 +306,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: '#6B7280',
+    color: '#000000',
   },
   labelDark: { color: '#737373' },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#000000',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
-    color: '#111827',
+    color: '#000000',
     backgroundColor: '#FFFFFF',
   },
   inputDark: {
@@ -336,7 +335,7 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     borderWidth: 1,
-    borderColor: '#D4D4D4',
+    borderColor: '#000000',
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -347,7 +346,7 @@ const styles = StyleSheet.create({
   dayButton: {
     width: 36,
     borderWidth: 1,
-    borderColor: '#D4D4D4',
+    borderColor: '#000000',
     borderRadius: 999,
     paddingVertical: 6,
     alignItems: 'center',
@@ -361,7 +360,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 12,
-    color: '#404040',
+    color: '#000000',
     fontWeight: '600',
   },
   optionTextDark: { color: '#D4D4D4' },
@@ -385,7 +384,6 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: 6,
-    backgroundColor: '#EF4444',
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
