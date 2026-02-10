@@ -185,6 +185,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                       );
                     })}
                   </View>
+                </View>
               )}
 
               {cadence === 'Mensual' && (
@@ -216,6 +217,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                       );
                     })}
                   </View>
+                </View>
               )}
 
               <View style={styles.field}>
