@@ -29,7 +29,7 @@ export default function SavingsCard({ card, onAddContribution, isDarkMode }) {
 
       <View style={styles.cardFooter}>
         <View>
-          <Text style={styles.cardLabel}>Ahorro acumulado</Text>
+          <Text style={styles.cardLabel}>💰 Ahorro acumulado</Text>
           <Text style={styles.cardValue}>{formatCurrency(card.savedAmount)}</Text>
           <Text style={styles.cardCadence}>{formatContributionSchedule(card)}</Text>
           {daysUntilNextContribution !== null && (
@@ -55,24 +55,31 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     padding: 18,
+    borderWidth: 1,
+    borderColor: '#0F172A',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   cardHeader: {
     marginBottom: 12,
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: '800',
+    color: '#020617',
   },
   cardTarget: {
     marginTop: 4,
     fontSize: 13,
-    color: '#6B7280',
+    color: '#0F172A',
   },
   cardDescription: {
     marginTop: 8,
     fontSize: 12,
-    color: '#334155',
+    color: '#172554',
   },
   progressRow: {
     flexDirection: 'row',
@@ -92,13 +99,13 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#111827',
+    backgroundColor: '#0EA5E9',
     borderRadius: 999,
   },
   progressText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#111827',
+    color: '#020617',
   },
   cardFooter: {
     flexDirection: 'row',
@@ -107,31 +114,36 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#0F172A',
   },
   cardValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: '#020617',
     marginTop: 2,
   },
   cardCadence: {
     marginTop: 4,
     fontSize: 12,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#1D4ED8',
   },
   nextContributionText: {
     marginTop: 6,
     fontSize: 12,
     fontWeight: '600',
-    color: '#0F172A',
+    color: '#312E81',
   },
   addButton: {
-    backgroundColor: '#111827',
+    backgroundColor: '#0F172A',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
+    shadowColor: '#A21CAF',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   addButtonText: {
     color: '#F9FAFB',

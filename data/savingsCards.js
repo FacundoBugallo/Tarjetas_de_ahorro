@@ -8,7 +8,7 @@ const savingsCards = [
     cadence: 'Semanal',
     contributionWeekday: 5,
     nextContribution: 120,
-    color: '#FFE9D2',
+    color: '#FDE047',
   },
   {
     id: 'card-2',
@@ -19,7 +19,7 @@ const savingsCards = [
     cadence: 'Mensual',
     contributionMonthDay: 26,
     nextContribution: 150,
-    color: '#E2F4FF',
+    color: '#22D3EE',
   },
   {
     id: 'card-3',
@@ -29,7 +29,7 @@ const savingsCards = [
     savedAmount: 255,
     cadence: 'Diaria',
     nextContribution: 25,
-    color: '#EFE6FF',
+    color: '#C084FC',
   },
 ];
 

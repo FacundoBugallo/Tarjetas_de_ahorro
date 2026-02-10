@@ -5,12 +5,12 @@ export default function SummaryCard({ availableMonthly, incomeStatus, isDarkMode
   return (
     <View style={[styles.summaryCard, isDarkMode && styles.summaryCardDark]}>
       <View>
-        <Text style={[styles.summaryLabel, isDarkMode && styles.summaryLabelDark]}>Nivel de ingresos</Text>
+        <Text style={[styles.summaryLabel, isDarkMode && styles.summaryLabelDark]}>📈 Nivel de ingresos</Text>
         <Text style={[styles.summaryValue, isDarkMode && styles.summaryValueDark]}>{incomeStatus}</Text>
       </View>
       <View style={[styles.summaryDivider, isDarkMode && styles.summaryDividerDark]} />
       <View>
-        <Text style={[styles.summaryLabel, isDarkMode && styles.summaryLabelDark]}>Disponible por mes</Text>
+        <Text style={[styles.summaryLabel, isDarkMode && styles.summaryLabelDark]}>🏦 Disponible por mes</Text>
         <Text style={[styles.summaryValue, isDarkMode && styles.summaryValueDark]}>{formatCurrency(availableMonthly)}</Text>
       </View>
     </View>
@@ -19,35 +19,35 @@ export default function SummaryCard({ availableMonthly, incomeStatus, isDarkMode
 
 const styles = StyleSheet.create({
   summaryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1120',
     borderRadius: 18,
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
-    shadowColor: '#111827',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
+    shadowColor: '#22D3EE',
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    elevation: 10,
   },
   summaryCardDark: {
-    backgroundColor: '#111827',
+    backgroundColor: '#020617',
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#67E8F9',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   summaryLabelDark: {
-    color: '#94A3B8',
+    color: '#A5F3FC',
   },
   summaryValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#F8FAFC',
     marginTop: 6,
   },
   summaryValueDark: {
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   summaryDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#22D3EE',
   },
   summaryDividerDark: {
     backgroundColor: '#374151',
