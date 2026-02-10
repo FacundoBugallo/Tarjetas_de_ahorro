@@ -1,7 +1,9 @@
-export const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-CO', {
+export const formatCurrency = (value, currencyCode = 'COP') => {
+  const locale = currencyCode === 'USD' ? 'en-US' : 'es-CO';
+
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'COP',
+    currency: currencyCode,
     maximumFractionDigits: 0,
   }).format(value);
 };

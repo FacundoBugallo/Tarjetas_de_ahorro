@@ -10,7 +10,16 @@ import {
 } from 'react-native';
 import { monthDayOptions, weekdayOptions } from '../utils/schedule';
 
-const colorPalette = ['#FFE9D2', '#E2F4FF', '#EFE6FF', '#DCFCE7', '#FCE7F3'];
+const colorPalette = [
+  '#FDC5B3',
+  '#BFE4FF',
+  '#D6CCFF',
+  '#BDEFCF',
+  '#FFC7E5',
+  '#FFD9A8',
+  '#C5E9E7',
+  '#E1D3BA',
+];
 const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
 
 export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode }) {

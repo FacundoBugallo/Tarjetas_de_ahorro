@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '../utils/formatters';
 
-export default function SummaryCard({ plannedInvestment, actualInvestment, isDarkMode }) {
+export default function SummaryCard({ plannedInvestment, actualInvestment, isDarkMode, currencyCode }) {
   const remaining = Math.max(plannedInvestment - actualInvestment, 0);
 
   return (
@@ -11,7 +11,7 @@ export default function SummaryCard({ plannedInvestment, actualInvestment, isDar
           Destinado a invertir
         </Text>
         <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
-          {formatCurrency(plannedInvestment)}
+          {formatCurrency(plannedInvestment, currencyCode)}
         </Text>
       </View>
       <View style={[styles.summaryDivider, isDarkMode ? styles.summaryDividerDark : styles.summaryDividerLight]} />
@@ -20,9 +20,9 @@ export default function SummaryCard({ plannedInvestment, actualInvestment, isDar
           Invertido real
         </Text>
         <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
-          {formatCurrency(actualInvestment)}
+          {formatCurrency(actualInvestment, currencyCode)}
         </Text>
-        <Text style={styles.remainingText}>Restante: {formatCurrency(remaining)}</Text>
+        <Text style={styles.remainingText}>Restante: {formatCurrency(remaining, currencyCode)}</Text>
       </View>
     </View>
   );
