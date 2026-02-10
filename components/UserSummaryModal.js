@@ -91,7 +91,7 @@ export default function UserSummaryModal({
             <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{pointsLabel}</Text>
           </View>
           <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Destinado a invertir</Text>
+            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Destinado a ahorrar</Text>
             {isEditing ? (
               <TextInput
                 value={draftPlannedInvestment}
@@ -104,7 +104,7 @@ export default function UserSummaryModal({
             )}
           </View>
           <View style={[styles.row, styles.rowNoDivider]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Invertido real</Text>
+            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Ahorrado real</Text>
             <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(actualInvestment, currencyCode)}</Text>
           </View>
           {isEditing && (
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
-  sheetDark: { backgroundColor: '#0B1220' },
+  sheetDark: { backgroundColor: '#000000' },
   sheetLight: { backgroundColor: '#FFFFFF' },
   headerRow: {
     flexDirection: 'row',
@@ -144,12 +144,12 @@ const styles = StyleSheet.create({
   titleLight: { color: '#111827' },
   secondaryButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999 },
   secondaryButtonDark: { backgroundColor: '#1E293B' },
-  secondaryButtonLight: { backgroundColor: '#E2E8F0' },
+  secondaryButtonLight: { backgroundColor: '#E5E7EB' },
   secondaryButtonText: { fontSize: 12, fontWeight: '600' },
   secondaryButtonTextDark: { color: '#E5E7EB' },
-  secondaryButtonTextLight: { color: '#1E3A8A' },
+  secondaryButtonTextLight: { color: '#B91C1C' },
   closeButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#EF4444',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
@@ -167,17 +167,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
   },
-  inputDark: { borderColor: '#1E3A8A', color: '#F9FAFB', backgroundColor: '#0F172A' },
-  inputLight: { borderColor: '#CBD5E1', color: '#111827', backgroundColor: '#FFFFFF' },
+  inputDark: { borderColor: '#B91C1C', color: '#F9FAFB', backgroundColor: '#111111' },
+  inputLight: { borderColor: '#D4D4D4', color: '#111827', backgroundColor: '#FFFFFF' },
   label: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
-  labelDark: { color: '#93C5FD' },
-  labelLight: { color: '#64748B' },
+  labelDark: { color: '#FCA5A5' },
+  labelLight: { color: '#525252' },
   value: { marginTop: 6, fontSize: 16, fontWeight: '600' },
   valueDark: { color: '#F9FAFB' },
   valueLight: { color: '#111827' },
   saveButton: {
     marginTop: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#EF4444',
     paddingVertical: 10,
     borderRadius: 14,
     alignItems: 'center',
