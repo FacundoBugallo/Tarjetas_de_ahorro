@@ -2,30 +2,38 @@ import { useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { monthDayOptions, weekdayOptions } from '../utils/schedule';
 
 const colorPalette = ['#FFE9D2', '#E2F4FF', '#EFE6FF', '#DCFCE7', '#FCE7F3'];
 const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
 
-export default function CreateCardModal({ visible, onClose, onSubmit }) {
+export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode }) {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [savedAmount, setSavedAmount] = useState('');
   const [cadence, setCadence] = useState('Mensual');
   const [nextContribution, setNextContribution] = useState('');
+  const [selectedWeekday, setSelectedWeekday] = useState(5);
+  const [selectedMonthDay, setSelectedMonthDay] = useState(26);
   const [selectedColor, setSelectedColor] = useState(colorPalette[0]);
 
   useEffect(() => {
     if (visible) {
       setName('');
+      setDescription('');
       setTargetAmount('');
       setSavedAmount('');
       setCadence('Mensual');
       setNextContribution('');
+      setSelectedWeekday(5);
+      setSelectedMonthDay(26);
       setSelectedColor(colorPalette[0]);
     }
   }, [visible]);
@@ -35,16 +43,24 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
     const parsedSaved = Number(savedAmount || 0);
     const parsedContribution = Number(nextContribution);
 
-    if (!name.trim() || Number.isNaN(parsedTarget) || Number.isNaN(parsedContribution)) {
+    const isInvalidNumbers =
+      Number.isNaN(parsedTarget) ||
+      Number.isNaN(parsedSaved) ||
+      Number.isNaN(parsedContribution);
+
+    if (!name.trim() || isInvalidNumbers || parsedTarget <= 0 || parsedContribution <= 0 || parsedSaved < 0) {
       return;
     }
 
     onSubmit({
       id: `card-${Date.now()}`,
       name: name.trim(),
+      description: description.trim(),
       targetAmount: parsedTarget,
-      savedAmount: Number.isNaN(parsedSaved) ? 0 : parsedSaved,
+      savedAmount: parsedSaved,
       cadence: cadence.trim() || 'Mensual',
+      contributionWeekday: cadence === 'Semanal' ? selectedWeekday : undefined,
+      contributionMonthDay: cadence === 'Mensual' ? selectedMonthDay : undefined,
       nextContribution: parsedContribution,
       color: selectedColor,
     });
@@ -58,92 +74,173 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
       onRequestClose={onClose}
     >
       <Pressable onPress={onClose} style={styles.backdrop}>
-        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+        <View
+          style={[styles.sheet, isDarkMode && styles.sheetDark]}
+          onStartShouldSetResponder={() => true}
+        >
           <View style={styles.headerRow}>
-            <Text style={styles.title}>Crear tarjeta</Text>
+            <Text style={[styles.title, isDarkMode && styles.titleDark]}>Crear tarjeta</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Cerrar</Text>
             </Pressable>
           </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.content}>
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Nombre</Text>
+                <TextInput value={name} onChangeText={setName} style={[styles.input, isDarkMode && styles.inputDark]} />
+              </View>
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Descripción</Text>
+                <TextInput
+                  value={description}
+                  onChangeText={setDescription}
+                  style={[styles.input, styles.multilineInput, isDarkMode && styles.inputDark]}
+                  multiline
+                />
+              </View>
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Meta (no puede ser 0)</Text>
+                <TextInput
+                  value={targetAmount}
+                  onChangeText={setTargetAmount}
+                  keyboardType="numeric"
+                  style={[styles.input, isDarkMode && styles.inputDark]}
+                />
+              </View>
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Valor inicial</Text>
+                <TextInput
+                  value={savedAmount}
+                  onChangeText={setSavedAmount}
+                  keyboardType="numeric"
+                  style={[styles.input, isDarkMode && styles.inputDark]}
+                />
+              </View>
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Cadencia</Text>
+                <View style={styles.optionRow}>
+                  {cadenceOptions.map((option) => {
+                    const isActive = cadence === option;
+                    return (
+                      <Pressable
+                        key={option}
+                        onPress={() => setCadence(option)}
+                        style={[
+                          styles.optionButton,
+                          isDarkMode && styles.optionButtonDark,
+                          isActive && styles.optionButtonActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.optionText,
+                            isDarkMode && styles.optionTextDark,
+                            isActive && styles.optionTextActive,
+                          ]}
+                        >
+                          {option}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Nombre</Text>
-            <TextInput value={name} onChangeText={setName} style={styles.input} />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Meta</Text>
-            <TextInput
-              value={targetAmount}
-              onChangeText={setTargetAmount}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Ahorrado</Text>
-            <TextInput
-              value={savedAmount}
-              onChangeText={setSavedAmount}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Cadencia</Text>
-            <View style={styles.optionRow}>
-              {cadenceOptions.map((option) => {
-                const isActive = cadence === option;
-                return (
-                  <Pressable
-                    key={option}
-                    onPress={() => setCadence(option)}
-                    style={[
-                      styles.optionButton,
-                      isActive && styles.optionButtonActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.optionText,
-                        isActive && styles.optionTextActive,
-                      ]}
-                    >
-                      {option}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Próximo aporte</Text>
-            <TextInput
-              value={nextContribution}
-              onChangeText={setNextContribution}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Color</Text>
-            <View style={styles.colorRow}>
-              {colorPalette.map((color) => {
-                const isActive = selectedColor === color;
-                return (
-                  <Pressable
-                    key={color}
-                    onPress={() => setSelectedColor(color)}
-                    style={[
-                      styles.colorSwatch,
-                      { backgroundColor: color },
-                      isActive && styles.colorSwatchActive,
-                    ]}
-                  />
-                );
-              })}
-            </View>
-          </View>
+              {cadence === 'Semanal' && (
+                <View style={styles.field}>
+                  <Text style={[styles.label, isDarkMode && styles.labelDark]}>¿Qué día aportas cada semana?</Text>
+                  <View style={styles.optionRow}>
+                    {weekdayOptions.map((option) => {
+                      const isActive = selectedWeekday === option.value;
+                      return (
+                        <Pressable
+                          key={option.value}
+                          onPress={() => setSelectedWeekday(option.value)}
+                          style={[
+                            styles.optionButton,
+                            isDarkMode && styles.optionButtonDark,
+                            isActive && styles.optionButtonActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.optionText,
+                              isDarkMode && styles.optionTextDark,
+                              isActive && styles.optionTextActive,
+                            ]}
+                          >
+                            {option.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
 
+              {cadence === 'Mensual' && (
+                <View style={styles.field}>
+                  <Text style={[styles.label, isDarkMode && styles.labelDark]}>¿Qué fecha aportas cada mes?</Text>
+                  <View style={styles.optionRow}>
+                    {monthDayOptions.map((day) => {
+                      const isActive = selectedMonthDay === day;
+                      return (
+                        <Pressable
+                          key={day}
+                          onPress={() => setSelectedMonthDay(day)}
+                          style={[
+                            styles.dayButton,
+                            isDarkMode && styles.dayButtonDark,
+                            isActive && styles.optionButtonActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.optionText,
+                              isDarkMode && styles.optionTextDark,
+                              isActive && styles.optionTextActive,
+                            ]}
+                          >
+                            {day}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Próximo aporte (no puede ser 0)</Text>
+                <TextInput
+                  value={nextContribution}
+                  onChangeText={setNextContribution}
+                  keyboardType="numeric"
+                  style={[styles.input, isDarkMode && styles.inputDark]}
+                />
+              </View>
+              <View style={styles.field}>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Color</Text>
+                <View style={styles.colorRow}>
+                  {colorPalette.map((color) => {
+                    const isActive = selectedColor === color;
+                    return (
+                      <Pressable
+                        key={color}
+                        onPress={() => setSelectedColor(color)}
+                        style={[
+                          styles.colorSwatch,
+                          { backgroundColor: color },
+                          isActive && styles.colorSwatchActive,
+                        ]}
+                      />
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
           <Pressable onPress={handleSubmit} style={styles.saveButton}>
             <Text style={styles.saveButtonText}>Agregar tarjeta</Text>
           </Pressable>
@@ -165,7 +262,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 20,
     gap: 12,
+    maxHeight: '88%',
   },
+  sheetDark: {
+    backgroundColor: '#0F172A',
+  },
+  content: { gap: 12 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -177,6 +279,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
+  titleDark: { color: '#F8FAFC' },
   closeButton: {
     backgroundColor: '#111827',
     paddingVertical: 6,
@@ -191,6 +294,32 @@ const styles = StyleSheet.create({
   field: {
     gap: 6,
   },
+  label: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: '#6B7280',
+  },
+  labelDark: { color: '#94A3B8' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#FFFFFF',
+  },
+  inputDark: {
+    borderColor: '#334155',
+    color: '#F8FAFC',
+    backgroundColor: '#111827',
+  },
+  multilineInput: {
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
   optionRow: {
     flexDirection: 'row',
     gap: 8,
@@ -198,10 +327,24 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#CBD5E1',
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
+  },
+  optionButtonDark: {
+    borderColor: '#334155',
+  },
+  dayButton: {
+    width: 36,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 999,
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  dayButtonDark: {
+    borderColor: '#334155',
   },
   optionButtonActive: {
     backgroundColor: '#111827',
@@ -209,51 +352,38 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 12,
-    color: '#111827',
+    color: '#334155',
     fontWeight: '600',
   },
+  optionTextDark: { color: '#CBD5E1' },
   optionTextActive: {
     color: '#FFFFFF',
   },
-  label: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    color: '#6B7280',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: '#111827',
-  },
-  saveButton: {
-    marginTop: 4,
-    backgroundColor: '#2563EB',
-    paddingVertical: 10,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
   colorRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
+    gap: 10,
   },
   colorSwatch: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: 'transparent',
   },
   colorSwatchActive: {
     borderColor: '#111827',
+    borderWidth: 2,
+  },
+  saveButton: {
+    marginTop: 6,
+    backgroundColor: '#2563EB',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
   },
   saveButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+    fontSize: 14,
   },
 });
