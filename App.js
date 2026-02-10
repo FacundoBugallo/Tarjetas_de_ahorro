@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useMemo, useState } from 'react';
 
 import CreateCardModal from './components/CreateCardModal';
@@ -13,40 +13,51 @@ import savingsCards from './data/savingsCards';
 import { clampPercentage, formatCurrency } from './utils/formatters';
 
 const tabs = [
-  { key: 'inicio', label: 'Inicio', emoji: '🏠' },
-  { key: 'graficos', label: 'Gráficos', emoji: '📊' },
-  { key: 'perfil', label: 'Perfil', emoji: '👤' },
+  { key: 'inicio', label: 'Inicio' },
+  { key: 'graficos', label: 'Gráficos' },
+  { key: 'perfil', label: 'Perfil' },
 ];
 
 export default function App() {
   const [cards, setCards] = useState(savingsCards);
-  const [userName, setUserName] = useState('Camila');
-  const [points, setPoints] = useState(0);
-  const [incomeStatus, setIncomeStatus] = useState('Ingresos fijo');
-  const [monthlyIncome, setMonthlyIncome] = useState(4200);
+  const [userName, setUserName] = useState('');
+  const [plannedInvestment, setPlannedInvestment] = useState(0);
+  const [totalInvestedThisMonth, setTotalInvestedThisMonth] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('inicio');
+  const [isOnboardingDone, setIsOnboardingDone] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
 
-  const totalTargetMonthly = cards.reduce(
-    (sum, card) => sum + card.nextContribution,
-    0,
-  );
-  const availableMonthly = Math.max(
-    monthlyIncome - totalTargetMonthly + bonusAvailable,
-    0,
-  );
-  const level = Math.floor(points / 100) + 1;
+  const level = Math.floor((historyItems.length * 25) / 100) + 1;
+  const points = historyItems.reduce((sum, item) => sum + item.points, 0);
   const levelLabel = `Nivel ${level}`;
   const pointsLabel = `${points} pts`;
+
+  const plannedVsActualPercent = plannedInvestment > 0
+    ? clampPercentage((totalInvestedThisMonth / plannedInvestment) * 100)
+    : 0;
 
   const chartData = useMemo(
     () => cards.map((card) => ({ ...card, percent: clampPercentage((card.savedAmount / card.targetAmount) * 100) })),
     [cards],
   );
+
+  const handleCompleteOnboarding = () => {
+    const parsedInvestment = Number(draftPlannedInvestment);
+
+    if (!draftName.trim() || Number.isNaN(parsedInvestment) || parsedInvestment < 0) {
+      return;
+    }
+
+    setUserName(draftName.trim());
+    setPlannedInvestment(parsedInvestment);
+    setIsOnboardingDone(true);
+  };
 
   const handleAddContribution = (cardId) => {
     setCards((prevCards) => {
@@ -58,10 +69,11 @@ export default function App() {
         }
 
         const updatedAmount = card.savedAmount + card.nextContribution;
+        setTotalInvestedThisMonth((prev) => prev + card.nextContribution);
+
         if (updatedAmount >= card.targetAmount) {
           const overflow = updatedAmount - card.targetAmount;
           const earnedPoints = Math.round(card.targetAmount / 10);
-          setPoints((prevPoints) => prevPoints + earnedPoints);
           setBonusAvailable((prevBonus) => prevBonus + overflow);
           setHistoryItems((prevHistory) => [
             {
@@ -91,12 +103,55 @@ export default function App() {
 
   const handleSaveUser = (updatedUser) => {
     setUserName(updatedUser.userName);
-    setIncomeStatus(updatedUser.incomeStatus);
-    setMonthlyIncome(updatedUser.monthlyIncome);
+    setPlannedInvestment(updatedUser.plannedInvestment);
   };
 
+  if (!isOnboardingDone) {
+    return (
+      <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
+        <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
+          <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
+            Configuremos tu mes
+          </Text>
+          <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
+            Dinos tu nombre y cuánto crees que vas a invertir este mes.
+          </Text>
+
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Tu nombre</Text>
+          <TextInput
+            value={draftName}
+            onChangeText={setDraftName}
+            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="Escribe tu nombre"
+            placeholderTextColor={isDarkMode ? '#64748B' : '#94A3B8'}
+          />
+
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+            Destinado a invertir
+          </Text>
+          <TextInput
+            value={draftPlannedInvestment}
+            onChangeText={setDraftPlannedInvestment}
+            keyboardType="numeric"
+            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="0"
+            placeholderTextColor={isDarkMode ? '#64748B' : '#94A3B8'}
+          />
+
+          <Pressable onPress={handleCompleteOnboarding} style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Empezar</Text>
+          </Pressable>
+          <Pressable onPress={() => setIsDarkMode((prev) => !prev)} style={styles.secondaryThemeButton}>
+            <Text style={styles.secondaryThemeButtonText}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
+          </Pressable>
+        </View>
+        <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Header
           onToggleTheme={() => setIsDarkMode((prev) => !prev)}
@@ -109,21 +164,27 @@ export default function App() {
         {activeTab === 'inicio' && (
           <>
             <SummaryCard
-              availableMonthly={availableMonthly}
-              incomeStatus={incomeStatus}
+              plannedInvestment={plannedInvestment}
+              actualInvestment={totalInvestedThisMonth}
               isDarkMode={isDarkMode}
             />
             <SectionHeader onCreate={() => setIsCreateCardVisible(true)} isDarkMode={isDarkMode} />
 
             <View style={styles.cardList}>
-              {cards.map((card) => (
-                <SavingsCard
-                  key={card.id}
-                  card={card}
-                  onAddContribution={handleAddContribution}
-                  isDarkMode={isDarkMode}
-                />
-              ))}
+              {cards.length === 0 ? (
+                <Text style={[styles.emptyText, isDarkMode ? styles.emptyTextDark : styles.emptyTextLight]}>
+                  No hay tarjetas creadas. Crea la primera para empezar.
+                </Text>
+              ) : (
+                cards.map((card) => (
+                  <SavingsCard
+                    key={card.id}
+                    card={card}
+                    onAddContribution={handleAddContribution}
+                    isDarkMode={isDarkMode}
+                  />
+                ))
+              )}
             </View>
 
             <HistoryCard items={historyItems} isDarkMode={isDarkMode} />
@@ -131,53 +192,82 @@ export default function App() {
         )}
 
         {activeTab === 'graficos' && (
-          <View style={[styles.panel, isDarkMode && styles.panelDark]}>
-            <Text style={[styles.panelTitle, isDarkMode && styles.panelTitleDark]}>📊 Ritmo de ahorro</Text>
-            <Text style={[styles.panelSubTitle, isDarkMode && styles.panelSubTitleDark]}>
-              Sigue el avance de cada meta con un estilo más neón.
+          <View style={[styles.panel, isDarkMode ? styles.panelDark : styles.panelLight]}>
+            <Text style={[styles.panelTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
+              Comparativo mensual
             </Text>
-            {chartData.map((item) => (
-              <View key={item.id} style={styles.chartRow}>
-                <View style={styles.chartHeader}>
-                  <Text style={styles.chartName}>🎯 {item.name}</Text>
-                  <Text style={styles.chartPercent}>{item.percent.toFixed(0)}%</Text>
-                </View>
-                <View style={styles.chartTrack}>
-                  <View style={[styles.chartFill, { width: `${item.percent}%`, backgroundColor: item.color }]} />
-                </View>
-                <Text style={styles.chartAmount}>
-                  {formatCurrency(item.savedAmount)} / {formatCurrency(item.targetAmount)}
-                </Text>
+            <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+              Destinado a invertir vs invertido real.
+            </Text>
+
+            <View style={styles.chartRow}>
+              <View style={styles.chartHeader}>
+                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Destinado</Text>
+                <Text style={styles.chartAmount}>{formatCurrency(plannedInvestment)}</Text>
               </View>
-            ))}
+              <View style={styles.chartTrack}>
+                <View style={[styles.chartFill, styles.plannedFill, { width: '100%' }]} />
+              </View>
+            </View>
+
+            <View style={styles.chartRow}>
+              <View style={styles.chartHeader}>
+                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Invertido real</Text>
+                <Text style={styles.chartAmount}>{formatCurrency(totalInvestedThisMonth)}</Text>
+              </View>
+              <View style={styles.chartTrack}>
+                <View style={[styles.chartFill, styles.actualFill, { width: `${plannedVsActualPercent}%` }]} />
+              </View>
+            </View>
+
+            <Text style={styles.chartPercent}>{plannedVsActualPercent.toFixed(0)}% del objetivo mensual</Text>
+
+            {chartData.length > 0 && (
+              <>
+                <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
+                  Avance por tarjeta
+                </Text>
+                {chartData.map((item) => (
+                  <View key={item.id} style={styles.chartRow}>
+                    <View style={styles.chartHeader}>
+                      <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>{item.name}</Text>
+                      <Text style={styles.chartPercent}>{item.percent.toFixed(0)}%</Text>
+                    </View>
+                    <View style={styles.chartTrack}>
+                      <View style={[styles.chartFill, { width: `${item.percent}%`, backgroundColor: item.color }]} />
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
           </View>
         )}
 
         {activeTab === 'perfil' && (
-          <View style={[styles.panel, isDarkMode && styles.panelDark]}>
-            <Text style={[styles.panelTitle, isDarkMode && styles.panelTitleDark]}>👤 Tu zona financiera</Text>
+          <View style={[styles.panel, isDarkMode ? styles.panelDark : styles.panelLight]}>
+            <Text style={[styles.panelTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>Tu zona financiera</Text>
             <View style={styles.profileGrid}>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>🏅 Puntos</Text>
+                <Text style={styles.profileLabel}>Puntos</Text>
                 <Text style={styles.profileValue}>{pointsLabel}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>💼 Ingreso</Text>
-                <Text style={styles.profileValue}>{incomeStatus}</Text>
+                <Text style={styles.profileLabel}>Destinado a invertir</Text>
+                <Text style={styles.profileValue}>{formatCurrency(plannedInvestment)}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>💵 Disponible</Text>
-                <Text style={styles.profileValue}>{formatCurrency(availableMonthly)}</Text>
+                <Text style={styles.profileLabel}>Invertido real</Text>
+                <Text style={styles.profileValue}>{formatCurrency(totalInvestedThisMonth + bonusAvailable)}</Text>
               </View>
             </View>
             <Pressable onPress={() => setIsSummaryVisible(true)} style={styles.profileButton}>
-              <Text style={styles.profileButtonText}>⚙️ Editar datos del usuario</Text>
+              <Text style={styles.profileButtonText}>Editar datos del usuario</Text>
             </Pressable>
           </View>
         )}
       </ScrollView>
 
-      <View style={[styles.bottomNav, isDarkMode && styles.bottomNavDark]}>
+      <View style={[styles.bottomNav, isDarkMode ? styles.bottomNavDark : styles.bottomNavLight]}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
@@ -186,7 +276,6 @@ export default function App() {
               onPress={() => setActiveTab(tab.key)}
               style={[styles.navButton, isActive && styles.navButtonActive]}
             >
-              <Text style={styles.navEmoji}>{tab.emoji}</Text>
               <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>{tab.label}</Text>
             </Pressable>
           );
@@ -199,9 +288,8 @@ export default function App() {
         userName={userName}
         levelLabel={levelLabel}
         pointsLabel={pointsLabel}
-        incomeStatus={incomeStatus}
-        monthlyIncome={monthlyIncome}
-        availableMonthly={availableMonthly}
+        plannedInvestment={plannedInvestment}
+        actualInvestment={totalInvestedThisMonth}
         onSave={handleSaveUser}
         isDarkMode={isDarkMode}
       />
@@ -217,165 +305,151 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#030712',
+  safeArea: { flex: 1 },
+  safeAreaDark: { backgroundColor: '#020617' },
+  safeAreaLight: { backgroundColor: '#F1F5F9' },
+  scrollContent: { padding: 20, paddingBottom: 120 },
+  cardList: { gap: 16, marginBottom: 24 },
+  emptyText: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    textAlign: 'center',
+    fontWeight: '600',
   },
-  safeAreaDark: {
-    backgroundColor: '#020617',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 120,
-  },
-  cardList: {
-    gap: 16,
-    marginBottom: 24,
-  },
+  emptyTextDark: { borderColor: '#1E3A8A', color: '#93C5FD', backgroundColor: '#0B1220' },
+  emptyTextLight: { borderColor: '#BFDBFE', color: '#1E3A8A', backgroundColor: '#EFF6FF' },
   panel: {
-    backgroundColor: '#0B1120',
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#1D4ED8',
-    shadowColor: '#22D3EE',
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    shadowColor: '#020617',
+    shadowOpacity: 0.45,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
-  panelDark: {
-    backgroundColor: '#020617',
-    borderColor: '#0EA5E9',
-  },
-  panelTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#F8FAFC',
-  },
-  panelTitleDark: {
-    color: '#F8FAFC',
-  },
-  panelSubTitle: {
-    marginTop: 8,
-    marginBottom: 16,
-    color: '#A5F3FC',
-    fontSize: 13,
-  },
-  panelSubTitleDark: {
-    color: '#A5F3FC',
-  },
-  chartRow: {
-    marginBottom: 14,
-  },
+  panelDark: { backgroundColor: '#0B1220', borderColor: '#1E3A8A' },
+  panelLight: { backgroundColor: '#FFFFFF', borderColor: '#BFDBFE' },
+  panelTitle: { fontSize: 20, fontWeight: '800' },
+  panelTitleDark: { color: '#F8FAFC' },
+  panelTitleLight: { color: '#0F172A' },
+  panelSubTitle: { marginTop: 8, marginBottom: 16, fontSize: 13 },
+  panelSubTitleDark: { color: '#93C5FD' },
+  panelSubTitleLight: { color: '#1E3A8A' },
+  innerTitle: { marginTop: 20, marginBottom: 8, fontSize: 16 },
+  chartRow: { marginBottom: 14 },
   chartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 6,
+    gap: 8,
   },
-  chartName: {
-    color: '#E2E8F0',
-    fontWeight: '700',
-  },
-  chartPercent: {
-    color: '#F0ABFC',
-    fontWeight: '800',
-  },
+  chartName: { fontWeight: '700' },
+  chartNameDark: { color: '#E2E8F0' },
+  chartNameLight: { color: '#0F172A' },
+  chartPercent: { color: '#2563EB', fontWeight: '800' },
   chartTrack: {
     height: 12,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#E2E8F0',
     borderRadius: 999,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#CBD5E1',
   },
-  chartFill: {
-    height: '100%',
-    borderRadius: 999,
-  },
-  chartAmount: {
-    marginTop: 4,
-    color: '#93C5FD',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  profileGrid: {
-    marginTop: 12,
-    gap: 10,
-  },
+  chartFill: { height: '100%', borderRadius: 999 },
+  plannedFill: { backgroundColor: '#1D4ED8' },
+  actualFill: { backgroundColor: '#38BDF8' },
+  chartAmount: { color: '#1E3A8A', fontSize: 12, fontWeight: '700' },
+  profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
-    backgroundColor: '#111827',
+    backgroundColor: '#EFF6FF',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#22D3EE',
+    borderColor: '#BFDBFE',
   },
-  profileLabel: {
-    color: '#67E8F9',
-    fontSize: 12,
-  },
-  profileValue: {
-    marginTop: 4,
-    color: '#F8FAFC',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  profileLabel: { color: '#1D4ED8', fontSize: 12 },
+  profileValue: { marginTop: 4, color: '#0F172A', fontSize: 16, fontWeight: '700' },
   profileButton: {
     marginTop: 16,
     borderRadius: 14,
-    backgroundColor: '#D946EF',
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     paddingVertical: 12,
-    shadowColor: '#D946EF',
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 7,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.38,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
   },
-  profileButtonText: {
-    color: '#FDF4FF',
-    fontWeight: '800',
-  },
+  profileButtonText: { color: '#FFFFFF', fontWeight: '800' },
   bottomNav: {
     position: 'absolute',
     left: 16,
     right: 16,
     bottom: 16,
     borderRadius: 20,
-    backgroundColor: '#0F172A',
     padding: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#1D4ED8',
-    shadowColor: '#22D3EE',
-    shadowOpacity: 0.38,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 9,
+    shadowColor: '#020617',
+    shadowOpacity: 0.45,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
-  bottomNavDark: {
-    backgroundColor: '#020617',
+  bottomNavDark: { backgroundColor: '#0B1220', borderColor: '#1E3A8A' },
+  bottomNavLight: { backgroundColor: '#FFFFFF', borderColor: '#BFDBFE' },
+  navButton: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 14 },
+  navButtonActive: { backgroundColor: '#1D4ED8' },
+  navLabel: { color: '#1E3A8A', fontSize: 12, fontWeight: '700' },
+  navLabelActive: { color: '#FFFFFF' },
+
+  onboardingCard: {
+    margin: 20,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    shadowColor: '#020617',
+    shadowOpacity: 0.45,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
-  navButton: {
-    flex: 1,
+  onboardingCardDark: { backgroundColor: '#0B1220', borderColor: '#1E3A8A' },
+  onboardingCardLight: { backgroundColor: '#FFFFFF', borderColor: '#BFDBFE' },
+  onboardingTitle: { fontSize: 24, fontWeight: '800' },
+  onboardingTitleDark: { color: '#F8FAFC' },
+  onboardingTitleLight: { color: '#0F172A' },
+  onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
+  onboardingSubtitleDark: { color: '#93C5FD' },
+  onboardingSubtitleLight: { color: '#1E3A8A' },
+  inputLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6, marginTop: 8 },
+  inputLabelDark: { color: '#BFDBFE' },
+  inputLabelLight: { color: '#1E3A8A' },
+  input: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+  },
+  inputDark: { borderColor: '#1E3A8A', color: '#F9FAFB', backgroundColor: '#0F172A' },
+  inputLight: { borderColor: '#CBD5E1', color: '#111827', backgroundColor: '#F8FAFC' },
+  primaryButton: {
+    marginTop: 18,
+    backgroundColor: '#2563EB',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  primaryButtonText: { color: '#FFFFFF', fontWeight: '700' },
+  secondaryThemeButton: {
+    marginTop: 10,
     alignItems: 'center',
     paddingVertical: 8,
-    borderRadius: 14,
   },
-  navButtonActive: {
-    backgroundColor: '#1D4ED8',
-  },
-  navEmoji: {
-    fontSize: 16,
-  },
-  navLabel: {
-    marginTop: 4,
-    color: '#93C5FD',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  navLabelActive: {
-    color: '#FFFFFF',
-  },
+  secondaryThemeButtonText: { color: '#2563EB', fontWeight: '700' },
 });
