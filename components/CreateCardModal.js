@@ -12,11 +12,13 @@ import { monthDayOptions, weekdayOptions } from '../utils/schedule';
 
 const colorPalette = [
   '#FFFFFF',
-  '#E5E7EB',
-  '#D4D4D4',
-  '#A3A3A3',
-  '#737373',
-  '#525252',
+  '#FEF3C7',
+  '#DBEAFE',
+  '#DCFCE7',
+  '#FCE7F3',
+  '#E9D5FF',
+  '#D1FAE5',
+  '#FEE2E2',
   '#262626',
   '#000000',
 ];
