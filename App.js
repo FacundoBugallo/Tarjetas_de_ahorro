@@ -33,6 +33,7 @@ export default function App() {
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
+  const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -108,6 +109,7 @@ export default function App() {
         if (updatedAmount >= card.targetAmount) {
           const overflow = updatedAmount - card.targetAmount;
           const earnedPoints = Math.round(card.targetAmount / 10);
+          setBonusWithdrawnMessage('');
           setBonusAvailable((prevBonus) => prevBonus + overflow);
           setHistoryItems((prevHistory) => [
             {
@@ -170,6 +172,17 @@ export default function App() {
   const handleSaveUser = (updatedUser) => {
     setUserName(updatedUser.userName);
     setPlannedInvestment(updatedUser.plannedInvestment);
+  };
+
+  const handleWithdrawBonus = () => {
+    if (bonusAvailable <= 0) {
+      return;
+    }
+
+    const amountWithdrawn = bonusAvailable;
+    registerTransaction(-amountWithdrawn);
+    setBonusAvailable(0);
+    setBonusWithdrawnMessage(`Retiraste el sobrante de ${formatCurrency(amountWithdrawn, selectedCurrency)}.`);
   };
 
   if (!isOnboardingDone) {
@@ -258,6 +271,21 @@ export default function App() {
               <View style={[styles.overflowNotice, isDarkMode ? styles.overflowNoticeDark : styles.overflowNoticeLight]}>
                 <Text style={[styles.overflowNoticeText, isDarkMode ? styles.overflowNoticeTextDark : styles.overflowNoticeTextLight]}>
                   Tienes un sobrante disponible de {formatCurrency(bonusAvailable, selectedCurrency)}.
+                </Text>
+                <Pressable
+                  onPress={handleWithdrawBonus}
+                  style={[styles.withdrawBonusButton, isDarkMode ? styles.withdrawBonusButtonDark : styles.withdrawBonusButtonLight]}
+                >
+                  <Text style={[styles.withdrawBonusButtonText, isDarkMode ? styles.withdrawBonusButtonTextDark : styles.withdrawBonusButtonTextLight]}>
+                    Retirar sobrante
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+            {!bonusAvailable && !!bonusWithdrawnMessage && (
+              <View style={[styles.overflowNotice, isDarkMode ? styles.overflowNoticeDark : styles.overflowNoticeLight]}>
+                <Text style={[styles.overflowNoticeText, isDarkMode ? styles.overflowNoticeTextDark : styles.overflowNoticeTextLight]}>
+                  {bonusWithdrawnMessage}
                 </Text>
               </View>
             )}
@@ -469,13 +497,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  panelDark: { backgroundColor: '#000000', borderColor: '#DC2626' },
+  panelDark: { backgroundColor: '#000000', borderColor: '#7F1D1D' },
   panelLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   panelTitle: { fontSize: 20, fontWeight: '800' },
   panelTitleDark: { color: '#F8F6F0' },
   panelTitleLight: { color: '#111111' },
   panelSubTitle: { marginTop: 8, marginBottom: 16, fontSize: 13 },
-  panelSubTitleDark: { color: '#FCA5A5' },
+  panelSubTitleDark: { color: '#FECACA' },
   panelSubTitleLight: { color: '#000000' },
   innerTitle: { marginTop: 20, marginBottom: 8, fontSize: 16 },
   chartRow: { marginBottom: 14 },
@@ -488,7 +516,7 @@ const styles = StyleSheet.create({
   chartName: { fontWeight: '700' },
   chartNameDark: { color: '#E5E7EB' },
   chartNameLight: { color: '#111111' },
-  chartPercent: { color: '#DC2626', fontWeight: '800' },
+  chartPercent: { color: '#B91C1C', fontWeight: '800' },
   chartTrack: {
     height: 12,
     backgroundColor: '#E5E7EB',
@@ -498,8 +526,8 @@ const styles = StyleSheet.create({
     borderColor: '#D4D4D4',
   },
   chartFill: { height: '100%', borderRadius: 999 },
-  plannedFill: { backgroundColor: '#DC2626' },
-  actualFill: { backgroundColor: '#F87171' },
+  plannedFill: { backgroundColor: '#7F1D1D' },
+  actualFill: { backgroundColor: '#B91C1C' },
   chartAmount: { color: '#000000', fontSize: 12, fontWeight: '700' },
   profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
@@ -530,11 +558,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 12,
   },
-  overflowNoticeDark: { backgroundColor: '#1F1F1F', borderColor: '#DC2626' },
+  overflowNoticeDark: { backgroundColor: '#1A1A1A', borderColor: '#7F1D1D' },
   overflowNoticeLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   overflowNoticeText: { fontSize: 13, fontWeight: '700' },
   overflowNoticeTextDark: { color: '#FECACA' },
   overflowNoticeTextLight: { color: '#000000' },
+  withdrawBonusButton: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  withdrawBonusButtonDark: { backgroundColor: '#7F1D1D', borderColor: '#991B1B' },
+  withdrawBonusButtonLight: { backgroundColor: '#000000', borderColor: '#000000' },
+  withdrawBonusButtonText: { fontWeight: '700', fontSize: 12 },
+  withdrawBonusButtonTextDark: { color: '#FEE2E2' },
+  withdrawBonusButtonTextLight: { color: '#FFFFFF' },
   bottomNav: {
     position: 'absolute',
     left: 16,
@@ -551,7 +592,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  bottomNavDark: { backgroundColor: '#DC2626', borderColor: '#DC2626' },
+  bottomNavDark: { backgroundColor: '#7F1D1D', borderColor: '#7F1D1D' },
   bottomNavLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   navButton: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 14 },
   navButtonActive: { backgroundColor: '#000000' },
@@ -569,13 +610,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  onboardingCardDark: { backgroundColor: '#000000', borderColor: '#DC2626' },
+  onboardingCardDark: { backgroundColor: '#000000', borderColor: '#7F1D1D' },
   onboardingCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   onboardingTitle: { fontSize: 24, fontWeight: '800' },
   onboardingTitleDark: { color: '#F8F6F0' },
   onboardingTitleLight: { color: '#111111' },
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
-  onboardingSubtitleDark: { color: '#FCA5A5' },
+  onboardingSubtitleDark: { color: '#FECACA' },
   onboardingSubtitleLight: { color: '#000000' },
   inputLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6, marginTop: 8 },
   inputLabelDark: { color: '#FECACA' },
@@ -587,7 +628,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
   },
-  inputDark: { borderColor: '#B91C1C', color: '#F9FAFB', backgroundColor: '#111111' },
+  inputDark: { borderColor: '#7F1D1D', color: '#F9FAFB', backgroundColor: '#111111' },
   inputLight: { borderColor: '#000000', color: '#000000', backgroundColor: '#FFFFFF' },
   primaryButton: {
     marginTop: 18,
@@ -602,7 +643,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  secondaryThemeButtonText: { color: '#DC2626', fontWeight: '700' },
+  secondaryThemeButtonText: { color: '#B91C1C', fontWeight: '700' },
   currencyRow: { flexDirection: 'row', gap: 10, marginBottom: 4 },
   currencyButton: {
     flex: 1,
