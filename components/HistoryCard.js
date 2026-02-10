@@ -4,17 +4,22 @@ import { formatCurrency } from '../utils/formatters';
 
 export default function HistoryCard({ items = [], isDarkMode }) {
   const [expandedItems, setExpandedItems] = useState({});
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleItem = (id) => {
     setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
-    <View style={[styles.historyCard, isDarkMode && styles.historyCardDark]}>
-      <Text style={[styles.historyTitle, isDarkMode && styles.historyTitleDark]}>🧾 Historial</Text>
-      {items.length === 0 ? (
+    <View style={[styles.historyCard, isDarkMode ? styles.historyCardDark : styles.historyCardLight]}>
+      <Pressable style={styles.headerRow} onPress={() => setIsCollapsed((prev) => !prev)}>
+        <Text style={[styles.historyTitle, isDarkMode ? styles.historyTitleDark : styles.historyTitleLight]}>Historial</Text>
+        <Text style={styles.collapseText}>{isCollapsed ? 'Mostrar' : 'Minimizar'}</Text>
+      </Pressable>
+
+      {isCollapsed ? null : items.length === 0 ? (
         <Text style={[styles.historyEmpty, isDarkMode && styles.historyEmptyDark]}>
-          Aún no hay metas completadas 🚀
+          Aún no hay metas completadas.
         </Text>
       ) : (
         items.map((item) => {
@@ -28,9 +33,7 @@ export default function HistoryCard({ items = [], isDarkMode }) {
               <View style={styles.historyMainRow}>
                 <View style={styles.historyTextWrap}>
                   <Text style={[styles.historyLabel, isDarkMode && styles.historyLabelDark]}>{item.name}</Text>
-                  <Text style={styles.historyMeta}>
-                    Meta: {formatCurrency(item.targetAmount)}
-                  </Text>
+                  <Text style={styles.historyMeta}>Meta: {formatCurrency(item.targetAmount)}</Text>
                 </View>
                 <Text style={[styles.historyValue, isDarkMode && styles.historyValueDark]}>+{item.points} pts</Text>
               </View>
@@ -57,35 +60,48 @@ export default function HistoryCard({ items = [], isDarkMode }) {
 
 const styles = StyleSheet.create({
   historyCard: {
-    backgroundColor: '#0B1120',
     borderRadius: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#1D4ED8',
-    shadowColor: '#22D3EE',
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 6,
+    shadowColor: '#020617',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
   },
   historyCardDark: {
-    backgroundColor: '#111827',
+    backgroundColor: '#0B1220',
+    borderColor: '#1E3A8A',
+  },
+  historyCardLight: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#BFDBFE',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
   },
   historyTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#F8FAFC',
-    marginBottom: 12,
   },
   historyTitleDark: { color: '#F8FAFC' },
+  historyTitleLight: { color: '#0F172A' },
+  collapseText: {
+    color: '#2563EB',
+    fontWeight: '700',
+    fontSize: 12,
+  },
   historyItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#E2E8F0',
     gap: 4,
   },
   historyItemDark: {
-    borderBottomColor: '#1F2937',
+    borderBottomColor: '#1E293B',
   },
   historyMainRow: {
     flexDirection: 'row',
@@ -93,46 +109,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 8,
   },
-  historyTextWrap: {
-    flex: 1,
-  },
-  historyEmpty: {
-    fontSize: 13,
-    color: '#A5F3FC',
-  },
-  historyEmptyDark: {
-    color: '#94A3B8',
-  },
-  historyLabel: {
-    fontSize: 13,
-    color: '#F8FAFC',
-    fontWeight: '600',
-  },
-  historyLabelDark: {
-    color: '#F8FAFC',
-  },
-  historyMeta: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#67E8F9',
-  },
-  historyDescription: {
-    fontSize: 12,
-    color: '#E2E8F0',
-    lineHeight: 18,
-  },
-  historyDescriptionDark: {
-    color: '#CBD5E1',
-  },
-  historyValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#F0ABFC',
-  },
-  historyValueDark: { color: '#E2E8F0' },
-  expandText: {
-    fontSize: 12,
-    color: '#22D3EE',
-    fontWeight: '600',
-  },
+  historyTextWrap: { flex: 1 },
+  historyEmpty: { fontSize: 13, color: '#334155' },
+  historyEmptyDark: { color: '#94A3B8' },
+  historyLabel: { fontSize: 13, color: '#0F172A', fontWeight: '600' },
+  historyLabelDark: { color: '#F8FAFC' },
+  historyMeta: { marginTop: 4, fontSize: 12, color: '#2563EB' },
+  historyDescription: { fontSize: 12, color: '#334155', lineHeight: 18 },
+  historyDescriptionDark: { color: '#CBD5E1' },
+  historyValue: { fontSize: 13, fontWeight: '700', color: '#1D4ED8' },
+  historyValueDark: { color: '#93C5FD' },
+  expandText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
 });

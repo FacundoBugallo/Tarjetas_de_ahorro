@@ -9,47 +9,39 @@ import {
 } from 'react-native';
 import { formatCurrency } from '../utils/formatters';
 
-const incomeOptions = ['Ingresos fijo', 'Ingresos variables'];
-
 export default function UserSummaryModal({
   visible,
   onClose,
   userName,
   levelLabel,
   pointsLabel,
-  incomeStatus,
-  monthlyIncome,
-  availableMonthly,
+  plannedInvestment,
+  actualInvestment,
   onSave,
   isDarkMode,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(userName);
-  const [draftIncomeStatus, setDraftIncomeStatus] = useState(incomeStatus);
-  const [draftMonthlyIncome, setDraftMonthlyIncome] = useState(
-    String(monthlyIncome),
-  );
+  const [draftPlannedInvestment, setDraftPlannedInvestment] = useState(String(plannedInvestment));
 
   useEffect(() => {
     if (visible) {
       setIsEditing(false);
       setDraftName(userName);
-      setDraftIncomeStatus(incomeStatus);
-      setDraftMonthlyIncome(String(monthlyIncome));
+      setDraftPlannedInvestment(String(plannedInvestment));
     }
-  }, [visible, userName, incomeStatus, monthlyIncome]);
+  }, [visible, userName, plannedInvestment]);
 
   const handleSave = () => {
-    const parsedMonthlyIncome = Number(draftMonthlyIncome);
+    const parsedPlannedInvestment = Number(draftPlannedInvestment);
 
-    if (!draftName.trim() || Number.isNaN(parsedMonthlyIncome)) {
+    if (!draftName.trim() || Number.isNaN(parsedPlannedInvestment) || parsedPlannedInvestment < 0) {
       return;
     }
 
     onSave({
       userName: draftName.trim(),
-      incomeStatus: draftIncomeStatus,
-      monthlyIncome: parsedMonthlyIncome,
+      plannedInvestment: parsedPlannedInvestment,
     });
 
     setIsEditing(false);
@@ -57,12 +49,7 @@ export default function UserSummaryModal({
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent
-      visible={visible}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} style={styles.backdrop}>
         <View style={[styles.sheet, isDarkMode ? styles.sheetDark : styles.sheetLight]} onStartShouldSetResponder={() => true}>
           <View style={styles.headerRow}>
@@ -103,54 +90,21 @@ export default function UserSummaryModal({
             <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{pointsLabel}</Text>
           </View>
           <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Nivel de ingresos</Text>
-            {isEditing ? (
-              <View style={styles.optionRow}>
-                {incomeOptions.map((option) => {
-                  const isActive = draftIncomeStatus === option;
-                  return (
-                    <Pressable
-                      key={option}
-                      onPress={() => setDraftIncomeStatus(option)}
-                      style={[
-                        styles.optionButton,
-                        isDarkMode ? styles.optionButtonDark : styles.optionButtonLight,
-                        isActive && styles.optionButtonActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          isDarkMode ? styles.optionTextDark : styles.optionTextLight,
-                          isActive && styles.optionTextActive,
-                        ]}
-                      >
-                        {option}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : (
-              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{incomeStatus}</Text>
-            )}
-          </View>
-          <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Sueldo mensual</Text>
+            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Destinado a invertir</Text>
             {isEditing ? (
               <TextInput
-                value={draftMonthlyIncome}
-                onChangeText={setDraftMonthlyIncome}
+                value={draftPlannedInvestment}
+                onChangeText={setDraftPlannedInvestment}
                 keyboardType="numeric"
                 style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
               />
             ) : (
-              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(monthlyIncome)}</Text>
+              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(plannedInvestment)}</Text>
             )}
           </View>
           <View style={[styles.row, styles.rowNoDivider]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Disponible por mes</Text>
-            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(availableMonthly)}</Text>
+            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Invertido real</Text>
+            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(actualInvestment)}</Text>
           </View>
           {isEditing && (
             <Pressable onPress={handleSave} style={styles.saveButton}>
@@ -175,7 +129,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
-  sheetDark: { backgroundColor: '#111827' },
+  sheetDark: { backgroundColor: '#0B1220' },
   sheetLight: { backgroundColor: '#FFFFFF' },
   headerRow: {
     flexDirection: 'row',
@@ -183,77 +137,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  title: { fontSize: 18, fontWeight: '700' },
   titleDark: { color: '#F9FAFB' },
   titleLight: { color: '#111827' },
-  secondaryButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-  },
-  secondaryButtonDark: { backgroundColor: '#1F2937' },
-  secondaryButtonLight: { backgroundColor: '#E5E7EB' },
-  secondaryButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  secondaryButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999 },
+  secondaryButtonDark: { backgroundColor: '#1E293B' },
+  secondaryButtonLight: { backgroundColor: '#E2E8F0' },
+  secondaryButtonText: { fontSize: 12, fontWeight: '600' },
   secondaryButtonTextDark: { color: '#E5E7EB' },
-  secondaryButtonTextLight: { color: '#111827' },
+  secondaryButtonTextLight: { color: '#1E3A8A' },
   closeButton: {
     backgroundColor: '#2563EB',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
   },
-  closeButtonText: {
-    color: '#F9FAFB',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  row: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  rowDark: { borderBottomColor: '#1F2937' },
+  closeButtonText: { color: '#F9FAFB', fontSize: 12, fontWeight: '600' },
+  row: { paddingVertical: 10, borderBottomWidth: 1 },
+  rowDark: { borderBottomColor: '#1E293B' },
   rowLight: { borderBottomColor: '#E5E7EB' },
-  rowNoDivider: {
-    borderBottomWidth: 0,
-  },
-  optionRow: {
-    marginTop: 6,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  optionButton: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  optionButtonDark: { borderColor: '#374151' },
-  optionButtonLight: { borderColor: '#CBD5E1' },
-  optionButtonActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
-  },
-  optionText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  optionTextDark: { color: '#E5E7EB' },
-  optionTextLight: { color: '#334155' },
-  optionTextActive: {
-    color: '#FFFFFF',
-  },
+  rowNoDivider: { borderBottomWidth: 0 },
   input: {
     marginTop: 6,
     borderWidth: 1,
@@ -262,28 +166,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
   },
-  inputDark: {
-    borderColor: '#374151',
-    color: '#F9FAFB',
-    backgroundColor: '#0F172A',
-  },
-  inputLight: {
-    borderColor: '#CBD5E1',
-    color: '#111827',
-    backgroundColor: '#FFFFFF',
-  },
-  label: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  labelDark: { color: '#9CA3AF' },
+  inputDark: { borderColor: '#1E3A8A', color: '#F9FAFB', backgroundColor: '#0F172A' },
+  inputLight: { borderColor: '#CBD5E1', color: '#111827', backgroundColor: '#FFFFFF' },
+  label: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
+  labelDark: { color: '#93C5FD' },
   labelLight: { color: '#64748B' },
-  value: {
-    marginTop: 6,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  value: { marginTop: 6, fontSize: 16, fontWeight: '600' },
   valueDark: { color: '#F9FAFB' },
   valueLight: { color: '#111827' },
   saveButton: {
@@ -293,8 +181,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
   },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
+  saveButtonText: { color: '#FFFFFF', fontWeight: '700' },
 });

@@ -3,10 +3,10 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function Header({ userName, levelLabel, pointsLabel, isDarkMode, onToggleTheme }) {
   return (
     <View style={styles.wrapper}>
-      <View style={styles.header}>
+      <View style={[styles.header, isDarkMode ? styles.headerDark : styles.headerLight]}>
         <View>
-          <Text style={[styles.greeting, isDarkMode && styles.greetingDark]}>💸 Hola, {userName}</Text>
-          <Text style={[styles.level, isDarkMode && styles.levelDark]}>{levelLabel}</Text>
+          <Text style={[styles.greeting, isDarkMode ? styles.greetingDark : styles.greetingLight]}>Hola, {userName}</Text>
+          <Text style={[styles.level, isDarkMode ? styles.levelDark : styles.levelLight]}>{levelLabel}</Text>
         </View>
         <View style={styles.levelBadge}>
           <Text style={styles.levelBadgeText}>{pointsLabel}</Text>
@@ -14,10 +14,10 @@ export default function Header({ userName, levelLabel, pointsLabel, isDarkMode, 
       </View>
       <TouchableOpacity
         onPress={onToggleTheme}
-        style={[styles.themeButton, isDarkMode && styles.themeButtonDark]}
+        style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
       >
-        <Text style={[styles.themeButtonText, isDarkMode && styles.themeButtonTextDark]}>
-          {isDarkMode ? '☀️ Modo claro' : '🌙 Modo oscuro'}
+        <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
+          {isDarkMode ? 'Modo claro' : 'Modo oscuro'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -25,69 +25,52 @@ export default function Header({ userName, levelLabel, pointsLabel, isDarkMode, 
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 20,
-    gap: 10,
-  },
+  wrapper: { marginBottom: 20, gap: 10 },
   header: {
     borderRadius: 20,
     padding: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    shadowColor: '#22D3EE',
+    shadowColor: '#020617',
     shadowOpacity: 0.45,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#E2E8F0',
+  headerDark: {
+    backgroundColor: '#0B1220',
+    borderWidth: 1,
+    borderColor: '#1E3A8A',
   },
-  greetingDark: {
-    color: '#F8FAFC',
+  headerLight: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
   },
-  level: {
-    marginTop: 4,
-    fontSize: 14,
-    color: '#67E8F9',
-  },
-  levelDark: {
-    color: '#A5F3FC',
-  },
+  greeting: { fontSize: 22, fontWeight: '700' },
+  greetingDark: { color: '#F8FAFC' },
+  greetingLight: { color: '#0F172A' },
+  level: { marginTop: 4, fontSize: 14 },
+  levelDark: { color: '#93C5FD' },
+  levelLight: { color: '#1D4ED8' },
   levelBadge: {
-    backgroundColor: '#E879F9',
+    backgroundColor: '#2563EB',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
   },
-  levelBadgeText: {
-    color: '#111827',
-    fontSize: 12,
-    fontWeight: '800',
-  },
+  levelBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
   themeButton: {
     alignSelf: 'flex-start',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  themeButtonDark: {
-    borderColor: '#334155',
-    backgroundColor: '#1E293B',
-  },
-  themeButtonText: {
-    color: '#111827',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  themeButtonTextDark: {
-    color: '#F8FAFC',
-  },
+  themeButtonDark: { borderColor: '#1E3A8A', backgroundColor: '#0B1220' },
+  themeButtonLight: { borderColor: '#93C5FD', backgroundColor: '#FFFFFF' },
+  themeButtonText: { fontSize: 12, fontWeight: '700' },
+  themeButtonTextDark: { color: '#DBEAFE' },
+  themeButtonTextLight: { color: '#1E3A8A' },
 });

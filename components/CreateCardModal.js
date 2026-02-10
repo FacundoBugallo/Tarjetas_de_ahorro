@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   },
   titleDark: { color: '#F8FAFC' },
   closeButton: {
-    backgroundColor: '#111827',
+    backgroundColor: '#1D4ED8',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
@@ -347,8 +347,8 @@ const styles = StyleSheet.create({
     borderColor: '#334155',
   },
   optionButtonActive: {
-    backgroundColor: '#111827',
-    borderColor: '#111827',
+    backgroundColor: '#1D4ED8',
+    borderColor: '#1D4ED8',
   },
   optionText: {
     fontSize: 12,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   colorSwatchActive: {
-    borderColor: '#111827',
+    borderColor: '#1D4ED8',
     borderWidth: 2,
   },
   saveButton: {
