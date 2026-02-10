@@ -19,6 +19,7 @@ export default function UserSummaryModal({
   actualInvestment,
   onSave,
   isDarkMode,
+  currencyCode,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(userName);
@@ -99,12 +100,12 @@ export default function UserSummaryModal({
                 style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
               />
             ) : (
-              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(plannedInvestment)}</Text>
+              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(plannedInvestment, currencyCode)}</Text>
             )}
           </View>
           <View style={[styles.row, styles.rowNoDivider]}>
             <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Invertido real</Text>
-            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(actualInvestment)}</Text>
+            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(actualInvestment, currencyCode)}</Text>
           </View>
           {isEditing && (
             <Pressable onPress={handleSave} style={styles.saveButton}>

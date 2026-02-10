@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '../utils/formatters';
 
-export default function HistoryCard({ items = [], isDarkMode }) {
+export default function HistoryCard({ items = [], isDarkMode, currencyCode }) {
   const [expandedItems, setExpandedItems] = useState({});
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -33,7 +33,7 @@ export default function HistoryCard({ items = [], isDarkMode }) {
               <View style={styles.historyMainRow}>
                 <View style={styles.historyTextWrap}>
                   <Text style={[styles.historyLabel, isDarkMode && styles.historyLabelDark]}>{item.name}</Text>
-                  <Text style={styles.historyMeta}>Meta: {formatCurrency(item.targetAmount)}</Text>
+                  <Text style={styles.historyMeta}>Meta: {formatCurrency(item.targetAmount, currencyCode)}</Text>
                 </View>
                 <Text style={[styles.historyValue, isDarkMode && styles.historyValueDark]}>+{item.points} pts</Text>
               </View>
