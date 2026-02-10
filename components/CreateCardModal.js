@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     maxHeight: '88%',
   },
   sheetDark: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#111111',
   },
   content: { gap: 12 },
   headerRow: {
@@ -288,9 +288,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
-  titleDark: { color: '#F8FAFC' },
+  titleDark: { color: '#F8F6F0' },
   closeButton: {
-    backgroundColor: '#1D4ED8',
+    backgroundColor: '#DC2626',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     color: '#6B7280',
   },
-  labelDark: { color: '#94A3B8' },
+  labelDark: { color: '#737373' },
   input: {
     borderWidth: 1,
     borderColor: '#D1D5DB',
@@ -321,8 +321,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   inputDark: {
-    borderColor: '#334155',
-    color: '#F8FAFC',
+    borderColor: '#404040',
+    color: '#F8F6F0',
     backgroundColor: '#111827',
   },
   multilineInput: {
@@ -336,35 +336,35 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#D4D4D4',
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   optionButtonDark: {
-    borderColor: '#334155',
+    borderColor: '#404040',
   },
   dayButton: {
     width: 36,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#D4D4D4',
     borderRadius: 999,
     paddingVertical: 6,
     alignItems: 'center',
   },
   dayButtonDark: {
-    borderColor: '#334155',
+    borderColor: '#404040',
   },
   optionButtonActive: {
-    backgroundColor: '#1D4ED8',
-    borderColor: '#1D4ED8',
+    backgroundColor: '#DC2626',
+    borderColor: '#DC2626',
   },
   optionText: {
     fontSize: 12,
-    color: '#334155',
+    color: '#404040',
     fontWeight: '600',
   },
-  optionTextDark: { color: '#CBD5E1' },
+  optionTextDark: { color: '#D4D4D4' },
   optionTextActive: {
     color: '#FFFFFF',
   },
@@ -380,12 +380,12 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   colorSwatchActive: {
-    borderColor: '#1D4ED8',
+    borderColor: '#DC2626',
     borderWidth: 2,
   },
   saveButton: {
     marginTop: 6,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#EF4444',
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',

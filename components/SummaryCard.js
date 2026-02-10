@@ -8,7 +8,7 @@ export default function SummaryCard({ plannedInvestment, actualInvestment, isDar
     <View style={[styles.summaryCard, isDarkMode ? styles.summaryCardDark : styles.summaryCardLight]}>
       <View>
         <Text style={[styles.summaryLabel, isDarkMode ? styles.summaryLabelDark : styles.summaryLabelLight]}>
-          Destinado a invertir 🎯
+          Destinado a ahorrar 🎯
         </Text>
         <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
           {formatCurrency(plannedInvestment, currencyCode)}
@@ -17,7 +17,7 @@ export default function SummaryCard({ plannedInvestment, actualInvestment, isDar
       <View style={[styles.summaryDivider, isDarkMode ? styles.summaryDividerDark : styles.summaryDividerLight]} />
       <View>
         <Text style={[styles.summaryLabel, isDarkMode ? styles.summaryLabelDark : styles.summaryLabelLight]}>
-          Invertido real 💰
+          Ahorrado real 💰
         </Text>
         <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
           {formatCurrency(actualInvestment, currencyCode)}
@@ -36,46 +36,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
-    shadowColor: '#020617',
+    shadowColor: '#000000',
     shadowOpacity: 0.45,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
   summaryCardDark: {
-    backgroundColor: '#0B1220',
+    backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: '#1E3A8A',
+    borderColor: '#B91C1C',
   },
   summaryCardLight: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F8F6F0',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#FECACA',
   },
   summaryLabel: {
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  summaryLabelDark: { color: '#93C5FD' },
-  summaryLabelLight: { color: '#1D4ED8' },
+  summaryLabelDark: { color: '#FCA5A5' },
+  summaryLabelLight: { color: '#DC2626' },
   summaryValue: {
     fontSize: 18,
     fontWeight: '800',
     marginTop: 6,
   },
-  summaryValueDark: { color: '#F8FAFC' },
-  summaryValueLight: { color: '#0F172A' },
+  summaryValueDark: { color: '#F8F6F0' },
+  summaryValueLight: { color: '#111111' },
   summaryDivider: {
     width: 1,
     height: 46,
   },
-  summaryDividerDark: { backgroundColor: '#1E3A8A' },
-  summaryDividerLight: { backgroundColor: '#93C5FD' },
+  summaryDividerDark: { backgroundColor: '#B91C1C' },
+  summaryDividerLight: { backgroundColor: '#FCA5A5' },
   remainingText: {
     marginTop: 4,
     fontSize: 12,
-    color: '#60A5FA',
+    color: '#EF4444',
     fontWeight: '600',
   },
 });

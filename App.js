@@ -180,7 +180,7 @@ export default function App() {
             Configuremos tu mes ✨
           </Text>
           <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-            Dinos tu nombre, tu moneda y cuánto crees que vas a invertir este mes.
+            Dinos tu nombre, tu moneda y cuánto crees que vas a ahorrar este mes.
           </Text>
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Tu nombre</Text>
@@ -189,11 +189,11 @@ export default function App() {
             onChangeText={setDraftName}
             style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
             placeholder="Escribe tu nombre"
-            placeholderTextColor={isDarkMode ? '#64748B' : '#94A3B8'}
+            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
           />
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            Destinado a invertir
+            Destinado a ahorrar
           </Text>
           <TextInput
             value={draftPlannedInvestment}
@@ -201,7 +201,7 @@ export default function App() {
             keyboardType="numeric"
             style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
             placeholder="0"
-            placeholderTextColor={isDarkMode ? '#64748B' : '#94A3B8'}
+            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
           />
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Moneda base</Text>
@@ -254,6 +254,13 @@ export default function App() {
               isDarkMode={isDarkMode}
               currencyCode={selectedCurrency}
             />
+            {bonusAvailable > 0 && (
+              <View style={[styles.overflowNotice, isDarkMode ? styles.overflowNoticeDark : styles.overflowNoticeLight]}>
+                <Text style={[styles.overflowNoticeText, isDarkMode ? styles.overflowNoticeTextDark : styles.overflowNoticeTextLight]}>
+                  Tienes un sobrante disponible de {formatCurrency(bonusAvailable, selectedCurrency)}.
+                </Text>
+              </View>
+            )}
             <SectionHeader onCreate={() => setIsCreateCardVisible(true)} isDarkMode={isDarkMode} />
 
             <View style={styles.cardList}>
@@ -287,7 +294,7 @@ export default function App() {
               Comparativo mensual
             </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-            Destinado a invertir vs invertido real (reinicio mensual).
+            Destinado a ahorrar vs ahorrado real (reinicio mensual).
             </Text>
 
             <View style={styles.chartRow}>
@@ -302,7 +309,7 @@ export default function App() {
 
             <View style={styles.chartRow}>
               <View style={styles.chartHeader}>
-                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Invertido real</Text>
+                <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Ahorrado real</Text>
                 <Text style={styles.chartAmount}>{formatCurrency(totalInvestedThisMonth, selectedCurrency)}</Text>
               </View>
               <View style={styles.chartTrack}>
@@ -345,7 +352,7 @@ export default function App() {
                     styles.chartFill,
                     {
                       width: `${flowTotals.invested > 0 ? 100 : 0}%`,
-                      backgroundColor: '#0284C7',
+                      backgroundColor: '#DC2626',
                     },
                   ]}
                 />
@@ -362,7 +369,7 @@ export default function App() {
                     styles.chartFill,
                     {
                       width: `${flowTotals.withdrawn > 0 ? 100 : 0}%`,
-                      backgroundColor: '#6366F1',
+                      backgroundColor: '#EF4444',
                     },
                   ]}
                 />
@@ -384,11 +391,11 @@ export default function App() {
                 <Text style={styles.profileValue}>{pointsLabel}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Destinado a invertir</Text>
+                <Text style={styles.profileLabel}>Destinado a ahorrar</Text>
                 <Text style={styles.profileValue}>{formatCurrency(plannedInvestment, selectedCurrency)}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Invertido real</Text>
+                <Text style={styles.profileLabel}>Ahorrado real</Text>
                 <Text style={styles.profileValue}>{formatCurrency(totalInvestedThisMonth + bonusAvailable, selectedCurrency)}</Text>
               </View>
             </View>
@@ -439,8 +446,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  safeAreaDark: { backgroundColor: '#020617' },
-  safeAreaLight: { backgroundColor: '#F1F5F9' },
+  safeAreaDark: { backgroundColor: '#000000' },
+  safeAreaLight: { backgroundColor: '#F8F6F0' },
   scrollContent: { padding: 20, paddingBottom: 120 },
   cardList: { gap: 16, marginBottom: 24 },
   emptyText: {
@@ -450,26 +457,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  emptyTextDark: { borderColor: '#1E3A8A', color: '#93C5FD', backgroundColor: '#0B1220' },
-  emptyTextLight: { borderColor: '#BFDBFE', color: '#1E3A8A', backgroundColor: '#EFF6FF' },
+  emptyTextDark: { borderColor: '#B91C1C', color: '#FCA5A5', backgroundColor: '#000000' },
+  emptyTextLight: { borderColor: '#FECACA', color: '#B91C1C', backgroundColor: '#F8F6F0' },
   panel: {
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    shadowColor: '#020617',
+    shadowColor: '#000000',
     shadowOpacity: 0.45,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  panelDark: { backgroundColor: '#0B1220', borderColor: '#1E3A8A' },
-  panelLight: { backgroundColor: '#FFFFFF', borderColor: '#BFDBFE' },
+  panelDark: { backgroundColor: '#000000', borderColor: '#B91C1C' },
+  panelLight: { backgroundColor: '#FFFFFF', borderColor: '#FECACA' },
   panelTitle: { fontSize: 20, fontWeight: '800' },
-  panelTitleDark: { color: '#F8FAFC' },
-  panelTitleLight: { color: '#0F172A' },
+  panelTitleDark: { color: '#F8F6F0' },
+  panelTitleLight: { color: '#111111' },
   panelSubTitle: { marginTop: 8, marginBottom: 16, fontSize: 13 },
-  panelSubTitleDark: { color: '#93C5FD' },
-  panelSubTitleLight: { color: '#1E3A8A' },
+  panelSubTitleDark: { color: '#FCA5A5' },
+  panelSubTitleLight: { color: '#B91C1C' },
   innerTitle: { marginTop: 20, marginBottom: 8, fontSize: 16 },
   chartRow: { marginBottom: 14 },
   chartHeader: {
@@ -479,44 +486,55 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chartName: { fontWeight: '700' },
-  chartNameDark: { color: '#E2E8F0' },
-  chartNameLight: { color: '#0F172A' },
-  chartPercent: { color: '#2563EB', fontWeight: '800' },
+  chartNameDark: { color: '#E5E7EB' },
+  chartNameLight: { color: '#111111' },
+  chartPercent: { color: '#EF4444', fontWeight: '800' },
   chartTrack: {
     height: 12,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E5E7EB',
     borderRadius: 999,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#D4D4D4',
   },
   chartFill: { height: '100%', borderRadius: 999 },
-  plannedFill: { backgroundColor: '#1D4ED8' },
-  actualFill: { backgroundColor: '#38BDF8' },
-  chartAmount: { color: '#1E3A8A', fontSize: 12, fontWeight: '700' },
+  plannedFill: { backgroundColor: '#DC2626' },
+  actualFill: { backgroundColor: '#F87171' },
+  chartAmount: { color: '#B91C1C', fontSize: 12, fontWeight: '700' },
   profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F8F6F0',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#FECACA',
   },
-  profileLabel: { color: '#1D4ED8', fontSize: 12 },
-  profileValue: { marginTop: 4, color: '#0F172A', fontSize: 16, fontWeight: '700' },
+  profileLabel: { color: '#DC2626', fontSize: 12 },
+  profileValue: { marginTop: 4, color: '#111111', fontSize: 16, fontWeight: '700' },
   profileButton: {
     marginTop: 16,
     borderRadius: 14,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#EF4444',
     alignItems: 'center',
     paddingVertical: 12,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#B91C1C',
     shadowOpacity: 0.38,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
   profileButtonText: { color: '#FFFFFF', fontWeight: '800' },
+  overflowNotice: {
+    marginBottom: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  overflowNoticeDark: { backgroundColor: '#1F1F1F', borderColor: '#DC2626' },
+  overflowNoticeLight: { backgroundColor: '#FFF5F5', borderColor: '#EF4444' },
+  overflowNoticeText: { fontSize: 13, fontWeight: '700' },
+  overflowNoticeTextDark: { color: '#FECACA' },
+  overflowNoticeTextLight: { color: '#991B1B' },
   bottomNav: {
     position: 'absolute',
     left: 16,
@@ -527,17 +545,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderWidth: 1,
-    shadowColor: '#020617',
+    shadowColor: '#000000',
     shadowOpacity: 0.45,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  bottomNavDark: { backgroundColor: '#0B1220', borderColor: '#1E3A8A' },
-  bottomNavLight: { backgroundColor: '#FFFFFF', borderColor: '#BFDBFE' },
+  bottomNavDark: { backgroundColor: '#000000', borderColor: '#B91C1C' },
+  bottomNavLight: { backgroundColor: '#FFFFFF', borderColor: '#FECACA' },
   navButton: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 14 },
-  navButtonActive: { backgroundColor: '#1D4ED8' },
-  navLabel: { color: '#1E3A8A', fontSize: 12, fontWeight: '700' },
+  navButtonActive: { backgroundColor: '#DC2626' },
+  navLabel: { color: '#B91C1C', fontSize: 12, fontWeight: '700' },
   navLabelActive: { color: '#FFFFFF' },
 
   onboardingCard: {
@@ -545,23 +563,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    shadowColor: '#020617',
+    shadowColor: '#000000',
     shadowOpacity: 0.45,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  onboardingCardDark: { backgroundColor: '#0B1220', borderColor: '#1E3A8A' },
-  onboardingCardLight: { backgroundColor: '#FFFFFF', borderColor: '#BFDBFE' },
+  onboardingCardDark: { backgroundColor: '#000000', borderColor: '#B91C1C' },
+  onboardingCardLight: { backgroundColor: '#FFFFFF', borderColor: '#FECACA' },
   onboardingTitle: { fontSize: 24, fontWeight: '800' },
-  onboardingTitleDark: { color: '#F8FAFC' },
-  onboardingTitleLight: { color: '#0F172A' },
+  onboardingTitleDark: { color: '#F8F6F0' },
+  onboardingTitleLight: { color: '#111111' },
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
-  onboardingSubtitleDark: { color: '#93C5FD' },
-  onboardingSubtitleLight: { color: '#1E3A8A' },
+  onboardingSubtitleDark: { color: '#FCA5A5' },
+  onboardingSubtitleLight: { color: '#B91C1C' },
   inputLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6, marginTop: 8 },
-  inputLabelDark: { color: '#BFDBFE' },
-  inputLabelLight: { color: '#1E3A8A' },
+  inputLabelDark: { color: '#FECACA' },
+  inputLabelLight: { color: '#B91C1C' },
   input: {
     borderWidth: 1,
     borderRadius: 10,
@@ -569,11 +587,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
   },
-  inputDark: { borderColor: '#1E3A8A', color: '#F9FAFB', backgroundColor: '#0F172A' },
-  inputLight: { borderColor: '#CBD5E1', color: '#111827', backgroundColor: '#F8FAFC' },
+  inputDark: { borderColor: '#B91C1C', color: '#F9FAFB', backgroundColor: '#111111' },
+  inputLight: { borderColor: '#D4D4D4', color: '#111827', backgroundColor: '#F8F6F0' },
   primaryButton: {
     marginTop: 18,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#EF4444',
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
@@ -584,18 +602,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  secondaryThemeButtonText: { color: '#2563EB', fontWeight: '700' },
+  secondaryThemeButtonText: { color: '#EF4444', fontWeight: '700' },
   currencyRow: { flexDirection: 'row', gap: 10, marginBottom: 4 },
   currencyButton: {
     flex: 1,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#93C5FD',
+    borderColor: '#FCA5A5',
     paddingVertical: 10,
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F8F6F0',
   },
-  currencyButtonActive: { backgroundColor: '#2563EB', borderColor: '#1D4ED8' },
-  currencyButtonText: { color: '#1E3A8A', fontWeight: '700' },
+  currencyButtonActive: { backgroundColor: '#EF4444', borderColor: '#DC2626' },
+  currencyButtonText: { color: '#B91C1C', fontWeight: '700' },
   currencyButtonTextActive: { color: '#FFFFFF' },
 });
