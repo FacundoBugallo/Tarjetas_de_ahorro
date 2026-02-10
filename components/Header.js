@@ -1,21 +1,17 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function Header({ onPress, userName, levelLabel, pointsLabel, isDarkMode, onToggleTheme }) {
+export default function Header({ userName, levelLabel, pointsLabel, isDarkMode, onToggleTheme }) {
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={onPress}
-        style={styles.header}
-      >
+      <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, isDarkMode && styles.greetingDark]}>Hola, {userName}</Text>
+          <Text style={[styles.greeting, isDarkMode && styles.greetingDark]}>💸 Hola, {userName}</Text>
           <Text style={[styles.level, isDarkMode && styles.levelDark]}>{levelLabel}</Text>
         </View>
         <View style={styles.levelBadge}>
           <Text style={styles.levelBadgeText}>{pointsLabel}</Text>
         </View>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={onToggleTheme}
         style={[styles.themeButton, isDarkMode && styles.themeButtonDark]}
@@ -34,14 +30,22 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   header: {
+    borderRadius: 20,
+    padding: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#0F172A',
+    shadowColor: '#22D3EE',
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#E2E8F0',
   },
   greetingDark: {
     color: '#F8FAFC',
@@ -49,21 +53,21 @@ const styles = StyleSheet.create({
   level: {
     marginTop: 4,
     fontSize: 14,
-    color: '#6B7280',
+    color: '#67E8F9',
   },
   levelDark: {
-    color: '#94A3B8',
+    color: '#A5F3FC',
   },
   levelBadge: {
-    backgroundColor: '#111827',
+    backgroundColor: '#E879F9',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
   },
   levelBadgeText: {
-    color: '#F9FAFB',
+    color: '#111827',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   themeButton: {
     alignSelf: 'flex-start',

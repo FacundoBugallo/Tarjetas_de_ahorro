@@ -11,10 +11,10 @@ export default function HistoryCard({ items = [], isDarkMode }) {
 
   return (
     <View style={[styles.historyCard, isDarkMode && styles.historyCardDark]}>
-      <Text style={[styles.historyTitle, isDarkMode && styles.historyTitleDark]}>Historial</Text>
+      <Text style={[styles.historyTitle, isDarkMode && styles.historyTitleDark]}>🧾 Historial</Text>
       {items.length === 0 ? (
         <Text style={[styles.historyEmpty, isDarkMode && styles.historyEmptyDark]}>
-          Aún no hay tarjetas completadas.
+          Aún no hay metas completadas 🚀
         </Text>
       ) : (
         items.map((item) => {
@@ -57,17 +57,24 @@ export default function HistoryCard({ items = [], isDarkMode }) {
 
 const styles = StyleSheet.create({
   historyCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0B1120',
     borderRadius: 18,
     padding: 18,
+    borderWidth: 1,
+    borderColor: '#1D4ED8',
+    shadowColor: '#22D3EE',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 6,
   },
   historyCardDark: {
     backgroundColor: '#111827',
   },
   historyTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: '800',
+    color: '#F8FAFC',
     marginBottom: 12,
   },
   historyTitleDark: { color: '#F8FAFC' },
@@ -91,14 +98,14 @@ const styles = StyleSheet.create({
   },
   historyEmpty: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5F3FC',
   },
   historyEmptyDark: {
     color: '#94A3B8',
   },
   historyLabel: {
     fontSize: 13,
-    color: '#111827',
+    color: '#F8FAFC',
     fontWeight: '600',
   },
   historyLabelDark: {
@@ -107,11 +114,11 @@ const styles = StyleSheet.create({
   historyMeta: {
     marginTop: 4,
     fontSize: 12,
-    color: '#6B7280',
+    color: '#67E8F9',
   },
   historyDescription: {
     fontSize: 12,
-    color: '#334155',
+    color: '#E2E8F0',
     lineHeight: 18,
   },
   historyDescriptionDark: {
@@ -120,12 +127,12 @@ const styles = StyleSheet.create({
   historyValue: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#111827',
+    color: '#F0ABFC',
   },
   historyValueDark: { color: '#E2E8F0' },
   expandText: {
     fontSize: 12,
-    color: '#2563EB',
+    color: '#22D3EE',
     fontWeight: '600',
   },
 });
