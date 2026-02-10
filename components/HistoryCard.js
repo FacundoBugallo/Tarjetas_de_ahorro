@@ -71,11 +71,11 @@ const styles = StyleSheet.create({
   },
   historyCardDark: {
     backgroundColor: '#000000',
-    borderColor: '#B91C1C',
+    borderColor: '#DC2626',
   },
   historyCardLight: {
-    backgroundColor: '#F8F6F0',
-    borderColor: '#FECACA',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#000000',
   },
   headerRow: {
     flexDirection: 'row',
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   historyTitleDark: { color: '#F8F6F0' },
   historyTitleLight: { color: '#111111' },
   collapseText: {
-    color: '#EF4444',
+    color: '#DC2626',
     fontWeight: '700',
     fontSize: 12,
   },
@@ -114,10 +114,10 @@ const styles = StyleSheet.create({
   historyEmptyDark: { color: '#737373' },
   historyLabel: { fontSize: 13, color: '#111111', fontWeight: '600' },
   historyLabelDark: { color: '#F8F6F0' },
-  historyMeta: { marginTop: 4, fontSize: 12, color: '#EF4444' },
+  historyMeta: { marginTop: 4, fontSize: 12, color: '#000000' },
   historyDescription: { fontSize: 12, color: '#404040', lineHeight: 18 },
   historyDescriptionDark: { color: '#D4D4D4' },
-  historyValue: { fontSize: 13, fontWeight: '700', color: '#DC2626' },
+  historyValue: { fontSize: 13, fontWeight: '700', color: '#000000' },
   historyValueDark: { color: '#FCA5A5' },
-  expandText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
+  expandText: { fontSize: 12, color: '#DC2626', fontWeight: '600' },
 });

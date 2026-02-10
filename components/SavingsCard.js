@@ -67,7 +67,7 @@ export default function SavingsCard({
                 keyboardType="numeric"
                 style={styles.editInput}
               />
-              <Pressable onPress={handleSaveContribution} style={styles.inlineButton}>
+              <Pressable onPress={handleSaveContribution} style={[styles.inlineButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
                 <Text style={styles.inlineButtonText}>Guardar</Text>
               </Pressable>
             </View>
@@ -85,10 +85,10 @@ export default function SavingsCard({
         </View>
 
         <View style={styles.actionColumn}>
-          <Pressable onPress={() => onAddContribution(card.id)} style={styles.addButton}>
+          <Pressable onPress={() => onAddContribution(card.id)} style={[styles.addButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
             <Text style={styles.addButtonText}>+{formatCurrency(card.nextContribution, currencyCode)}</Text>
           </Pressable>
-          <Pressable onPress={() => onRemoveContribution(card.id)} style={styles.removeButton}>
+          <Pressable onPress={() => onRemoveContribution(card.id)} style={[styles.removeButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
             <Text style={styles.removeButtonText}>-{formatCurrency(card.nextContribution, currencyCode)}</Text>
           </Pressable>
         </View>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   cardTitle: { fontSize: 16, fontWeight: '800', color: '#000000', flex: 1 },
   deleteButton: { backgroundColor: 'rgba(15,23,42,0.16)', borderRadius: 999, paddingVertical: 6, paddingHorizontal: 10 },
-  deleteButtonText: { fontWeight: '700', fontSize: 12, color: '#B91C1C' },
+  deleteButtonText: { fontWeight: '700', fontSize: 12, color: '#000000' },
   cardTarget: { marginTop: 4, fontSize: 13, color: '#111111' },
   cardDescription: { marginTop: 8, fontSize: 12, color: '#262626' },
   progressRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   progressTrackDark: { backgroundColor: '#E5E7EB' },
-  progressFill: { height: '100%', backgroundColor: '#EF4444', borderRadius: 999 },
+  progressFill: { height: '100%', backgroundColor: '#000000', borderRadius: 999 },
   progressText: { fontSize: 12, fontWeight: '700', color: '#000000' },
   cardFooter: {
     flexDirection: 'row',
@@ -137,40 +137,41 @@ const styles = StyleSheet.create({
   footerLeft: { flex: 1 },
   cardLabel: { fontSize: 12, color: '#111111' },
   cardValue: { fontSize: 16, fontWeight: '700', color: '#000000', marginTop: 2 },
-  cardCadence: { marginTop: 4, fontSize: 12, fontWeight: '700', color: '#DC2626' },
-  nextContributionText: { marginTop: 6, fontSize: 12, fontWeight: '600', color: '#B91C1C' },
+  cardCadence: { marginTop: 4, fontSize: 12, fontWeight: '700', color: '#000000' },
+  nextContributionText: { marginTop: 6, fontSize: 12, fontWeight: '600', color: '#000000' },
   actionColumn: { gap: 8 },
   addButton: {
-    backgroundColor: '#DC2626',
+    
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
-    shadowColor: '#B91C1C',
+    
     shadowOpacity: 0.35,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
   addButtonText: { color: '#F9FAFB', fontWeight: '700', fontSize: 13 },
+  actionButtonDark: { backgroundColor: '#DC2626', shadowColor: '#B91C1C' },
+  actionButtonLight: { backgroundColor: '#000000', shadowColor: '#000000' },
   removeButton: {
-    backgroundColor: '#991B1B',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
   },
   removeButtonText: { color: '#FEE2E2', fontWeight: '700', fontSize: 13 },
   editTriggerButton: { marginTop: 8 },
-  editTriggerText: { color: '#B91C1C', fontWeight: '700', fontSize: 12 },
+  editTriggerText: { color: '#000000', fontWeight: '700', fontSize: 12 },
   editRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
   editInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#FCA5A5',
+    borderColor: '#000000',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
     backgroundColor: 'rgba(255,255,255,0.8)',
   },
-  inlineButton: { backgroundColor: '#DC2626', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10 },
+  inlineButton: {  paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10 },
   inlineButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
 });
