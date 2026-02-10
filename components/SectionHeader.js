@@ -1,9 +1,9 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function SectionHeader({ onCreate }) {
+export default function SectionHeader({ onCreate, isDarkMode }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>Tus tarjetas de ahorro</Text>
+      <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Tus tarjetas de ahorro</Text>
       <TouchableOpacity onPress={onCreate} style={styles.createButton}>
         <Text style={styles.createButtonText}>Crear tarjeta</Text>
       </TouchableOpacity>
@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F2937',
   },
+  sectionTitleDark: { color: '#F8FAFC' },
   createButton: {
     backgroundColor: '#2563EB',
     paddingVertical: 8,

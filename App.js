@@ -21,6 +21,7 @@ export default function App() {
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const totalTargetMonthly = cards.reduce(
     (sum, card) => sum + card.nextContribution,
     0,
@@ -52,6 +53,7 @@ export default function App() {
             {
               id: `${card.id}-history-${Date.now()}`,
               name: card.name,
+              description: card.description,
               targetAmount: card.targetAmount,
               points: earnedPoints,
             },
@@ -80,10 +82,12 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Header
           onPress={() => setIsSummaryVisible(true)}
+          onToggleTheme={() => setIsDarkMode((prev) => !prev)}
+          isDarkMode={isDarkMode}
           userName={userName}
           levelLabel={levelLabel}
           pointsLabel={pointsLabel}
@@ -91,8 +95,9 @@ export default function App() {
         <SummaryCard
           availableMonthly={availableMonthly}
           incomeStatus={incomeStatus}
+          isDarkMode={isDarkMode}
         />
-        <SectionHeader onCreate={() => setIsCreateCardVisible(true)} />
+        <SectionHeader onCreate={() => setIsCreateCardVisible(true)} isDarkMode={isDarkMode} />
 
         <View style={styles.cardList}>
           {cards.map((card) => (
@@ -100,11 +105,12 @@ export default function App() {
               key={card.id}
               card={card}
               onAddContribution={handleAddContribution}
+              isDarkMode={isDarkMode}
             />
           ))}
         </View>
 
-        <HistoryCard items={historyItems} />
+        <HistoryCard items={historyItems} isDarkMode={isDarkMode} />
       </ScrollView>
       <UserSummaryModal
         visible={isSummaryVisible}
@@ -116,13 +122,15 @@ export default function App() {
         monthlyIncome={monthlyIncome}
         availableMonthly={availableMonthly}
         onSave={handleSaveUser}
+        isDarkMode={isDarkMode}
       />
       <CreateCardModal
         visible={isCreateCardVisible}
         onClose={() => setIsCreateCardVisible(false)}
         onSubmit={handleAddCard}
+        isDarkMode={isDarkMode}
       />
-      <StatusBar style="dark" />
+      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
     </SafeAreaView>
   );
 }
@@ -131,6 +139,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F7F8FB',
+  },
+  safeAreaDark: {
+    backgroundColor: '#020617',
   },
   scrollContent: {
     padding: 20,

@@ -1,22 +1,27 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { clampPercentage, formatCurrency } from '../utils/formatters';
+import { formatContributionSchedule, getDaysUntilNextContribution } from '../utils/schedule';
 
-export default function SavingsCard({ card, onAddContribution }) {
+export default function SavingsCard({ card, onAddContribution, isDarkMode }) {
   const percentage = clampPercentage(
     (card.savedAmount / card.targetAmount) * 100,
   );
+  const daysUntilNextContribution = getDaysUntilNextContribution(card);
 
   return (
-    <View style={[styles.card, { backgroundColor: card.color }]}>
+    <View style={[styles.card, { backgroundColor: card.color }]}> 
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{card.name}</Text>
         <Text style={styles.cardTarget}>
           Meta: {formatCurrency(card.targetAmount)}
         </Text>
+        {!!card.description && (
+          <Text style={styles.cardDescription}>{card.description}</Text>
+        )}
       </View>
 
       <View style={styles.progressRow}>
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, isDarkMode && styles.progressTrackDark]}>
           <View style={[styles.progressFill, { width: `${percentage}%` }]} />
         </View>
         <Text style={styles.progressText}>{percentage.toFixed(0)}%</Text>
@@ -26,7 +31,12 @@ export default function SavingsCard({ card, onAddContribution }) {
         <View>
           <Text style={styles.cardLabel}>Ahorro acumulado</Text>
           <Text style={styles.cardValue}>{formatCurrency(card.savedAmount)}</Text>
-          <Text style={styles.cardCadence}>{card.cadence}</Text>
+          <Text style={styles.cardCadence}>{formatContributionSchedule(card)}</Text>
+          {daysUntilNextContribution !== null && (
+            <Text style={styles.nextContributionText}>
+              Próximo aporte en {daysUntilNextContribution} día{daysUntilNextContribution === 1 ? '' : 's'}
+            </Text>
+          )}
         </View>
         <TouchableOpacity
           onPress={() => onAddContribution(card.id)}
@@ -59,6 +69,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
   },
+  cardDescription: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#334155',
+  },
   progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -71,6 +86,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: 'hidden',
     marginRight: 12,
+  },
+  progressTrackDark: {
+    backgroundColor: '#E2E8F0',
   },
   progressFill: {
     height: '100%',
@@ -102,6 +120,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#2563EB',
+  },
+  nextContributionText: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0F172A',
   },
   addButton: {
     backgroundColor: '#111827',

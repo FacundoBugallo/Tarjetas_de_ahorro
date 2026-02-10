@@ -1,17 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '../utils/formatters';
 
-export default function SummaryCard({ availableMonthly, incomeStatus }) {
+export default function SummaryCard({ availableMonthly, incomeStatus, isDarkMode }) {
   return (
-    <View style={styles.summaryCard}>
+    <View style={[styles.summaryCard, isDarkMode && styles.summaryCardDark]}>
       <View>
-        <Text style={styles.summaryLabel}>Nivel de ingresos</Text>
-        <Text style={styles.summaryValue}>{incomeStatus}</Text>
+        <Text style={[styles.summaryLabel, isDarkMode && styles.summaryLabelDark]}>Nivel de ingresos</Text>
+        <Text style={[styles.summaryValue, isDarkMode && styles.summaryValueDark]}>{incomeStatus}</Text>
       </View>
-      <View style={styles.summaryDivider} />
+      <View style={[styles.summaryDivider, isDarkMode && styles.summaryDividerDark]} />
       <View>
-        <Text style={styles.summaryLabel}>Disponible por mes</Text>
-        <Text style={styles.summaryValue}>{formatCurrency(availableMonthly)}</Text>
+        <Text style={[styles.summaryLabel, isDarkMode && styles.summaryLabelDark]}>Disponible por mes</Text>
+        <Text style={[styles.summaryValue, isDarkMode && styles.summaryValueDark]}>{formatCurrency(availableMonthly)}</Text>
       </View>
     </View>
   );
@@ -32,11 +32,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 4,
   },
+  summaryCardDark: {
+    backgroundColor: '#111827',
+  },
   summaryLabel: {
     fontSize: 12,
     color: '#6B7280',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+  },
+  summaryLabelDark: {
+    color: '#94A3B8',
   },
   summaryValue: {
     fontSize: 18,
@@ -44,9 +50,15 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginTop: 6,
   },
+  summaryValueDark: {
+    color: '#F8FAFC',
+  },
   summaryDivider: {
     width: 1,
     height: 40,
     backgroundColor: '#E5E7EB',
+  },
+  summaryDividerDark: {
+    backgroundColor: '#374151',
   },
 });
