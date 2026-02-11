@@ -90,7 +90,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
           <View style={styles.headerRow}>
             <Text style={[styles.title, isDarkMode && styles.titleDark]}>Crear tarjeta</Text>
             <Pressable onPress={onClose} style={[styles.closeButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-              <Text style={styles.closeButtonText}>Cerrar</Text>
+              <Text style={[styles.closeButtonText, isDarkMode && styles.actionButtonTextDark]}>Cerrar</Text>
             </Pressable>
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -138,14 +138,14 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                         style={[
                           styles.optionButton,
                           isDarkMode && styles.optionButtonDark,
-                          isActive && styles.optionButtonActive,
+                          isActive && (isDarkMode ? styles.optionButtonActiveDark : styles.optionButtonActive),
                         ]}
                       >
                         <Text
                           style={[
                             styles.optionText,
                             isDarkMode && styles.optionTextDark,
-                            isActive && styles.optionTextActive,
+                            isActive && (isDarkMode ? styles.optionTextActiveDark : styles.optionTextActive),
                           ]}
                         >
                           {option}
@@ -169,14 +169,14 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                           style={[
                             styles.optionButton,
                             isDarkMode && styles.optionButtonDark,
-                            isActive && styles.optionButtonActive,
+                            isActive && (isDarkMode ? styles.optionButtonActiveDark : styles.optionButtonActive),
                           ]}
                         >
                           <Text
                             style={[
                               styles.optionText,
                               isDarkMode && styles.optionTextDark,
-                              isActive && styles.optionTextActive,
+                              isActive && (isDarkMode ? styles.optionTextActiveDark : styles.optionTextActive),
                             ]}
                           >
                             {option.label}
@@ -185,6 +185,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                       );
                     })}
                   </View>
+                </View>
               )}
 
               {cadence === 'Mensual' && (
@@ -200,14 +201,14 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                           style={[
                             styles.dayButton,
                             isDarkMode && styles.dayButtonDark,
-                            isActive && styles.optionButtonActive,
+                            isActive && (isDarkMode ? styles.optionButtonActiveDark : styles.optionButtonActive),
                           ]}
                         >
                           <Text
                             style={[
                               styles.optionText,
                               isDarkMode && styles.optionTextDark,
-                              isActive && styles.optionTextActive,
+                              isActive && (isDarkMode ? styles.optionTextActiveDark : styles.optionTextActive),
                             ]}
                           >
                             {day}
@@ -216,6 +217,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                       );
                     })}
                   </View>
+                </View>
               )}
 
               <View style={styles.field}>
@@ -239,7 +241,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                         style={[
                           styles.colorSwatch,
                           { backgroundColor: color },
-                          isActive && styles.colorSwatchActive,
+                          isActive && (isDarkMode ? styles.colorSwatchActiveDark : styles.colorSwatchActive),
                         ]}
                       />
                     );
@@ -249,7 +251,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
             </View>
           </ScrollView>
           <Pressable onPress={handleSubmit} style={[styles.saveButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-            <Text style={styles.saveButtonText}>Agregar tarjeta</Text>
+            <Text style={[styles.saveButtonText, isDarkMode && styles.actionButtonTextDark]}>Agregar tarjeta</Text>
           </Pressable>
         </View>
       </Pressable>
@@ -272,7 +274,7 @@ const styles = StyleSheet.create({
     maxHeight: '88%',
   },
   sheetDark: {
-    backgroundColor: '#111111',
+    backgroundColor: '#000000',
   },
   content: { gap: 12 },
   headerRow: {
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000000',
   },
-  titleDark: { color: '#F8F6F0' },
+  titleDark: { color: '#FFFFFF' },
   closeButton: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -297,7 +299,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  actionButtonDark: { backgroundColor: '#DC2626' },
+  actionButtonDark: { backgroundColor: '#FFFFFF' },
+  actionButtonTextDark: { color: '#000000' },
   actionButtonLight: { backgroundColor: '#000000' },
   field: {
     gap: 6,
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     color: '#000000',
   },
-  labelDark: { color: '#737373' },
+  labelDark: { color: '#FFFFFF' },
   input: {
     borderWidth: 1,
     borderColor: '#000000',
@@ -320,9 +323,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   inputDark: {
-    borderColor: '#404040',
-    color: '#F8F6F0',
-    backgroundColor: '#111827',
+    borderColor: '#FFFFFF',
+    color: '#FFFFFF',
+    backgroundColor: '#000000',
   },
   multilineInput: {
     minHeight: 64,
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   optionButtonDark: {
-    borderColor: '#404040',
+    borderColor: '#FFFFFF',
   },
   dayButton: {
     width: 36,
@@ -352,20 +355,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dayButtonDark: {
-    borderColor: '#404040',
+    borderColor: '#FFFFFF',
   },
   optionButtonActive: {
-    backgroundColor: '#DC2626',
-    borderColor: '#DC2626',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
   optionText: {
     fontSize: 12,
     color: '#000000',
     fontWeight: '600',
   },
-  optionTextDark: { color: '#D4D4D4' },
+  optionTextDark: { color: '#FFFFFF' },
+  optionButtonActiveDark: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
   optionTextActive: {
     color: '#FFFFFF',
+  },
+  optionTextActiveDark: {
+    color: '#000000',
   },
   colorRow: {
     flexDirection: 'row',
@@ -379,7 +389,11 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   colorSwatchActive: {
-    borderColor: '#DC2626',
+    borderColor: '#000000',
+    borderWidth: 2,
+  },
+  colorSwatchActiveDark: {
+    borderColor: '#FFFFFF',
     borderWidth: 2,
   },
   saveButton: {
