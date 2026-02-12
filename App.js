@@ -18,6 +18,44 @@ const tabs = [
   { key: 'perfil', label: 'Perfil 👤' },
 ];
 
+const financialMoodOptions = [
+  { key: 'tranquilo', label: 'Tranquilo' },
+  { key: 'ajustado', label: 'Ajustado' },
+  { key: 'preocupado', label: 'Preocupado' },
+  { key: 'motivado', label: 'Motivado' },
+];
+
+const moodContent = {
+  tranquilo: {
+    checkinMessage: 'Excelente base emocional: estás administrando con calma y claridad.',
+    tip: 'Tip del día: separar primero el ahorro evita gastar de más.',
+    recommendation: 'Recomendación: automatiza tu aporte semanal para mantener esta tranquilidad.',
+    status: 'Hoy estás más cerca de tu objetivo que ayer.',
+    statusDetail: 'Tu ritmo estable protege tu meta mensual incluso con gastos inesperados.',
+  },
+  ajustado: {
+    checkinMessage: 'Vas justo, pero con enfoque puedes sostener el avance del mes.',
+    tip: 'Un café menos por semana puede convertirse en un impulso directo a tu tarjeta principal.',
+    recommendation: 'Recomendación: prioriza gastos fijos y define un micro-objetivo de ahorro para hoy.',
+    status: 'Tu esfuerzo semanal está siendo constante.',
+    statusDetail: 'Ahorrar un poco hoy mantiene viva la meta sin presionarte de más.',
+  },
+  preocupado: {
+    checkinMessage: 'Respira: reconocer la preocupación ya es un paso valiente para ordenar tus finanzas.',
+    tip: 'Hoy podrías ahorrar el equivalente a un gasto hormiga que decidas pausar por 24 horas.',
+    recommendation: 'Recomendación: empieza con un monto pequeño y realista; sumar confianza también cuenta.',
+    status: 'Ahorrar hoy te ayuda a recuperar control paso a paso.',
+    statusDetail: 'Incluso un aporte corto reduce presión y fortalece tu hábito financiero.',
+  },
+  motivado: {
+    checkinMessage: '¡Esa energía suma! Es un gran momento para acelerar tu plan de ahorro.',
+    tip: 'Tip del día: cuando te sientes motivado, define un aporte extra y bloquéalo de inmediato.',
+    recommendation: 'Recomendación: convierte esa motivación en acción con un reto de ahorro de 7 días.',
+    status: 'Ahorrar $100 hoy puede recortar varios días de tu meta.',
+    statusDetail: 'Tu impulso actual puede transformar este mes en tu mejor avance del año.',
+  },
+};
+
 export default function App() {
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState('');
@@ -34,6 +72,7 @@ export default function App() {
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
+  const [financialMood, setFinancialMood] = useState('tranquilo');
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -70,6 +109,8 @@ export default function App() {
       withdrawn: Math.max(-monthlyNet, 0),
     };
   }, [monthlyTransactions]);
+
+  const activeMoodContent = moodContent[financialMood];
 
   const handleCompleteOnboarding = () => {
     const parsedInvestment = Number(draftPlannedInvestment);
@@ -259,6 +300,47 @@ export default function App() {
           pointsLabel={pointsLabel}
         />
 
+        <View style={[styles.emotionalCheckinCard, isDarkMode ? styles.emotionalCheckinCardDark : styles.emotionalCheckinCardLight]}>
+          <Text style={[styles.emotionalTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
+            Check-in personal
+          </Text>
+          <Text style={[styles.emotionalQuestion, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+            ¿Cómo estás hoy con tu dinero?
+          </Text>
+          <View style={styles.moodOptionsRow}>
+            {financialMoodOptions.map((option) => {
+              const isActive = financialMood === option.key;
+              return (
+                <Pressable
+                  key={option.key}
+                  onPress={() => setFinancialMood(option.key)}
+                  style={[
+                    styles.moodOption,
+                    isDarkMode ? styles.moodOptionDark : styles.moodOptionLight,
+                    isActive && styles.moodOptionActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.moodOptionText,
+                      isDarkMode && styles.moodOptionTextDark,
+                      isActive && styles.moodOptionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={[styles.checkinMessage, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+            {activeMoodContent.checkinMessage}
+          </Text>
+          <Text style={[styles.checkinSupport, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+            {activeMoodContent.recommendation}
+          </Text>
+        </View>
+
         {activeTab === 'inicio' && (
           <>
             <SummaryCard
@@ -310,6 +392,18 @@ export default function App() {
                   />
                 ))
               )}
+            </View>
+
+            <View style={[styles.financialStatusCard, isDarkMode ? styles.financialStatusCardDark : styles.financialStatusCardLight]}>
+              <Text style={[styles.financialStatusTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
+                Estado emocional financiero
+              </Text>
+              <Text style={[styles.financialStatusPrimary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                {activeMoodContent.status}
+              </Text>
+              <Text style={[styles.financialStatusSecondary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                {activeMoodContent.statusDetail}
+              </Text>
             </View>
 
             <HistoryCard items={historyItems} isDarkMode={isDarkMode} currencyCode={selectedCurrency} />
@@ -407,6 +501,18 @@ export default function App() {
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
               Este indicador muestra el balance neto del mes para evitar acumulaciones engañosas.
             </Text>
+
+            <View style={[styles.coachingCard, isDarkMode ? styles.coachingCardDark : styles.coachingCardLight]}>
+              <Text style={[styles.coachingTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
+                Micro coaching diario
+              </Text>
+              <Text style={[styles.coachingTip, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                {activeMoodContent.tip}
+              </Text>
+              <Text style={[styles.coachingRecommendation, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                {activeMoodContent.recommendation}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -659,4 +765,54 @@ const styles = StyleSheet.create({
   currencyButtonActive: { backgroundColor: '#000000', borderColor: '#000000' },
   currencyButtonText: { color: '#000000', fontWeight: '700' },
   currencyButtonTextActive: { color: '#FFFFFF' },
+  emotionalCheckinCard: {
+    marginTop: 14,
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+  },
+  emotionalCheckinCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
+  emotionalCheckinCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
+  emotionalTitle: { fontSize: 18, fontWeight: '800' },
+  emotionalTitleDark: { color: '#FFFFFF' },
+  emotionalTitleLight: { color: '#111111' },
+  emotionalQuestion: { marginTop: 6, marginBottom: 12, fontSize: 13 },
+  moodOptionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  moodOption: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  moodOptionDark: { borderColor: '#FFFFFF', backgroundColor: '#1F1F1F' },
+  moodOptionLight: { borderColor: '#000000', backgroundColor: '#FFFFFF' },
+  moodOptionActive: { backgroundColor: '#000000', borderColor: '#000000' },
+  moodOptionText: { color: '#000000', fontSize: 12, fontWeight: '700' },
+  moodOptionTextDark: { color: '#FFFFFF' },
+  moodOptionTextActive: { color: '#FFFFFF' },
+  checkinMessage: { marginTop: 12, fontSize: 13, fontWeight: '700' },
+  checkinSupport: { marginTop: 8, fontSize: 13 },
+  financialStatusCard: {
+    marginBottom: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  financialStatusCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
+  financialStatusCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
+  financialStatusTitle: { fontSize: 16, fontWeight: '800' },
+  financialStatusPrimary: { marginTop: 8, fontSize: 13, fontWeight: '700' },
+  financialStatusSecondary: { marginTop: 6, fontSize: 13 },
+  coachingCard: {
+    marginTop: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  coachingCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
+  coachingCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
+  coachingTitle: { fontSize: 16, fontWeight: '800' },
+  coachingTip: { marginTop: 8, fontSize: 13, fontWeight: '700' },
+  coachingRecommendation: { marginTop: 6, fontSize: 13 },
 });
