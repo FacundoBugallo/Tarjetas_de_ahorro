@@ -264,7 +264,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   closeButtonText: {
-    color: '#F9FAFB',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
