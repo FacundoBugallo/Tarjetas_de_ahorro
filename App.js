@@ -227,7 +227,7 @@ export default function App() {
             <Text style={styles.primaryButtonText}>Empezar</Text>
           </Pressable>
           <Pressable onPress={() => setIsDarkMode((prev) => !prev)} style={styles.secondaryThemeButton}>
-            <Text style={styles.secondaryThemeButtonText}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
+            <Text style={[styles.secondaryThemeButtonText, isDarkMode && styles.secondaryThemeButtonTextDark]}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
           </Pressable>
         </View>
         <StatusBar style={isDarkMode ? 'light' : 'dark'} />
@@ -317,7 +317,7 @@ export default function App() {
               </View>
             </View>
 
-            <Text style={styles.chartPercent}>{plannedVsActualPercent.toFixed(0)}% del objetivo mensual</Text>
+            <Text style={[styles.chartPercent, isDarkMode && styles.chartPercentDark]}>{plannedVsActualPercent.toFixed(0)}% del objetivo mensual</Text>
 
             {chartData.length > 0 && (
               <>
@@ -328,7 +328,7 @@ export default function App() {
                   <View key={item.id} style={styles.chartRow}>
                     <View style={styles.chartHeader}>
                       <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>{item.name}</Text>
-                      <Text style={styles.chartPercent}>{item.percent.toFixed(0)}%</Text>
+                      <Text style={[styles.chartPercent, isDarkMode && styles.chartPercentDark]}>{item.percent.toFixed(0)}%</Text>
                     </View>
                     <View style={styles.chartTrack}>
                       <View style={[styles.chartFill, { width: `${item.percent}%`, backgroundColor: item.color }]} />
@@ -352,7 +352,7 @@ export default function App() {
                     styles.chartFill,
                     {
                       width: `${flowTotals.invested > 0 ? 100 : 0}%`,
-                      backgroundColor: '#DC2626',
+                      backgroundColor: '#FFFFFF',
                     },
                   ]}
                 />
@@ -369,7 +369,7 @@ export default function App() {
                     styles.chartFill,
                     {
                       width: `${flowTotals.withdrawn > 0 ? 100 : 0}%`,
-                      backgroundColor: '#EF4444',
+                      backgroundColor: '#FFFFFF',
                     },
                   ]}
                 />
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  emptyTextDark: { borderColor: '#DC2626', color: '#FCA5A5', backgroundColor: '#000000' },
+  emptyTextDark: { borderColor: '#FFFFFF', color: '#FFFFFF', backgroundColor: '#000000' },
   emptyTextLight: { borderColor: '#000000', color: '#000000', backgroundColor: '#FFFFFF' },
   panel: {
     borderRadius: 20,
@@ -469,13 +469,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  panelDark: { backgroundColor: '#000000', borderColor: '#DC2626' },
+  panelDark: { backgroundColor: '#000000', borderColor: '#FFFFFF' },
   panelLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   panelTitle: { fontSize: 20, fontWeight: '800' },
   panelTitleDark: { color: '#F8F6F0' },
   panelTitleLight: { color: '#111111' },
   panelSubTitle: { marginTop: 8, marginBottom: 16, fontSize: 13 },
-  panelSubTitleDark: { color: '#FCA5A5' },
+  panelSubTitleDark: { color: '#FFFFFF' },
   panelSubTitleLight: { color: '#000000' },
   innerTitle: { marginTop: 20, marginBottom: 8, fontSize: 16 },
   chartRow: { marginBottom: 14 },
@@ -488,7 +488,8 @@ const styles = StyleSheet.create({
   chartName: { fontWeight: '700' },
   chartNameDark: { color: '#E5E7EB' },
   chartNameLight: { color: '#111111' },
-  chartPercent: { color: '#DC2626', fontWeight: '800' },
+  chartPercent: { color: '#000000', fontWeight: '800' },
+  chartPercentDark: { color: '#FFFFFF' },
   chartTrack: {
     height: 12,
     backgroundColor: '#E5E7EB',
@@ -498,8 +499,8 @@ const styles = StyleSheet.create({
     borderColor: '#D4D4D4',
   },
   chartFill: { height: '100%', borderRadius: 999 },
-  plannedFill: { backgroundColor: '#DC2626' },
-  actualFill: { backgroundColor: '#F87171' },
+  plannedFill: { backgroundColor: '#FFFFFF' },
+  actualFill: { backgroundColor: '#FFFFFF' },
   chartAmount: { color: '#000000', fontSize: 12, fontWeight: '700' },
   profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
@@ -530,10 +531,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 12,
   },
-  overflowNoticeDark: { backgroundColor: '#1F1F1F', borderColor: '#DC2626' },
+  overflowNoticeDark: { backgroundColor: '#1F1F1F', borderColor: '#FFFFFF' },
   overflowNoticeLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   overflowNoticeText: { fontSize: 13, fontWeight: '700' },
-  overflowNoticeTextDark: { color: '#FECACA' },
+  overflowNoticeTextDark: { color: '#FFFFFF' },
   overflowNoticeTextLight: { color: '#000000' },
   bottomNav: {
     position: 'absolute',
@@ -551,7 +552,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  bottomNavDark: { backgroundColor: '#DC2626', borderColor: '#DC2626' },
+  bottomNavDark: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' },
   bottomNavLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   navButton: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 14 },
   navButtonActive: { backgroundColor: '#000000' },
@@ -569,16 +570,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  onboardingCardDark: { backgroundColor: '#000000', borderColor: '#DC2626' },
+  onboardingCardDark: { backgroundColor: '#000000', borderColor: '#FFFFFF' },
   onboardingCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   onboardingTitle: { fontSize: 24, fontWeight: '800' },
   onboardingTitleDark: { color: '#F8F6F0' },
   onboardingTitleLight: { color: '#111111' },
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
-  onboardingSubtitleDark: { color: '#FCA5A5' },
+  onboardingSubtitleDark: { color: '#FFFFFF' },
   onboardingSubtitleLight: { color: '#000000' },
   inputLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6, marginTop: 8 },
-  inputLabelDark: { color: '#FECACA' },
+  inputLabelDark: { color: '#FFFFFF' },
   inputLabelLight: { color: '#000000' },
   input: {
     borderWidth: 1,
@@ -587,7 +588,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
   },
-  inputDark: { borderColor: '#B91C1C', color: '#F9FAFB', backgroundColor: '#111111' },
+  inputDark: { borderColor: '#FFFFFF', color: '#F9FAFB', backgroundColor: '#111111' },
   inputLight: { borderColor: '#000000', color: '#000000', backgroundColor: '#FFFFFF' },
   primaryButton: {
     marginTop: 18,
@@ -602,7 +603,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  secondaryThemeButtonText: { color: '#DC2626', fontWeight: '700' },
+  secondaryThemeButtonText: { color: '#000000', fontWeight: '700' },
+  secondaryThemeButtonTextDark: { color: '#FFFFFF' },
   currencyRow: { flexDirection: 'row', gap: 10, marginBottom: 4 },
   currencyButton: {
     flex: 1,

@@ -14,7 +14,7 @@ export default function HistoryCard({ items = [], isDarkMode, currencyCode }) {
     <View style={[styles.historyCard, isDarkMode ? styles.historyCardDark : styles.historyCardLight]}>
       <Pressable style={styles.headerRow} onPress={() => setIsCollapsed((prev) => !prev)}>
         <Text style={[styles.historyTitle, isDarkMode ? styles.historyTitleDark : styles.historyTitleLight]}>Historial</Text>
-        <Text style={styles.collapseText}>{isCollapsed ? 'Mostrar' : 'Minimizar'}</Text>
+        <Text style={[styles.collapseText, isDarkMode ? styles.collapseTextDark : styles.collapseTextLight]}>{isCollapsed ? 'Mostrar' : 'Minimizar'}</Text>
       </Pressable>
 
       {isCollapsed ? null : items.length === 0 ? (
@@ -48,7 +48,7 @@ export default function HistoryCard({ items = [], isDarkMode, currencyCode }) {
               )}
 
               {!!item.description && (
-                <Text style={styles.expandText}>{isExpanded ? 'Ver menos' : 'Ver más'}</Text>
+                <Text style={[styles.expandText, isDarkMode ? styles.expandTextDark : styles.expandTextLight]}>{isExpanded ? 'Ver menos' : 'Ver más'}</Text>
               )}
             </Pressable>
           );
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   historyCardDark: {
     backgroundColor: '#000000',
-    borderColor: '#DC2626',
+    borderColor: '#FFFFFF',
   },
   historyCardLight: {
     backgroundColor: '#FFFFFF',
@@ -90,10 +90,11 @@ const styles = StyleSheet.create({
   historyTitleDark: { color: '#F8F6F0' },
   historyTitleLight: { color: '#111111' },
   collapseText: {
-    color: '#DC2626',
     fontWeight: '700',
     fontSize: 12,
   },
+  collapseTextDark: { color: '#FFFFFF' },
+  collapseTextLight: { color: '#000000' },
   historyItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
@@ -118,6 +119,8 @@ const styles = StyleSheet.create({
   historyDescription: { fontSize: 12, color: '#404040', lineHeight: 18 },
   historyDescriptionDark: { color: '#D4D4D4' },
   historyValue: { fontSize: 13, fontWeight: '700', color: '#000000' },
-  historyValueDark: { color: '#FCA5A5' },
-  expandText: { fontSize: 12, color: '#DC2626', fontWeight: '600' },
+  historyValueDark: { color: '#FFFFFF' },
+  expandText: { fontSize: 12, fontWeight: '600' },
+  expandTextDark: { color: '#FFFFFF' },
+  expandTextLight: { color: '#000000' },
 });

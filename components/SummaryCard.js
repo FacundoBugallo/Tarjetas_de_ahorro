@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   summaryCardDark: {
     backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: '#DC2626',
+    borderColor: '#FFFFFF',
   },
   summaryCardLight: {
     backgroundColor: '#FFFFFF',
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  summaryLabelDark: { color: '#FCA5A5' },
+  summaryLabelDark: { color: '#FFFFFF' },
   summaryLabelLight: { color: '#000000' },
   summaryValue: {
     fontSize: 18,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     width: 1,
     height: 46,
   },
-  summaryDividerDark: { backgroundColor: '#B91C1C' },
+  summaryDividerDark: { backgroundColor: '#FFFFFF' },
   summaryDividerLight: { backgroundColor: '#000000' },
   remainingText: {
     marginTop: 4,
