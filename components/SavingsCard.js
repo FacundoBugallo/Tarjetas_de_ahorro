@@ -3,6 +3,40 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { clampPercentage, formatCurrency } from '../utils/formatters';
 import { formatContributionSchedule, getDaysUntilNextContribution } from '../utils/schedule';
 
+const getContrastTextColor = (hexColor = '#FFFFFF') => {
+  const sanitized = hexColor.replace('#', '');
+  const normalized = sanitized.length === 3
+    ? sanitized.split('').map((char) => char + char).join('')
+    : sanitized;
+
+  if (normalized.length !== 6) {
+    return '#111111';
+  }
+
+  const red = parseInt(normalized.slice(0, 2), 16);
+  const green = parseInt(normalized.slice(2, 4), 16);
+  const blue = parseInt(normalized.slice(4, 6), 16);
+  const brightness = ((red * 299) + (green * 587) + (blue * 114)) / 1000;
+
+  return brightness > 150 ? '#111111' : '#F9FAFB';
+};
+
+const withOpacity = (hexColor, alpha) => {
+  const sanitized = hexColor.replace('#', '');
+  const normalized = sanitized.length === 3
+    ? sanitized.split('').map((char) => char + char).join('')
+    : sanitized;
+
+  if (normalized.length !== 6) {
+    return `rgba(17,17,17,${alpha})`;
+  }
+
+  const red = parseInt(normalized.slice(0, 2), 16);
+  const green = parseInt(normalized.slice(2, 4), 16);
+  const blue = parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+};
+
 export default function SavingsCard({
   card,
   onAddContribution,
@@ -16,6 +50,9 @@ export default function SavingsCard({
   const [draftContribution, setDraftContribution] = useState(String(card.nextContribution));
   const percentage = clampPercentage((card.savedAmount / card.targetAmount) * 100);
   const daysUntilNextContribution = getDaysUntilNextContribution(card);
+  const contentColor = getContrastTextColor(card.color);
+  const subtleContentColor = withOpacity(contentColor, 0.82);
+  const buttonSurfaceColor = withOpacity(contentColor, 0.16);
 
   const handleSaveContribution = () => {
     const parsedContribution = Number(draftContribution);
@@ -32,29 +69,29 @@ export default function SavingsCard({
     <View style={[styles.card, { backgroundColor: card.color }]}> 
       <View style={styles.cardHeader}>
         <View style={styles.titleRow}>
-          <Text style={styles.cardTitle}>{card.name}</Text>
-          <Pressable onPress={() => onDeleteCard(card.id)} style={styles.deleteButton}>
-            <Text style={styles.deleteButtonText}>Eliminar</Text>
+          <Text style={[styles.cardTitle, { color: contentColor }]}>{card.name}</Text>
+          <Pressable onPress={() => onDeleteCard(card.id)} style={[styles.deleteButton, { backgroundColor: buttonSurfaceColor }]}> 
+            <Text style={[styles.deleteButtonText, { color: contentColor }]}>Eliminar</Text>
           </Pressable>
         </View>
-        <Text style={styles.cardTarget}>Meta: {formatCurrency(card.targetAmount, currencyCode)}</Text>
-        {!!card.description && <Text style={styles.cardDescription}>{card.description}</Text>}
+        <Text style={[styles.cardTarget, { color: subtleContentColor }]}>Meta: {formatCurrency(card.targetAmount, currencyCode)}</Text>
+        {!!card.description && <Text style={[styles.cardDescription, { color: subtleContentColor }]}>{card.description}</Text>}
       </View>
 
       <View style={styles.progressRow}>
         <View style={[styles.progressTrack, isDarkMode && styles.progressTrackDark]}>
           <View style={[styles.progressFill, { width: `${percentage}%` }]} />
         </View>
-        <Text style={styles.progressText}>{percentage.toFixed(0)}%</Text>
+        <Text style={[styles.progressText, { color: contentColor }]}>{percentage.toFixed(0)}%</Text>
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.footerLeft}>
-          <Text style={styles.cardLabel}>Ahorro acumulado</Text>
-          <Text style={styles.cardValue}>{formatCurrency(card.savedAmount, currencyCode)}</Text>
-          <Text style={styles.cardCadence}>{formatContributionSchedule(card)}</Text>
+          <Text style={[styles.cardLabel, { color: subtleContentColor }]}>Ahorro acumulado</Text>
+          <Text style={[styles.cardValue, { color: contentColor }]}>{formatCurrency(card.savedAmount, currencyCode)}</Text>
+          <Text style={[styles.cardCadence, { color: subtleContentColor }]}>{formatContributionSchedule(card)}</Text>
           {daysUntilNextContribution !== null && (
-            <Text style={styles.nextContributionText}>
+            <Text style={[styles.nextContributionText, { color: subtleContentColor }]}>
               Próximo aporte en {daysUntilNextContribution} día{daysUntilNextContribution === 1 ? '' : 's'}
             </Text>
           )}
@@ -65,7 +102,7 @@ export default function SavingsCard({
                 value={draftContribution}
                 onChangeText={setDraftContribution}
                 keyboardType="numeric"
-                style={styles.editInput}
+                style={[styles.editInput, { color: contentColor, borderColor: withOpacity(contentColor, 0.5), backgroundColor: withOpacity(contentColor, 0.12) }]}
               />
               <Pressable onPress={handleSaveContribution} style={[styles.inlineButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
                 <Text style={[styles.inlineButtonText, isDarkMode && styles.actionButtonTextDark]}>Guardar</Text>
@@ -79,7 +116,7 @@ export default function SavingsCard({
               }}
               style={styles.editTriggerButton}
             >
-              <Text style={styles.editTriggerText}>Editar aporte</Text>
+              <Text style={[styles.editTriggerText, { color: contentColor }]}>Editar aporte</Text>
             </Pressable>
           )}
         </View>

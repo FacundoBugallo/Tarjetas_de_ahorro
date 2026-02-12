@@ -33,6 +33,7 @@ export default function App() {
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
+  const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -108,6 +109,7 @@ export default function App() {
         if (updatedAmount >= card.targetAmount) {
           const overflow = updatedAmount - card.targetAmount;
           const earnedPoints = Math.round(card.targetAmount / 10);
+          setBonusWithdrawnMessage('');
           setBonusAvailable((prevBonus) => prevBonus + overflow);
           setHistoryItems((prevHistory) => [
             {
@@ -170,6 +172,17 @@ export default function App() {
   const handleSaveUser = (updatedUser) => {
     setUserName(updatedUser.userName);
     setPlannedInvestment(updatedUser.plannedInvestment);
+  };
+
+  const handleWithdrawBonus = () => {
+    if (bonusAvailable <= 0) {
+      return;
+    }
+
+    const amountWithdrawn = bonusAvailable;
+    registerTransaction(-amountWithdrawn);
+    setBonusAvailable(0);
+    setBonusWithdrawnMessage(`Retiraste el sobrante de ${formatCurrency(amountWithdrawn, selectedCurrency)}.`);
   };
 
   if (!isOnboardingDone) {
@@ -258,6 +271,21 @@ export default function App() {
               <View style={[styles.overflowNotice, isDarkMode ? styles.overflowNoticeDark : styles.overflowNoticeLight]}>
                 <Text style={[styles.overflowNoticeText, isDarkMode ? styles.overflowNoticeTextDark : styles.overflowNoticeTextLight]}>
                   Tienes un sobrante disponible de {formatCurrency(bonusAvailable, selectedCurrency)}.
+                </Text>
+                <Pressable
+                  onPress={handleWithdrawBonus}
+                  style={[styles.withdrawBonusButton, isDarkMode ? styles.withdrawBonusButtonDark : styles.withdrawBonusButtonLight]}
+                >
+                  <Text style={[styles.withdrawBonusButtonText, isDarkMode ? styles.withdrawBonusButtonTextDark : styles.withdrawBonusButtonTextLight]}>
+                    Retirar sobrante
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+            {!bonusAvailable && !!bonusWithdrawnMessage && (
+              <View style={[styles.overflowNotice, isDarkMode ? styles.overflowNoticeDark : styles.overflowNoticeLight]}>
+                <Text style={[styles.overflowNoticeText, isDarkMode ? styles.overflowNoticeTextDark : styles.overflowNoticeTextLight]}>
+                  {bonusWithdrawnMessage}
                 </Text>
               </View>
             )}
@@ -536,6 +564,19 @@ const styles = StyleSheet.create({
   overflowNoticeText: { fontSize: 13, fontWeight: '700' },
   overflowNoticeTextDark: { color: '#FFFFFF' },
   overflowNoticeTextLight: { color: '#000000' },
+  withdrawBonusButton: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  withdrawBonusButtonDark: { backgroundColor: '#7F1D1D', borderColor: '#991B1B' },
+  withdrawBonusButtonLight: { backgroundColor: '#000000', borderColor: '#000000' },
+  withdrawBonusButtonText: { fontWeight: '700', fontSize: 12 },
+  withdrawBonusButtonTextDark: { color: '#FEE2E2' },
+  withdrawBonusButtonTextLight: { color: '#FFFFFF' },
   bottomNav: {
     position: 'absolute',
     left: 16,
