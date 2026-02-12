@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   headerDark: {
     backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: '#DC2626',
+    borderColor: '#FFFFFF',
   },
   headerLight: {
     backgroundColor: '#FFFFFF',
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   greetingDark: { color: '#F8F6F0' },
   greetingLight: { color: '#111111' },
   level: { marginTop: 4, fontSize: 14 },
-  levelDark: { color: '#FCA5A5' },
+  levelDark: { color: '#FFFFFF' },
   levelLight: { color: '#000000' },
   levelBadge: {
     backgroundColor: '#000000',
@@ -68,9 +68,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  themeButtonDark: { borderColor: '#B91C1C', backgroundColor: '#000000' },
+  themeButtonDark: { borderColor: '#FFFFFF', backgroundColor: '#000000' },
   themeButtonLight: { borderColor: '#000000', backgroundColor: '#FFFFFF' },
   themeButtonText: { fontSize: 12, fontWeight: '700' },
-  themeButtonTextDark: { color: '#FEE2E2' },
+  themeButtonTextDark: { color: '#FFFFFF' },
   themeButtonTextLight: { color: '#000000' },
 });

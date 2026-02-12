@@ -105,7 +105,7 @@ export default function SavingsCard({
                 style={[styles.editInput, { color: contentColor, borderColor: withOpacity(contentColor, 0.5), backgroundColor: withOpacity(contentColor, 0.12) }]}
               />
               <Pressable onPress={handleSaveContribution} style={[styles.inlineButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-                <Text style={styles.inlineButtonText}>Guardar</Text>
+                <Text style={[styles.inlineButtonText, isDarkMode && styles.actionButtonTextDark]}>Guardar</Text>
               </Pressable>
             </View>
           ) : (
@@ -123,10 +123,10 @@ export default function SavingsCard({
 
         <View style={styles.actionColumn}>
           <Pressable onPress={() => onAddContribution(card.id)} style={[styles.addButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-            <Text style={styles.addButtonText}>+{formatCurrency(card.nextContribution, currencyCode)}</Text>
+            <Text style={[styles.addButtonText, isDarkMode && styles.actionButtonTextDark]}>+{formatCurrency(card.nextContribution, currencyCode)}</Text>
           </Pressable>
           <Pressable onPress={() => onRemoveContribution(card.id)} style={[styles.removeButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-            <Text style={styles.removeButtonText}>-{formatCurrency(card.nextContribution, currencyCode)}</Text>
+            <Text style={[styles.removeButtonText, isDarkMode && styles.actionButtonTextDark]}>-{formatCurrency(card.nextContribution, currencyCode)}</Text>
           </Pressable>
         </View>
       </View>
@@ -189,14 +189,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   addButtonText: { color: '#F9FAFB', fontWeight: '700', fontSize: 13 },
-  actionButtonDark: { backgroundColor: '#7F1D1D', shadowColor: '#450A0A' },
+  actionButtonDark: { backgroundColor: '#FFFFFF', shadowColor: '#FFFFFF' },
+  actionButtonTextDark: { color: '#000000' },
   actionButtonLight: { backgroundColor: '#000000', shadowColor: '#000000' },
   removeButton: {
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
   },
-  removeButtonText: { color: '#FECACA', fontWeight: '700', fontSize: 13 },
+  removeButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   editTriggerButton: { marginTop: 8 },
   editTriggerText: { color: '#000000', fontWeight: '700', fontSize: 12 },
   editRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },

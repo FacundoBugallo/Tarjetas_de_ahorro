@@ -5,7 +5,7 @@ export default function SectionHeader({ onCreate, isDarkMode }) {
     <View style={styles.sectionHeader}>
       <Text style={[styles.sectionTitle, isDarkMode ? styles.sectionTitleDark : styles.sectionTitleLight]}>Tus tarjetas de ahorro 💳</Text>
       <TouchableOpacity onPress={onCreate} style={[styles.createButton, isDarkMode ? styles.createButtonDark : styles.createButtonLight]}>
-        <Text style={styles.createButtonText}>Crear tarjeta ➕</Text>
+        <Text style={[styles.createButtonText, isDarkMode && styles.createButtonTextDark]}>Crear tarjeta ➕</Text>
       </TouchableOpacity>
     </View>
   );
@@ -28,17 +28,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 16,
-    shadowColor: '#B91C1C',
+    shadowColor: '#FFFFFF',
     shadowOpacity: 0.35,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
-  createButtonDark: { backgroundColor: '#DC2626', shadowColor: '#B91C1C' },
+  createButtonDark: { backgroundColor: '#FFFFFF', shadowColor: '#FFFFFF' },
   createButtonLight: { backgroundColor: '#000000', shadowColor: '#000000' },
   createButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 13,
   },
+  createButtonTextDark: { color: '#000000' },
 });
