@@ -34,6 +34,7 @@ const createShuffledOrder = (length) => {
 export default function App() {
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState('');
+  const [userPhoto, setUserPhoto] = useState('');
   const [plannedInvestment, setPlannedInvestment] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
@@ -43,6 +44,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('inicio');
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [draftName, setDraftName] = useState('');
+  const [draftPhoto, setDraftPhoto] = useState('');
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
@@ -150,11 +152,12 @@ export default function App() {
   const handleCompleteOnboarding = () => {
     const parsedInvestment = Number(draftPlannedInvestment);
 
-    if (!draftName.trim() || Number.isNaN(parsedInvestment) || parsedInvestment < 0) {
+    if (!draftName.trim() || !draftPhoto.trim() || Number.isNaN(parsedInvestment) || parsedInvestment < 0) {
       return;
     }
 
     setUserName(draftName.trim());
+    setUserPhoto(draftPhoto.trim());
     setPlannedInvestment(parsedInvestment);
     setIsOnboardingDone(true);
   };
@@ -289,7 +292,7 @@ export default function App() {
             Configuremos tu mes ✨
           </Text>
           <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-            Dinos tu nombre, tu moneda y cuánto crees que vas a ahorrar este mes.
+            Dinos tu nombre, una foto de perfil, tu moneda y cuánto crees que vas a ahorrar este mes.
           </Text>
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Tu nombre</Text>
@@ -299,6 +302,16 @@ export default function App() {
             style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
             placeholder="Escribe tu nombre"
             placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+          />
+
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Foto (URL)</Text>
+          <TextInput
+            value={draftPhoto}
+            onChangeText={setDraftPhoto}
+            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="https://..."
+            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+            autoCapitalize="none"
           />
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
@@ -393,6 +406,7 @@ export default function App() {
           userName={userName}
           levelLabel={levelLabel}
           pointsLabel={pointsLabel}
+          profilePhoto={userPhoto}
         />
 
         {activeTab === 'inicio' && (
@@ -834,12 +848,12 @@ const styles = StyleSheet.create({
   moodOptionTextActive: { color: '#FFFFFF' },
   financialStatusCard: {
     marginBottom: 16,
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 12,
+    padding: 14,
   },
-  financialStatusCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
-  financialStatusCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
+  financialStatusCardDark: { backgroundColor: '#1A1A1A', borderColor: '#3A3A3A' },
+  financialStatusCardLight: { backgroundColor: '#E5E5E5', borderColor: '#C8C8C8' },
   financialStatusTitle: { fontSize: 16, fontWeight: '800' },
   financialStatusPrimary: { marginTop: 8, fontSize: 13, fontWeight: '700' },
   coachingCard: {
