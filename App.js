@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import CreateCardModal from './components/CreateCardModal';
 import Header from './components/Header';
@@ -9,6 +9,8 @@ import SavingsCard from './components/SavingsCard';
 import SectionHeader from './components/SectionHeader';
 import SummaryCard from './components/SummaryCard';
 import UserSummaryModal from './components/UserSummaryModal';
+import dailyTips from './data/dailyTips';
+import emotionalCheckins from './data/emotionalCheckins';
 import savingsCards from './data/savingsCards';
 import { clampPercentage, formatCurrency } from './utils/formatters';
 
@@ -18,47 +20,21 @@ const tabs = [
   { key: 'perfil', label: 'Perfil 👤' },
 ];
 
-const financialMoodOptions = [
-  { key: 'tranquilo', label: 'Tranquilo' },
-  { key: 'ajustado', label: 'Ajustado' },
-  { key: 'preocupado', label: 'Preocupado' },
-  { key: 'motivado', label: 'Motivado' },
-];
+const getDateKey = () => new Date().toISOString().slice(0, 10);
 
-const moodContent = {
-  tranquilo: {
-    checkinMessage: 'Excelente base emocional: estás administrando con calma y claridad.',
-    tip: 'Tip del día: separar primero el ahorro evita gastar de más.',
-    recommendation: 'Recomendación: automatiza tu aporte semanal para mantener esta tranquilidad.',
-    status: 'Hoy estás más cerca de tu objetivo que ayer.',
-    statusDetail: 'Tu ritmo estable protege tu meta mensual incluso con gastos inesperados.',
-  },
-  ajustado: {
-    checkinMessage: 'Vas justo, pero con enfoque puedes sostener el avance del mes.',
-    tip: 'Un café menos por semana puede convertirse en un impulso directo a tu tarjeta principal.',
-    recommendation: 'Recomendación: prioriza gastos fijos y define un micro-objetivo de ahorro para hoy.',
-    status: 'Tu esfuerzo semanal está siendo constante.',
-    statusDetail: 'Ahorrar un poco hoy mantiene viva la meta sin presionarte de más.',
-  },
-  preocupado: {
-    checkinMessage: 'Respira: reconocer la preocupación ya es un paso valiente para ordenar tus finanzas.',
-    tip: 'Hoy podrías ahorrar el equivalente a un gasto hormiga que decidas pausar por 24 horas.',
-    recommendation: 'Recomendación: empieza con un monto pequeño y realista; sumar confianza también cuenta.',
-    status: 'Ahorrar hoy te ayuda a recuperar control paso a paso.',
-    statusDetail: 'Incluso un aporte corto reduce presión y fortalece tu hábito financiero.',
-  },
-  motivado: {
-    checkinMessage: '¡Esa energía suma! Es un gran momento para acelerar tu plan de ahorro.',
-    tip: 'Tip del día: cuando te sientes motivado, define un aporte extra y bloquéalo de inmediato.',
-    recommendation: 'Recomendación: convierte esa motivación en acción con un reto de ahorro de 7 días.',
-    status: 'Ahorrar $100 hoy puede recortar varios días de tu meta.',
-    statusDetail: 'Tu impulso actual puede transformar este mes en tu mejor avance del año.',
-  },
+const createShuffledOrder = (length) => {
+  const nextOrder = Array.from({ length }, (_, index) => index);
+  for (let i = nextOrder.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]];
+  }
+  return nextOrder;
 };
 
 export default function App() {
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState('');
+  const [userPhoto, setUserPhoto] = useState('');
   const [plannedInvestment, setPlannedInvestment] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
@@ -68,11 +44,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('inicio');
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [draftName, setDraftName] = useState('');
+  const [draftPhoto, setDraftPhoto] = useState('');
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
-  const [financialMood, setFinancialMood] = useState('tranquilo');
+  const [financialMood, setFinancialMood] = useState(emotionalCheckins[0].key);
+  const [selectedMoodMessage, setSelectedMoodMessage] = useState(emotionalCheckins[0].messages[0]);
+  const [dailyTip, setDailyTip] = useState(dailyTips[0]);
+  const [pendingMoodKey, setPendingMoodKey] = useState(emotionalCheckins[0].key);
+  const [isCheckinPending, setIsCheckinPending] = useState(false);
+  const [checkinProgress, setCheckinProgress] = useState({
+    lastDate: '',
+    moodCycles: {},
+    tipsCycle: { order: [], cursor: 0 },
+  });
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -110,18 +96,90 @@ export default function App() {
     };
   }, [monthlyTransactions]);
 
-  const activeMoodContent = moodContent[financialMood];
+  const activeMood = emotionalCheckins.find((mood) => mood.key === financialMood) || emotionalCheckins[0];
+
+
+
+  useEffect(() => {
+    if (!isOnboardingDone) {
+      return;
+    }
+
+    const currentHour = new Date().getHours();
+    const today = getDateKey();
+    const needsCheckin = currentHour >= 12 && checkinProgress.lastDate !== today;
+    setIsCheckinPending(needsCheckin);
+  }, [checkinProgress.lastDate, isOnboardingDone]);
+
+  const getNextMoodMessage = (moodKey, moodCycles) => {
+    const selectedMood = emotionalCheckins.find((mood) => mood.key === moodKey) || emotionalCheckins[0];
+    const currentCycle = moodCycles[moodKey] || { order: [], cursor: 0 };
+
+    let order = currentCycle.order;
+    let cursor = currentCycle.cursor;
+
+    if (!order.length || cursor >= order.length) {
+      order = createShuffledOrder(selectedMood.messages.length);
+      cursor = 0;
+    }
+
+    const message = selectedMood.messages[order[cursor]];
+
+    return {
+      message,
+      nextCycle: {
+        ...moodCycles,
+        [moodKey]: { order, cursor: cursor + 1 },
+      },
+    };
+  };
+
+  const getNextTip = (tipsCycle) => {
+    let order = tipsCycle.order;
+    let cursor = tipsCycle.cursor;
+
+    if (!order.length || cursor >= order.length) {
+      order = createShuffledOrder(dailyTips.length);
+      cursor = 0;
+    }
+
+    return {
+      tip: dailyTips[order[cursor]],
+      nextTipsCycle: { order, cursor: cursor + 1 },
+    };
+  };
 
   const handleCompleteOnboarding = () => {
     const parsedInvestment = Number(draftPlannedInvestment);
 
-    if (!draftName.trim() || Number.isNaN(parsedInvestment) || parsedInvestment < 0) {
+    if (!draftName.trim() || !draftPhoto.trim() || Number.isNaN(parsedInvestment) || parsedInvestment < 0) {
       return;
     }
 
     setUserName(draftName.trim());
+    setUserPhoto(draftPhoto.trim());
     setPlannedInvestment(parsedInvestment);
     setIsOnboardingDone(true);
+  };
+
+  const handleSubmitDailyCheckin = () => {
+    const today = getDateKey();
+    const { message, nextCycle } = getNextMoodMessage(pendingMoodKey, checkinProgress.moodCycles);
+    const { tip, nextTipsCycle } = getNextTip(checkinProgress.tipsCycle);
+
+    const nextProgress = {
+      lastDate: today,
+      moodCycles: nextCycle,
+      tipsCycle: nextTipsCycle,
+    };
+
+    setFinancialMood(pendingMoodKey);
+    setSelectedMoodMessage(message);
+    setDailyTip(tip);
+    setCheckinProgress(nextProgress);
+    setIsCheckinPending(false);
+
+
   };
 
   const registerTransaction = (delta) => {
@@ -234,7 +292,7 @@ export default function App() {
             Configuremos tu mes ✨
           </Text>
           <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-            Dinos tu nombre, tu moneda y cuánto crees que vas a ahorrar este mes.
+            Dinos tu nombre, una foto de perfil, tu moneda y cuánto crees que vas a ahorrar este mes.
           </Text>
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Tu nombre</Text>
@@ -244,6 +302,16 @@ export default function App() {
             style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
             placeholder="Escribe tu nombre"
             placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+          />
+
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Foto (URL)</Text>
+          <TextInput
+            value={draftPhoto}
+            onChangeText={setDraftPhoto}
+            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="https://..."
+            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+            autoCapitalize="none"
           />
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
@@ -289,6 +357,46 @@ export default function App() {
     );
   }
 
+  if (isCheckinPending) {
+    return (
+      <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
+        <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
+          <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
+            Check-in personal
+          </Text>
+          <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
+            ¿Cómo estás hoy?
+          </Text>
+
+          <View style={styles.moodOptionsRow}>
+            {emotionalCheckins.map((option) => {
+              const isActive = pendingMoodKey === option.key;
+              return (
+                <Pressable
+                  key={option.key}
+                  onPress={() => setPendingMoodKey(option.key)}
+                  style={[
+                    styles.moodOption,
+                    isDarkMode ? styles.moodOptionDark : styles.moodOptionLight,
+                    isActive && styles.moodOptionActive,
+                  ]}
+                >
+                  <Text style={[styles.moodOptionText, isDarkMode && styles.moodOptionTextDark, isActive && styles.moodOptionTextActive]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Pressable onPress={handleSubmitDailyCheckin} style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Entrar al home</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -298,48 +406,8 @@ export default function App() {
           userName={userName}
           levelLabel={levelLabel}
           pointsLabel={pointsLabel}
+          profilePhoto={userPhoto}
         />
-
-        <View style={[styles.emotionalCheckinCard, isDarkMode ? styles.emotionalCheckinCardDark : styles.emotionalCheckinCardLight]}>
-          <Text style={[styles.emotionalTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
-            Check-in personal
-          </Text>
-          <Text style={[styles.emotionalQuestion, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-            ¿Cómo estás hoy con tu dinero?
-          </Text>
-          <View style={styles.moodOptionsRow}>
-            {financialMoodOptions.map((option) => {
-              const isActive = financialMood === option.key;
-              return (
-                <Pressable
-                  key={option.key}
-                  onPress={() => setFinancialMood(option.key)}
-                  style={[
-                    styles.moodOption,
-                    isDarkMode ? styles.moodOptionDark : styles.moodOptionLight,
-                    isActive && styles.moodOptionActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.moodOptionText,
-                      isDarkMode && styles.moodOptionTextDark,
-                      isActive && styles.moodOptionTextActive,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Text style={[styles.checkinMessage, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-            {activeMoodContent.checkinMessage}
-          </Text>
-          <Text style={[styles.checkinSupport, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-            {activeMoodContent.recommendation}
-          </Text>
-        </View>
 
         {activeTab === 'inicio' && (
           <>
@@ -396,13 +464,13 @@ export default function App() {
 
             <View style={[styles.financialStatusCard, isDarkMode ? styles.financialStatusCardDark : styles.financialStatusCardLight]}>
               <Text style={[styles.financialStatusTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
-                Estado emocional financiero
+                Estado emocional el: seleccionado
               </Text>
               <Text style={[styles.financialStatusPrimary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-                {activeMoodContent.status}
+                Hoy te sentís: {activeMood.label}
               </Text>
               <Text style={[styles.financialStatusSecondary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-                {activeMoodContent.statusDetail}
+                {selectedMoodMessage}
               </Text>
             </View>
 
@@ -507,10 +575,7 @@ export default function App() {
                 Micro coaching diario
               </Text>
               <Text style={[styles.coachingTip, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-                {activeMoodContent.tip}
-              </Text>
-              <Text style={[styles.coachingRecommendation, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-                {activeMoodContent.recommendation}
+                {dailyTip}
               </Text>
             </View>
           </View>
@@ -765,19 +830,9 @@ const styles = StyleSheet.create({
   currencyButtonActive: { backgroundColor: '#000000', borderColor: '#000000' },
   currencyButtonText: { color: '#000000', fontWeight: '700' },
   currencyButtonTextActive: { color: '#FFFFFF' },
-  emotionalCheckinCard: {
-    marginTop: 14,
-    marginBottom: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-  },
-  emotionalCheckinCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
-  emotionalCheckinCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   emotionalTitle: { fontSize: 18, fontWeight: '800' },
   emotionalTitleDark: { color: '#FFFFFF' },
   emotionalTitleLight: { color: '#111111' },
-  emotionalQuestion: { marginTop: 6, marginBottom: 12, fontSize: 13 },
   moodOptionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   moodOption: {
     borderRadius: 999,
@@ -791,16 +846,14 @@ const styles = StyleSheet.create({
   moodOptionText: { color: '#000000', fontSize: 12, fontWeight: '700' },
   moodOptionTextDark: { color: '#FFFFFF' },
   moodOptionTextActive: { color: '#FFFFFF' },
-  checkinMessage: { marginTop: 12, fontSize: 13, fontWeight: '700' },
-  checkinSupport: { marginTop: 8, fontSize: 13 },
   financialStatusCard: {
     marginBottom: 16,
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 12,
+    padding: 14,
   },
-  financialStatusCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
-  financialStatusCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
+  financialStatusCardDark: { backgroundColor: '#1A1A1A', borderColor: '#3A3A3A' },
+  financialStatusCardLight: { backgroundColor: '#E5E5E5', borderColor: '#C8C8C8' },
   financialStatusTitle: { fontSize: 16, fontWeight: '800' },
   financialStatusPrimary: { marginTop: 8, fontSize: 13, fontWeight: '700' },
   financialStatusSecondary: { marginTop: 6, fontSize: 13 },
