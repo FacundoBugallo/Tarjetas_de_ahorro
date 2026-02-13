@@ -48,6 +48,7 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
   const [financialMood, setFinancialMood] = useState(emotionalCheckins[0].key);
+  const [selectedMoodMessage, setSelectedMoodMessage] = useState(emotionalCheckins[0].messages[0]);
   const [dailyTip, setDailyTip] = useState(dailyTips[0]);
   const [pendingMoodKey, setPendingMoodKey] = useState(emotionalCheckins[0].key);
   const [isCheckinPending, setIsCheckinPending] = useState(false);
@@ -120,9 +121,14 @@ export default function App() {
       cursor = 0;
     }
 
+    const message = selectedMood.messages[order[cursor]];
+
     return {
-      ...moodCycles,
-      [moodKey]: { order, cursor: cursor + 1 },
+      message,
+      nextCycle: {
+        ...moodCycles,
+        [moodKey]: { order, cursor: cursor + 1 },
+      },
     };
   };
 
@@ -155,7 +161,7 @@ export default function App() {
 
   const handleSubmitDailyCheckin = () => {
     const today = getDateKey();
-    const nextCycle = getNextMoodMessage(pendingMoodKey, checkinProgress.moodCycles);
+    const { message, nextCycle } = getNextMoodMessage(pendingMoodKey, checkinProgress.moodCycles);
     const { tip, nextTipsCycle } = getNextTip(checkinProgress.tipsCycle);
 
     const nextProgress = {
@@ -165,6 +171,7 @@ export default function App() {
     };
 
     setFinancialMood(pendingMoodKey);
+    setSelectedMoodMessage(message);
     setDailyTip(tip);
     setCheckinProgress(nextProgress);
     setIsCheckinPending(false);
@@ -443,10 +450,13 @@ export default function App() {
 
             <View style={[styles.financialStatusCard, isDarkMode ? styles.financialStatusCardDark : styles.financialStatusCardLight]}>
               <Text style={[styles.financialStatusTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
-                Estado emocional financiero
+                Estado emocional el: seleccionado
               </Text>
               <Text style={[styles.financialStatusPrimary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
                 Hoy te sentís: {activeMood.label}
+              </Text>
+              <Text style={[styles.financialStatusSecondary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                {selectedMoodMessage}
               </Text>
             </View>
 
