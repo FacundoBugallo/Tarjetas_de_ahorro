@@ -48,7 +48,6 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
   const [financialMood, setFinancialMood] = useState(emotionalCheckins[0].key);
-  const [dailyCheckinMessage, setDailyCheckinMessage] = useState(emotionalCheckins[0].messages[0]);
   const [dailyTip, setDailyTip] = useState(dailyTips[0]);
   const [pendingMoodKey, setPendingMoodKey] = useState(emotionalCheckins[0].key);
   const [isCheckinPending, setIsCheckinPending] = useState(false);
@@ -121,13 +120,9 @@ export default function App() {
       cursor = 0;
     }
 
-    const message = selectedMood.messages[order[cursor]];
     return {
-      message,
-      nextCycle: {
-        ...moodCycles,
-        [moodKey]: { order, cursor: cursor + 1 },
-      },
+      ...moodCycles,
+      [moodKey]: { order, cursor: cursor + 1 },
     };
   };
 
@@ -160,7 +155,7 @@ export default function App() {
 
   const handleSubmitDailyCheckin = () => {
     const today = getDateKey();
-    const { message, nextCycle } = getNextMoodMessage(pendingMoodKey, checkinProgress.moodCycles);
+    const nextCycle = getNextMoodMessage(pendingMoodKey, checkinProgress.moodCycles);
     const { tip, nextTipsCycle } = getNextTip(checkinProgress.tipsCycle);
 
     const nextProgress = {
@@ -170,7 +165,6 @@ export default function App() {
     };
 
     setFinancialMood(pendingMoodKey);
-    setDailyCheckinMessage(message);
     setDailyTip(tip);
     setCheckinProgress(nextProgress);
     setIsCheckinPending(false);
@@ -394,18 +388,6 @@ export default function App() {
           pointsLabel={pointsLabel}
         />
 
-        <View style={[styles.emotionalCheckinCard, isDarkMode ? styles.emotionalCheckinCardDark : styles.emotionalCheckinCardLight]}>
-          <Text style={[styles.emotionalTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
-            Check-in personal
-          </Text>
-          <Text style={[styles.emotionalQuestion, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-            Estado actual: {activeMood.label}
-          </Text>
-          <Text style={[styles.checkinMessage, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-            {dailyCheckinMessage}
-          </Text>
-        </View>
-
         {activeTab === 'inicio' && (
           <>
             <SummaryCard
@@ -465,9 +447,6 @@ export default function App() {
               </Text>
               <Text style={[styles.financialStatusPrimary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
                 Hoy te sentís: {activeMood.label}
-              </Text>
-              <Text style={[styles.financialStatusSecondary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-                {dailyCheckinMessage}
               </Text>
             </View>
 
@@ -827,19 +806,9 @@ const styles = StyleSheet.create({
   currencyButtonActive: { backgroundColor: '#000000', borderColor: '#000000' },
   currencyButtonText: { color: '#000000', fontWeight: '700' },
   currencyButtonTextActive: { color: '#FFFFFF' },
-  emotionalCheckinCard: {
-    marginTop: 14,
-    marginBottom: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-  },
-  emotionalCheckinCardDark: { backgroundColor: '#111111', borderColor: '#FFFFFF' },
-  emotionalCheckinCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   emotionalTitle: { fontSize: 18, fontWeight: '800' },
   emotionalTitleDark: { color: '#FFFFFF' },
   emotionalTitleLight: { color: '#111111' },
-  emotionalQuestion: { marginTop: 6, marginBottom: 12, fontSize: 13 },
   moodOptionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   moodOption: {
     borderRadius: 999,
@@ -853,8 +822,6 @@ const styles = StyleSheet.create({
   moodOptionText: { color: '#000000', fontSize: 12, fontWeight: '700' },
   moodOptionTextDark: { color: '#FFFFFF' },
   moodOptionTextActive: { color: '#FFFFFF' },
-  checkinMessage: { marginTop: 12, fontSize: 13, fontWeight: '700' },
-  checkinSupport: { marginTop: 8, fontSize: 13 },
   financialStatusCard: {
     marginBottom: 16,
     borderRadius: 14,
@@ -865,7 +832,6 @@ const styles = StyleSheet.create({
   financialStatusCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   financialStatusTitle: { fontSize: 16, fontWeight: '800' },
   financialStatusPrimary: { marginTop: 8, fontSize: 13, fontWeight: '700' },
-  financialStatusSecondary: { marginTop: 6, fontSize: 13 },
   coachingCard: {
     marginTop: 8,
     borderRadius: 14,
