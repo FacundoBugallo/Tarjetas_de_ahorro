@@ -842,7 +842,6 @@ const styles = StyleSheet.create({
   financialStatusCardLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
   financialStatusTitle: { fontSize: 16, fontWeight: '800' },
   financialStatusPrimary: { marginTop: 8, fontSize: 13, fontWeight: '700' },
-  financialStatusSecondary: { marginTop: 6, fontSize: 13 },
   coachingCard: {
     marginTop: 8,
     borderRadius: 14,
