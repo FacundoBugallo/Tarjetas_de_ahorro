@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Alert, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 
 import CreateCardModal from './components/CreateCardModal';
@@ -130,7 +130,6 @@ export default function App() {
     tipsCycle: { order: [], cursor: 0 },
   });
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState('');
-  const [chartSnapshot, setChartSnapshot] = useState(null);
   const [snapshotMessage, setSnapshotMessage] = useState('');
 
   const pointsPerBlock = 50;
@@ -480,53 +479,36 @@ export default function App() {
     setBonusWithdrawnMessage(`Retiraste el sobrante de ${formatCurrency(amountWithdrawn, selectedCurrency)}.`);
   };
 
-  const buildChartSnapshotPayload = () => ({
-    createdAt: new Date().toISOString(),
-    granularity: chartGranularity,
-    currency: selectedCurrency,
-    onboardingCompletedAt,
-    candles,
-    stats: {
-      plannedInvestment,
-      totalInvestedThisMonth,
-      plannedVsActualPercent: Number(plannedVsActualPercent.toFixed(2)),
-      cardsCount: cards.length,
-      transactionsCount: transactions.length,
-    },
-  });
-
-  const handleSaveChartSnapshot = () => {
-    const payload = buildChartSnapshotPayload();
-    setChartSnapshot(payload);
-    setSnapshotMessage('Snapshot guardado localmente. Listo para descargar o enviar a backend.');
-  };
-
-  const handleDownloadChartSnapshot = () => {
-    if (!chartSnapshot) {
-      setSnapshotMessage('Primero guarda un snapshot para generar el archivo JSON.');
+  const handleDownloadChartExcel = () => {
+    if (!candles.length) {
+      setSnapshotMessage('No hay datos de velas para exportar todavía.');
       return;
     }
 
     if (Platform.OS !== 'web') {
-      setSnapshotMessage('En móvil ya está listo para enviarse a backend cuando conectes el endpoint.');
+      setSnapshotMessage('La descarga como Excel está disponible en web por ahora.');
       return;
     }
 
-    const blob = new Blob([JSON.stringify(chartSnapshot, null, 2)], { type: 'application/json' });
+    const headers = ['periodo', 'apertura', 'maximo', 'minimo', 'cierre', 'moneda', 'granularidad'];
+    const rows = candles.map((period) => [
+      period.label,
+      period.open,
+      period.high,
+      period.low,
+      period.close,
+      selectedCurrency,
+      chartGranularity,
+    ]);
+    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = objectUrl;
-    anchor.download = `chart-snapshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+    anchor.download = `velas-historicas-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
-    setSnapshotMessage('Archivo JSON descargado. Puedes usar el mismo payload para subirlo a tu backend.');
-  };
-
-  const handlePreviewBackendPayload = () => {
-    const payload = chartSnapshot || buildChartSnapshotPayload();
-    setChartSnapshot(payload);
-    setSnapshotMessage(`Payload listo para backend (${JSON.stringify(payload).length} bytes aprox).`);
-    Alert.alert('Payload listo', 'Ya quedó estructurado para enviarlo a un endpoint POST cuando conectes el backend.');
+    setSnapshotMessage('Archivo descargado en formato CSV compatible con Excel.');
   };
 
   if (!isOnboardingDone) {
@@ -879,18 +861,11 @@ export default function App() {
                   );
                 })}
               </ScrollView>
+              <View style={[styles.timeAxisLine, isDarkMode ? styles.timeAxisLineDark : styles.timeAxisLineLight]} />
             </View>
 
-            <View style={styles.snapshotActionsRow}>
-              <Pressable onPress={handleSaveChartSnapshot} style={[styles.snapshotButton, styles.snapshotButtonPrimary]}>
-                <Text style={styles.snapshotButtonPrimaryText}>Guardar snapshot</Text>
-              </Pressable>
-              <Pressable onPress={handleDownloadChartSnapshot} style={[styles.snapshotButton, styles.snapshotButtonSecondary]}>
-                <Text style={styles.snapshotButtonSecondaryText}>Descargar JSON</Text>
-              </Pressable>
-            </View>
-            <Pressable onPress={handlePreviewBackendPayload} style={[styles.snapshotButton, styles.snapshotButtonGhost]}>
-              <Text style={styles.snapshotButtonGhostText}>Preparar payload para backend</Text>
+            <Pressable onPress={handleDownloadChartExcel} style={[styles.snapshotButton, styles.snapshotButtonSecondary]}>
+              <Text style={styles.snapshotButtonSecondaryText}>Descargar como Excel</Text>
             </Pressable>
             {!!snapshotMessage && (
               <Text style={[styles.snapshotMessage, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
@@ -1116,15 +1091,15 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   candleChartFrame: {
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2B2B2B',
     overflow: 'hidden',
     marginBottom: 12,
     position: 'relative',
   },
-  candleChartFrameDark: { backgroundColor: '#0B1220' },
-  candleChartFrameLight: { backgroundColor: '#EEF3FF' },
+  candleChartFrameDark: { backgroundColor: '#191919' },
+  candleChartFrameLight: { backgroundColor: '#191919' },
   candleScaleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1147,29 +1122,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   candleGridLineDark: { borderTopColor: '#1F2A44' },
-  candleGridLineLight: { borderTopColor: '#CBD5E1' },
+  candleGridLineLight: { borderTopColor: '#3A3A3A' },
   candleItem: { alignItems: 'center', width: 56, marginRight: 8 },
   candleWick: { width: 2, backgroundColor: '#6B7280', borderRadius: 999 },
   candleWickDark: { backgroundColor: '#94A3B8' },
-  candleBody: { width: 18, marginTop: -4, borderRadius: 5, borderWidth: 1 },
+  candleBody: { width: 18, marginTop: -4, borderRadius: 1, borderWidth: 1 },
   candleBodyUp: { backgroundColor: '#22C55E', borderColor: '#15803D' },
   candleBodyDown: { backgroundColor: '#EF4444', borderColor: '#B91C1C' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
-  snapshotActionsRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  timeAxisLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 30,
+    borderTopWidth: 1,
+  },
+  timeAxisLineDark: { borderTopColor: '#525252' },
+  timeAxisLineLight: { borderTopColor: '#525252' },
   snapshotButton: {
-    borderRadius: 10,
+    borderRadius: 3,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  snapshotButtonPrimary: { backgroundColor: '#0EA5E9', borderColor: '#0284C7', flex: 1 },
-  snapshotButtonPrimaryText: { color: '#E0F2FE', fontSize: 12, fontWeight: '800' },
-  snapshotButtonSecondary: { backgroundColor: '#111827', borderColor: '#1F2937', flex: 1 },
+  snapshotButtonSecondary: { backgroundColor: '#111827', borderColor: '#1F2937', marginBottom: 4 },
   snapshotButtonSecondaryText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
-  snapshotButtonGhost: { borderColor: '#64748B', backgroundColor: 'transparent' },
-  snapshotButtonGhostText: { color: '#334155', fontSize: 12, fontWeight: '700' },
   snapshotMessage: { marginTop: 8, marginBottom: 4, fontSize: 12, fontWeight: '700' },
   profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
