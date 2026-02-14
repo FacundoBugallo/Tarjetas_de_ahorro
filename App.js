@@ -59,10 +59,11 @@ export default function App() {
     moodCycles: {},
     tipsCycle: { order: [], cursor: 0 },
   });
+  const [onboardingCompletedAt, setOnboardingCompletedAt] = useState('');
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
-  const currentMonthKey = useMemo(() => new Date().toISOString().slice(0, 7), []);
+  const currentMonthKey = new Date().toISOString().slice(0, 7);
 
   const monthlyTransactions = useMemo(
     () => transactions.filter((tx) => tx.date.startsWith(currentMonthKey)),
@@ -97,6 +98,116 @@ export default function App() {
   }, [monthlyTransactions]);
 
   const activeMood = emotionalCheckins.find((mood) => mood.key === financialMood) || emotionalCheckins[0];
+
+  const savedTotalAcrossCards = useMemo(
+    () => cards.reduce((acc, card) => acc + card.savedAmount, 0),
+    [cards],
+  );
+
+  const pieByAllCards = useMemo(() => {
+    if (!cards.length) {
+      return [];
+    }
+
+    const denominator = savedTotalAcrossCards > 0 ? savedTotalAcrossCards : cards.reduce((acc, card) => acc + card.targetAmount, 0);
+    if (!denominator) {
+      return [];
+    }
+
+    return cards.map((card) => {
+      const value = savedTotalAcrossCards > 0 ? card.savedAmount : card.targetAmount;
+      return {
+        ...card,
+        piePercent: clampPercentage((value / denominator) * 100),
+      };
+    });
+  }, [cards, savedTotalAcrossCards]);
+
+  const weeklyCandles = useMemo(() => {
+    const ordered = [...monthlyTransactions].sort((a, b) => a.date.localeCompare(b.date));
+    const baseWeeks = Array.from({ length: 5 }, (_, index) => ({
+      id: `week-${index + 1}`,
+      label: `Sem ${index + 1}`,
+      open: 0,
+      close: 0,
+      high: 0,
+      low: 0,
+      hasMoves: false,
+    }));
+
+    let runningBalance = 0;
+
+    ordered.forEach((tx) => {
+      const day = Number(tx.date.slice(-2));
+      const weekIndex = Math.min(4, Math.floor((day - 1) / 7));
+      const current = baseWeeks[weekIndex];
+      const openValue = runningBalance;
+      runningBalance += tx.delta;
+
+      if (!current.hasMoves) {
+        current.open = openValue;
+        current.close = runningBalance;
+        current.high = Math.max(openValue, runningBalance);
+        current.low = Math.min(openValue, runningBalance);
+        current.hasMoves = true;
+        return;
+      }
+
+      current.close = runningBalance;
+      current.high = Math.max(current.high, openValue, runningBalance);
+      current.low = Math.min(current.low, openValue, runningBalance);
+    });
+
+    let carry = 0;
+    return baseWeeks.map((week) => {
+      if (!week.hasMoves) {
+        return {
+          ...week,
+          open: carry,
+          close: carry,
+          high: carry,
+          low: carry,
+        };
+      }
+      carry = week.close;
+      return week;
+    });
+  }, [monthlyTransactions]);
+
+  const candlesScale = useMemo(() => {
+    if (!weeklyCandles.length) {
+      return 1;
+    }
+
+    const highs = weeklyCandles.map((week) => week.high);
+    const lows = weeklyCandles.map((week) => week.low);
+    const range = Math.max(...highs) - Math.min(...lows);
+
+    return range || 1;
+  }, [weeklyCandles]);
+
+  const startedLabel = useMemo(() => {
+    if (!onboardingCompletedAt) {
+      return 'Aún no hay fecha registrada.';
+    }
+
+    const start = new Date(onboardingCompletedAt);
+    const now = new Date();
+    const diffInDays = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
+
+    if (diffInDays === 0) {
+      return 'Empezaste hoy.';
+    }
+
+    if (diffInDays < 30) {
+      return `Empezaste hace ${diffInDays} día${diffInDays === 1 ? '' : 's'}.`;
+    }
+
+    const months = Math.floor(diffInDays / 30);
+    return `Empezaste hace ${months} mes${months === 1 ? '' : 'es'} aprox.`;
+  }, [onboardingCompletedAt]);
+
+  const annualProjection = plannedInvestment * 12;
 
 
 
@@ -159,6 +270,7 @@ export default function App() {
     setUserName(draftName.trim());
     setUserPhoto(draftPhoto.trim());
     setPlannedInvestment(parsedInvestment);
+    setOnboardingCompletedAt(new Date().toISOString());
     setIsOnboardingDone(true);
   };
 
@@ -325,6 +437,9 @@ export default function App() {
             placeholder="0"
             placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
           />
+          <Text style={[styles.helperText, isDarkMode ? styles.helperTextDark : styles.helperTextLight]}>
+            Es lo que tú sientes que podrás ahorrar este mes. Este valor se reinicia cada mes.
+          </Text>
 
           <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Moneda base</Text>
           <View style={styles.currencyRow}>
@@ -528,6 +643,75 @@ export default function App() {
               </>
             )}
 
+            {!!pieByAllCards.length && (
+              <>
+                <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
+                  Torta: participación de todas las tarjetas
+                </Text>
+                {pieByAllCards.map((item) => (
+                  <View key={`all-pie-${item.id}`} style={styles.pieRow}>
+                    <View style={styles.pieTrack}>
+                      <View style={[styles.pieFill, { width: `${item.piePercent}%`, backgroundColor: item.color }]} />
+                    </View>
+                    <Text style={[styles.pieLabel, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>
+                      {item.name}: {item.piePercent.toFixed(0)}%
+                    </Text>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {!!cards.length && (
+              <>
+                <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
+                  Torta individual por tarjeta
+                </Text>
+                {cards.map((card) => {
+                  const percentSaved = clampPercentage((card.savedAmount / card.targetAmount) * 100);
+                  const percentPending = 100 - percentSaved;
+                  return (
+                    <View key={`card-pie-${card.id}`} style={styles.pieRow}>
+                      <View style={styles.pieTrack}>
+                        <View style={[styles.pieFill, { width: `${percentSaved}%`, backgroundColor: card.color }]} />
+                        <View style={[styles.pieFillSecondary, { width: `${percentPending}%` }]} />
+                      </View>
+                      <Text style={[styles.pieLabel, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>
+                        {card.name}: {percentSaved.toFixed(0)}% ahorrado / {percentPending.toFixed(0)}% pendiente
+                      </Text>
+                    </View>
+                  );
+                })}
+              </>
+            )}
+
+            <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
+              Velas semanales del mes
+            </Text>
+            <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+              Cada vela resume apertura, cierre, máximo y mínimo del balance semanal.
+            </Text>
+            <View style={styles.candleRow}>
+              {weeklyCandles.map((week) => {
+                const wickHeight = Math.max(8, ((week.high - week.low) / candlesScale) * 120);
+                const bodyHeight = Math.max(6, (Math.abs(week.close - week.open) / candlesScale) * 90);
+                const isUp = week.close >= week.open;
+                return (
+                  <View key={week.id} style={styles.candleItem}>
+                    <View style={[styles.candleWick, { height: wickHeight }]} />
+                    <View style={[
+                      styles.candleBody,
+                      {
+                        height: bodyHeight,
+                        backgroundColor: isUp ? '#22C55E' : '#EF4444',
+                      },
+                    ]}
+                    />
+                    <Text style={[styles.candleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>{week.label}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
               Balance mensual de movimientos
             </Text>
@@ -597,7 +781,18 @@ export default function App() {
                 <Text style={styles.profileLabel}>Ahorrado real</Text>
                 <Text style={styles.profileValue}>{formatCurrency(totalInvestedThisMonth + bonusAvailable, selectedCurrency)}</Text>
               </View>
+              <View style={styles.profileItem}>
+                <Text style={styles.profileLabel}>¿Desde cuándo empezaste?</Text>
+                <Text style={styles.profileValue}>{startedLabel}</Text>
+              </View>
+              <View style={styles.profileItem}>
+                <Text style={styles.profileLabel}>Si mantienes este ritmo mensual</Text>
+                <Text style={styles.profileValue}>{formatCurrency(annualProjection, selectedCurrency)} al año</Text>
+              </View>
             </View>
+            <Text style={[styles.profileHint, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+              El “destinado a ahorrar” es tu meta subjetiva del mes y se redefine en cada nuevo mes.
+            </Text>
             <Pressable onPress={() => setIsSummaryVisible(true)} style={styles.profileButton}>
               <Text style={styles.profileButtonText}>Editar datos del usuario</Text>
             </Pressable>
@@ -701,6 +896,31 @@ const styles = StyleSheet.create({
   plannedFill: { backgroundColor: '#FFFFFF' },
   actualFill: { backgroundColor: '#FFFFFF' },
   chartAmount: { color: '#000000', fontSize: 12, fontWeight: '700' },
+  pieRow: { marginTop: 10 },
+  pieTrack: {
+    flexDirection: 'row',
+    height: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#D4D4D4',
+    overflow: 'hidden',
+    backgroundColor: '#F5F5F5',
+  },
+  pieFill: { height: '100%' },
+  pieFillSecondary: { height: '100%', backgroundColor: '#D4D4D4' },
+  pieLabel: { marginTop: 6, fontSize: 12, fontWeight: '700' },
+  candleRow: {
+    marginTop: 8,
+    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    minHeight: 170,
+  },
+  candleItem: { alignItems: 'center', width: 52 },
+  candleWick: { width: 2, backgroundColor: '#6B7280', borderRadius: 999 },
+  candleBody: { width: 18, marginTop: -4, borderRadius: 5, borderWidth: 1, borderColor: '#111827' },
+  candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
   profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
     backgroundColor: '#FFFFFF',
@@ -711,6 +931,7 @@ const styles = StyleSheet.create({
   },
   profileLabel: { color: '#000000', fontSize: 12 },
   profileValue: { marginTop: 4, color: '#111111', fontSize: 16, fontWeight: '700' },
+  profileHint: { marginTop: 10, fontSize: 12, fontWeight: '600' },
   profileButton: {
     marginTop: 16,
     borderRadius: 14,
@@ -802,6 +1023,9 @@ const styles = StyleSheet.create({
   },
   inputDark: { borderColor: '#FFFFFF', color: '#F9FAFB', backgroundColor: '#111111' },
   inputLight: { borderColor: '#000000', color: '#000000', backgroundColor: '#FFFFFF' },
+  helperText: { marginTop: 8, fontSize: 11, fontWeight: '600' },
+  helperTextDark: { color: '#FFFFFF' },
+  helperTextLight: { color: '#404040' },
   primaryButton: {
     marginTop: 18,
     backgroundColor: '#000000',
