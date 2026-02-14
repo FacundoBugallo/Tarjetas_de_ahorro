@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 
 import CreateCardModal from './components/CreateCardModal';
@@ -130,6 +130,7 @@ export default function App() {
     tipsCycle: { order: [], cursor: 0 },
   });
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState('');
+  const [snapshotMessage, setSnapshotMessage] = useState('');
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -255,6 +256,17 @@ export default function App() {
     const range = Math.max(...highs) - Math.min(...lows);
 
     return range || 1;
+  }, [candles]);
+
+  const candlesBounds = useMemo(() => {
+    if (!candles.length) {
+      return { max: 0, min: 0 };
+    }
+
+    return {
+      max: Math.max(...candles.map((period) => period.high)),
+      min: Math.min(...candles.map((period) => period.low)),
+    };
   }, [candles]);
 
   const startedLabel = useMemo(() => {
@@ -465,6 +477,38 @@ export default function App() {
     registerTransaction(-amountWithdrawn);
     setBonusAvailable(0);
     setBonusWithdrawnMessage(`Retiraste el sobrante de ${formatCurrency(amountWithdrawn, selectedCurrency)}.`);
+  };
+
+  const handleDownloadChartExcel = () => {
+    if (!candles.length) {
+      setSnapshotMessage('No hay datos de velas para exportar todavía.');
+      return;
+    }
+
+    if (Platform.OS !== 'web') {
+      setSnapshotMessage('La descarga como Excel está disponible en web por ahora.');
+      return;
+    }
+
+    const headers = ['periodo', 'apertura', 'maximo', 'minimo', 'cierre', 'moneda', 'granularidad'];
+    const rows = candles.map((period) => [
+      period.label,
+      period.open,
+      period.high,
+      period.low,
+      period.close,
+      selectedCurrency,
+      chartGranularity,
+    ]);
+    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = `velas-historicas-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(objectUrl);
+    setSnapshotMessage('Archivo descargado en formato CSV compatible con Excel.');
   };
 
   if (!isOnboardingDone) {
@@ -775,27 +819,59 @@ export default function App() {
                 );
               })}
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.candleRow}>
-              {candles.map((period) => {
-                const wickHeight = Math.max(8, ((period.high - period.low) / candlesScale) * 120);
-                const bodyHeight = Math.max(6, (Math.abs(period.close - period.open) / candlesScale) * 90);
-                const isUp = period.close >= period.open;
-                return (
-                  <View key={period.id} style={styles.candleItem}>
-                    <View style={[styles.candleWick, { height: wickHeight }]} />
-                    <View style={[
-                      styles.candleBody,
-                      {
-                        height: bodyHeight,
-                        backgroundColor: isUp ? '#22C55E' : '#EF4444',
-                      },
+            <View style={[styles.candleChartFrame, isDarkMode ? styles.candleChartFrameDark : styles.candleChartFrameLight]}>
+              <View style={styles.candleScaleHeader}>
+                <Text style={[styles.candleScaleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                  Máx: {formatCurrency(candlesBounds.max, selectedCurrency)}
+                </Text>
+                <Text style={[styles.candleScaleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                  Mín: {formatCurrency(candlesBounds.min, selectedCurrency)}
+                </Text>
+              </View>
+              <View style={styles.candleGrid}>
+                {[0, 1, 2, 3].map((line) => (
+                  <View
+                    key={`grid-${line}`}
+                    style={[
+                      styles.candleGridLine,
+                      { top: `${(line / 3) * 100}%` },
+                      isDarkMode ? styles.candleGridLineDark : styles.candleGridLineLight,
                     ]}
-                    />
-                    <Text style={[styles.candleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>{period.label}</Text>
-                  </View>
-                );
-              })}
-            </ScrollView>
+                  />
+                ))}
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.candleRow}>
+                {candles.map((period) => {
+                  const wickHeight = Math.max(14, ((period.high - period.low) / candlesScale) * 126);
+                  const bodyHeight = Math.max(8, (Math.abs(period.close - period.open) / candlesScale) * 92);
+                  const isUp = period.close >= period.open;
+                  return (
+                    <View key={period.id} style={styles.candleItem}>
+                      <View style={[styles.candleWick, { height: wickHeight }, isDarkMode && styles.candleWickDark]} />
+                      <View style={[
+                        styles.candleBody,
+                        isUp ? styles.candleBodyUp : styles.candleBodyDown,
+                        {
+                          height: bodyHeight,
+                        },
+                      ]}
+                      />
+                      <Text style={[styles.candleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>{period.label}</Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+              <View style={[styles.timeAxisLine, isDarkMode ? styles.timeAxisLineDark : styles.timeAxisLineLight]} />
+            </View>
+
+            <Pressable onPress={handleDownloadChartExcel} style={[styles.snapshotButton, styles.snapshotButtonSecondary]}>
+              <Text style={styles.snapshotButtonSecondaryText}>Descargar como Excel</Text>
+            </Pressable>
+            {!!snapshotMessage && (
+              <Text style={[styles.snapshotMessage, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                {snapshotMessage}
+              </Text>
+            )}
 
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
               Balance mensual de movimientos
@@ -1014,10 +1090,66 @@ const styles = StyleSheet.create({
     minHeight: 170,
     paddingRight: 12,
   },
+  candleChartFrame: {
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#2B2B2B',
+    overflow: 'hidden',
+    marginBottom: 12,
+    position: 'relative',
+  },
+  candleChartFrameDark: { backgroundColor: '#191919' },
+  candleChartFrameLight: { backgroundColor: '#191919' },
+  candleScaleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    zIndex: 2,
+  },
+  candleScaleLabel: { fontSize: 11, fontWeight: '700' },
+  candleGrid: {
+    ...StyleSheet.absoluteFillObject,
+    top: 30,
+    left: 0,
+    right: 0,
+    bottom: 30,
+  },
+  candleGridLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
+  },
+  candleGridLineDark: { borderTopColor: '#1F2A44' },
+  candleGridLineLight: { borderTopColor: '#3A3A3A' },
   candleItem: { alignItems: 'center', width: 56, marginRight: 8 },
   candleWick: { width: 2, backgroundColor: '#6B7280', borderRadius: 999 },
-  candleBody: { width: 18, marginTop: -4, borderRadius: 5, borderWidth: 1, borderColor: '#111827' },
+  candleWickDark: { backgroundColor: '#94A3B8' },
+  candleBody: { width: 18, marginTop: -4, borderRadius: 1, borderWidth: 1 },
+  candleBodyUp: { backgroundColor: '#22C55E', borderColor: '#15803D' },
+  candleBodyDown: { backgroundColor: '#EF4444', borderColor: '#B91C1C' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
+  timeAxisLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 30,
+    borderTopWidth: 1,
+  },
+  timeAxisLineDark: { borderTopColor: '#525252' },
+  timeAxisLineLight: { borderTopColor: '#525252' },
+  snapshotButton: {
+    borderRadius: 3,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  snapshotButtonSecondary: { backgroundColor: '#111827', borderColor: '#1F2937', marginBottom: 4 },
+  snapshotButtonSecondaryText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  snapshotMessage: { marginTop: 8, marginBottom: 4, fontSize: 12, fontWeight: '700' },
   profileGrid: { marginTop: 12, gap: 10 },
   profileItem: {
     backgroundColor: '#FFFFFF',
