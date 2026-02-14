@@ -20,7 +20,76 @@ const tabs = [
   { key: 'perfil', label: 'Perfil 👤' },
 ];
 
+const chartGranularityOptions = [
+  { key: 'day', label: 'Día' },
+  { key: 'week', label: 'Semana' },
+  { key: 'month', label: 'Mes' },
+];
+
 const getDateKey = () => new Date().toISOString().slice(0, 10);
+const toDateKey = (date) => date.toISOString().slice(0, 10);
+const parseDateKey = (dateKey) => {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+const startOfDay = (value) => {
+  const nextDate = new Date(value);
+  nextDate.setHours(0, 0, 0, 0);
+  return nextDate;
+};
+const addDays = (value, amount) => {
+  const nextDate = new Date(value);
+  nextDate.setDate(nextDate.getDate() + amount);
+  return nextDate;
+};
+const startOfWeek = (value) => {
+  const nextDate = startOfDay(value);
+  const day = nextDate.getDay();
+  const diff = (day + 6) % 7;
+  return addDays(nextDate, -diff);
+};
+const startOfMonth = (value) => {
+  const nextDate = startOfDay(value);
+  nextDate.setDate(1);
+  return nextDate;
+};
+const formatShortDate = (value) => value.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+const formatMonthLabel = (value) => value.toLocaleDateString('es-CO', { month: 'short', year: 'numeric' });
+const getPeriodKey = (value, granularity) => {
+  if (granularity === 'month') {
+    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  if (granularity === 'week') {
+    return toDateKey(startOfWeek(value));
+  }
+
+  return toDateKey(value);
+};
+const getPeriodStart = (value, granularity) => {
+  if (granularity === 'month') {
+    return startOfMonth(value);
+  }
+
+  if (granularity === 'week') {
+    return startOfWeek(value);
+  }
+
+  return startOfDay(value);
+};
+const getPeriodLabel = (value, granularity) => {
+  if (granularity === 'month') {
+    return formatMonthLabel(value);
+  }
+
+  if (granularity === 'week') {
+    const start = startOfWeek(value);
+    const end = addDays(start, 6);
+    return `${formatShortDate(start)} - ${formatShortDate(end)}`;
+  }
+
+  return value.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+};
 
 const createShuffledOrder = (length) => {
   const nextOrder = Array.from({ length }, (_, index) => index);
@@ -48,6 +117,7 @@ export default function App() {
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
+  const [chartGranularity, setChartGranularity] = useState('week');
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
   const [financialMood, setFinancialMood] = useState(emotionalCheckins[0].key);
   const [selectedMoodMessage, setSelectedMoodMessage] = useState(emotionalCheckins[0].messages[0]);
@@ -123,68 +193,69 @@ export default function App() {
     });
   }, [cards, savedTotalAcrossCards]);
 
-  const weeklyCandles = useMemo(() => {
-    const ordered = [...monthlyTransactions].sort((a, b) => a.date.localeCompare(b.date));
-    const baseWeeks = Array.from({ length: 5 }, (_, index) => ({
-      id: `week-${index + 1}`,
-      label: `Sem ${index + 1}`,
-      open: 0,
-      close: 0,
-      high: 0,
-      low: 0,
-      hasMoves: false,
-    }));
+  const candles = useMemo(() => {
+    const ordered = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
+    const today = startOfDay(new Date());
 
+    if (!onboardingCompletedAt && !ordered.length) {
+      return [];
+    }
+
+    const startingDate = onboardingCompletedAt
+      ? startOfDay(new Date(onboardingCompletedAt))
+      : parseDateKey(ordered[0].date);
+
+    const txByDay = ordered.reduce((acc, tx) => {
+      acc[tx.date] = (acc[tx.date] || 0) + tx.delta;
+      return acc;
+    }, {});
+
+    const periodMap = {};
     let runningBalance = 0;
-
-    ordered.forEach((tx) => {
-      const day = Number(tx.date.slice(-2));
-      const weekIndex = Math.min(4, Math.floor((day - 1) / 7));
-      const current = baseWeeks[weekIndex];
+    for (let cursor = new Date(startingDate); cursor <= today; cursor = addDays(cursor, 1)) {
+      const dateKey = toDateKey(cursor);
+      const delta = txByDay[dateKey] || 0;
       const openValue = runningBalance;
-      runningBalance += tx.delta;
+      const closeValue = runningBalance + delta;
+      const highValue = Math.max(openValue, closeValue);
+      const lowValue = Math.min(openValue, closeValue);
+      const periodKey = getPeriodKey(cursor, chartGranularity);
 
-      if (!current.hasMoves) {
-        current.open = openValue;
-        current.close = runningBalance;
-        current.high = Math.max(openValue, runningBalance);
-        current.low = Math.min(openValue, runningBalance);
-        current.hasMoves = true;
-        return;
-      }
-
-      current.close = runningBalance;
-      current.high = Math.max(current.high, openValue, runningBalance);
-      current.low = Math.min(current.low, openValue, runningBalance);
-    });
-
-    let carry = 0;
-    return baseWeeks.map((week) => {
-      if (!week.hasMoves) {
-        return {
-          ...week,
-          open: carry,
-          close: carry,
-          high: carry,
-          low: carry,
+      if (!periodMap[periodKey]) {
+        periodMap[periodKey] = {
+          id: `candle-${periodKey}`,
+          label: getPeriodLabel(cursor, chartGranularity),
+          periodStart: getPeriodStart(cursor, chartGranularity),
+          open: openValue,
+          close: closeValue,
+          high: highValue,
+          low: lowValue,
         };
+      } else {
+        periodMap[periodKey].close = closeValue;
+        periodMap[periodKey].high = Math.max(periodMap[periodKey].high, highValue);
+        periodMap[periodKey].low = Math.min(periodMap[periodKey].low, lowValue);
       }
-      carry = week.close;
-      return week;
-    });
-  }, [monthlyTransactions]);
+
+      runningBalance = closeValue;
+    }
+
+    return Object.values(periodMap)
+      .sort((a, b) => a.periodStart - b.periodStart)
+      .slice(-24);
+  }, [transactions, onboardingCompletedAt, chartGranularity]);
 
   const candlesScale = useMemo(() => {
-    if (!weeklyCandles.length) {
+    if (!candles.length) {
       return 1;
     }
 
-    const highs = weeklyCandles.map((week) => week.high);
-    const lows = weeklyCandles.map((week) => week.low);
+    const highs = candles.map((period) => period.high);
+    const lows = candles.map((period) => period.low);
     const range = Math.max(...highs) - Math.min(...lows);
 
     return range || 1;
-  }, [weeklyCandles]);
+  }, [candles]);
 
   const startedLabel = useMemo(() => {
     if (!onboardingCompletedAt) {
@@ -685,18 +756,32 @@ export default function App() {
             )}
 
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
-              Velas semanales del mes
+              Velas históricas
             </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-              Cada vela resume apertura, cierre, máximo y mínimo del balance semanal.
+              Desde que comenzaste. Puedes cambiar el zoom para ver por día, semana o mes.
             </Text>
-            <View style={styles.candleRow}>
-              {weeklyCandles.map((week) => {
-                const wickHeight = Math.max(8, ((week.high - week.low) / candlesScale) * 120);
-                const bodyHeight = Math.max(6, (Math.abs(week.close - week.open) / candlesScale) * 90);
-                const isUp = week.close >= week.open;
+            <View style={styles.zoomButtonsRow}>
+              {chartGranularityOptions.map((option) => {
+                const isSelected = chartGranularity === option.key;
                 return (
-                  <View key={week.id} style={styles.candleItem}>
+                  <Pressable
+                    key={option.key}
+                    onPress={() => setChartGranularity(option.key)}
+                    style={[styles.zoomButton, isSelected && styles.zoomButtonActive]}
+                  >
+                    <Text style={[styles.zoomButtonText, isSelected && styles.zoomButtonTextActive]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.candleRow}>
+              {candles.map((period) => {
+                const wickHeight = Math.max(8, ((period.high - period.low) / candlesScale) * 120);
+                const bodyHeight = Math.max(6, (Math.abs(period.close - period.open) / candlesScale) * 90);
+                const isUp = period.close >= period.open;
+                return (
+                  <View key={period.id} style={styles.candleItem}>
                     <View style={[styles.candleWick, { height: wickHeight }]} />
                     <View style={[
                       styles.candleBody,
@@ -706,11 +791,11 @@ export default function App() {
                       },
                     ]}
                     />
-                    <Text style={[styles.candleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>{week.label}</Text>
+                    <Text style={[styles.candleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>{period.label}</Text>
                   </View>
                 );
               })}
-            </View>
+            </ScrollView>
 
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
               Balance mensual de movimientos
@@ -909,15 +994,27 @@ const styles = StyleSheet.create({
   pieFill: { height: '100%' },
   pieFillSecondary: { height: '100%', backgroundColor: '#D4D4D4' },
   pieLabel: { marginTop: 6, fontSize: 12, fontWeight: '700' },
+  zoomButtonsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  zoomButton: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#D4D4D4',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  zoomButtonActive: { backgroundColor: '#111111', borderColor: '#111111' },
+  zoomButtonText: { fontSize: 12, fontWeight: '700', color: '#111111' },
+  zoomButtonTextActive: { color: '#FFFFFF' },
   candleRow: {
     marginTop: 8,
     marginBottom: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-end',
     minHeight: 170,
+    paddingRight: 12,
   },
-  candleItem: { alignItems: 'center', width: 52 },
+  candleItem: { alignItems: 'center', width: 56, marginRight: 8 },
   candleWick: { width: 2, backgroundColor: '#6B7280', borderRadius: 999 },
   candleBody: { width: 18, marginTop: -4, borderRadius: 5, borderWidth: 1, borderColor: '#111827' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
