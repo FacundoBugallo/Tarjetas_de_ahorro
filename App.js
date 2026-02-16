@@ -20,12 +20,6 @@ const tabs = [
   { key: 'perfil', label: 'Perfil 👤' },
 ];
 
-const chartGranularityOptions = [
-  { key: 'day', label: 'Día' },
-  { key: 'week', label: 'Semana' },
-  { key: 'month', label: 'Mes' },
-];
-
 const getDateKey = () => new Date().toISOString().slice(0, 10);
 const toDateKey = (date) => date.toISOString().slice(0, 10);
 const parseDateKey = (dateKey) => {
@@ -117,7 +111,7 @@ export default function App() {
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
-  const [chartGranularity, setChartGranularity] = useState('week');
+  const [chartGranularity] = useState('day');
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState('');
   const [financialMood, setFinancialMood] = useState(emotionalCheckins[0].key);
   const [selectedMoodMessage, setSelectedMoodMessage] = useState(emotionalCheckins[0].messages[0]);
@@ -131,6 +125,16 @@ export default function App() {
   });
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState('');
   const [snapshotMessage, setSnapshotMessage] = useState('');
+  const [checkinAnswers, setCheckinAnswers] = useState({
+    mainFeeling: '',
+    moneyTrigger: '',
+    aiHelpRequest: '',
+  });
+  const [lastCheckinAnswers, setLastCheckinAnswers] = useState({
+    mainFeeling: '',
+    moneyTrigger: '',
+    aiHelpRequest: '',
+  });
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -371,6 +375,12 @@ export default function App() {
     setFinancialMood(pendingMoodKey);
     setSelectedMoodMessage(message);
     setDailyTip(tip);
+    setLastCheckinAnswers(checkinAnswers);
+    setCheckinAnswers({
+      mainFeeling: '',
+      moneyTrigger: '',
+      aiHelpRequest: '',
+    });
     setCheckinProgress(nextProgress);
     setIsCheckinPending(false);
 
@@ -619,6 +629,42 @@ export default function App() {
             })}
           </View>
 
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+            1. ¿Qué fue lo más importante que sentiste hoy con tu dinero?
+          </Text>
+          <TextInput
+            value={checkinAnswers.mainFeeling}
+            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, mainFeeling: value }))}
+            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="Escribe con detalle cómo te sentiste"
+            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
+            multiline
+          />
+
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+            2. ¿Qué situación disparó esa emoción?
+          </Text>
+          <TextInput
+            value={checkinAnswers.moneyTrigger}
+            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, moneyTrigger: value }))}
+            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="Cuéntame el contexto"
+            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
+            multiline
+          />
+
+          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+            3. ¿Qué te gustaría que un agente de IA te recomendara?
+          </Text>
+          <TextInput
+            value={checkinAnswers.aiHelpRequest}
+            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, aiHelpRequest: value }))}
+            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
+            placeholder="Describe la ayuda que esperas"
+            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
+            multiline
+          />
+
           <Pressable onPress={handleSubmitDailyCheckin} style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Entrar al home</Text>
           </Pressable>
@@ -694,7 +740,7 @@ export default function App() {
 
             <View style={[styles.financialStatusCard, isDarkMode ? styles.financialStatusCardDark : styles.financialStatusCardLight]}>
               <Text style={[styles.financialStatusTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
-                Estado emocional el: seleccionado
+                Como te sentiste hoy
               </Text>
               <Text style={[styles.financialStatusPrimary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
                 Hoy te sentís: {activeMood.label}
@@ -702,6 +748,22 @@ export default function App() {
               <Text style={[styles.financialStatusSecondary, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
                 {selectedMoodMessage}
               </Text>
+              {!!lastCheckinAnswers.mainFeeling && (
+                <View style={styles.checkinSummaryBlock}>
+                  <Text style={[styles.checkinSummaryTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                    Resumen para tu agente IA
+                  </Text>
+                  <Text style={[styles.checkinSummaryText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                    • Lo que sentiste: {lastCheckinAnswers.mainFeeling}
+                  </Text>
+                  <Text style={[styles.checkinSummaryText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                    • Qué lo detonó: {lastCheckinAnswers.moneyTrigger || 'Sin detalle todavía.'}
+                  </Text>
+                  <Text style={[styles.checkinSummaryText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                    • Ayuda que esperas: {lastCheckinAnswers.aiHelpRequest || 'Sin solicitud todavía.'}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <HistoryCard items={historyItems} isDarkMode={isDarkMode} currencyCode={selectedCurrency} />
@@ -803,28 +865,19 @@ export default function App() {
               Velas históricas
             </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-              Desde que comenzaste. Puedes cambiar el zoom para ver por día, semana o mes.
+              Desde que comenzaste. Vista diaria con eje horizontal por días y eje vertical de referencia 1-100.
             </Text>
             <View style={styles.zoomButtonsRow}>
-              {chartGranularityOptions.map((option) => {
-                const isSelected = chartGranularity === option.key;
-                return (
-                  <Pressable
-                    key={option.key}
-                    onPress={() => setChartGranularity(option.key)}
-                    style={[styles.zoomButton, isSelected && styles.zoomButtonActive]}
-                  >
-                    <Text style={[styles.zoomButtonText, isSelected && styles.zoomButtonTextActive]}>{option.label}</Text>
-                  </Pressable>
-                );
-              })}
+              <View style={[styles.zoomButton, styles.zoomButtonActive]}>
+                <Text style={[styles.zoomButtonText, styles.zoomButtonTextActive]}>Temporalidad diaria</Text>
+              </View>
             </View>
-            <View style={[styles.candleChartFrame, isDarkMode ? styles.candleChartFrameDark : styles.candleChartFrameLight]}>
+            <View style={[styles.candleChartFrame, styles.candleChartFrameDark]}>
               <View style={styles.candleScaleHeader}>
-                <Text style={[styles.candleScaleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                <Text style={[styles.candleScaleLabel, styles.candleScaleLabelLight]}>
                   Máx: {formatCurrency(candlesBounds.max, selectedCurrency)}
                 </Text>
-                <Text style={[styles.candleScaleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                <Text style={[styles.candleScaleLabel, styles.candleScaleLabelLight]}>
                   Mín: {formatCurrency(candlesBounds.min, selectedCurrency)}
                 </Text>
               </View>
@@ -835,9 +888,15 @@ export default function App() {
                     style={[
                       styles.candleGridLine,
                       { top: `${(line / 3) * 100}%` },
-                      isDarkMode ? styles.candleGridLineDark : styles.candleGridLineLight,
+                      styles.candleGridLineDark,
                     ]}
                   />
+                ))}
+              </View>
+              <View style={styles.rightAxisLine} />
+              <View style={styles.rightAxisLabels}>
+                {[100, 75, 50, 25, 1].map((axisValue) => (
+                  <Text key={`axis-${axisValue}`} style={styles.rightAxisLabelText}>{axisValue}</Text>
                 ))}
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.candleRow}>
@@ -845,9 +904,11 @@ export default function App() {
                   const wickHeight = Math.max(14, ((period.high - period.low) / candlesScale) * 126);
                   const bodyHeight = Math.max(8, (Math.abs(period.close - period.open) / candlesScale) * 92);
                   const isUp = period.close >= period.open;
+                  const dayLabel = period.periodStart.toLocaleDateString('es-CO', { day: '2-digit' });
+
                   return (
                     <View key={period.id} style={styles.candleItem}>
-                      <View style={[styles.candleWick, { height: wickHeight }, isDarkMode && styles.candleWickDark]} />
+                      <View style={[styles.candleWick, { height: wickHeight }, styles.candleWickDark]} />
                       <View style={[
                         styles.candleBody,
                         isUp ? styles.candleBodyUp : styles.candleBodyDown,
@@ -856,12 +917,12 @@ export default function App() {
                         },
                       ]}
                       />
-                      <Text style={[styles.candleLabel, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>{period.label}</Text>
+                      <Text style={[styles.candleLabel, styles.candleScaleLabelLight]}>{dayLabel}</Text>
                     </View>
                   );
                 })}
               </ScrollView>
-              <View style={[styles.timeAxisLine, isDarkMode ? styles.timeAxisLineDark : styles.timeAxisLineLight]} />
+              <View style={[styles.timeAxisLine, styles.timeAxisLineDark]} />
             </View>
 
             <Pressable onPress={handleDownloadChartExcel} style={[styles.snapshotButton, styles.snapshotButtonSecondary]}>
@@ -1088,7 +1149,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     minHeight: 170,
-    paddingRight: 12,
+    paddingRight: 56,
   },
   candleChartFrame: {
     borderRadius: 3,
@@ -1098,8 +1159,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     position: 'relative',
   },
-  candleChartFrameDark: { backgroundColor: '#191919' },
-  candleChartFrameLight: { backgroundColor: '#191919' },
+  candleChartFrameDark: { backgroundColor: '#101010' },
+  candleChartFrameLight: { backgroundColor: '#101010' },
   candleScaleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1108,6 +1169,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   candleScaleLabel: { fontSize: 11, fontWeight: '700' },
+  candleScaleLabelLight: { color: '#FFFFFF' },
   candleGrid: {
     ...StyleSheet.absoluteFillObject,
     top: 30,
@@ -1123,17 +1185,34 @@ const styles = StyleSheet.create({
   },
   candleGridLineDark: { borderTopColor: '#1F2A44' },
   candleGridLineLight: { borderTopColor: '#3A3A3A' },
-  candleItem: { alignItems: 'center', width: 56, marginRight: 8 },
+  rightAxisLine: {
+    position: 'absolute',
+    right: 40,
+    top: 36,
+    bottom: 30,
+    borderRightWidth: 1,
+    borderRightColor: '#4B5563',
+  },
+  rightAxisLabels: {
+    position: 'absolute',
+    right: 8,
+    top: 30,
+    bottom: 30,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  rightAxisLabelText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  candleItem: { alignItems: 'center', width: 42, marginRight: 6 },
   candleWick: { width: 2, backgroundColor: '#6B7280', borderRadius: 999 },
   candleWickDark: { backgroundColor: '#94A3B8' },
-  candleBody: { width: 18, marginTop: -4, borderRadius: 1, borderWidth: 1 },
+  candleBody: { width: 16, marginTop: -4, borderRadius: 1, borderWidth: 1 },
   candleBodyUp: { backgroundColor: '#22C55E', borderColor: '#15803D' },
   candleBodyDown: { backgroundColor: '#EF4444', borderColor: '#B91C1C' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
   timeAxisLine: {
     position: 'absolute',
     left: 0,
-    right: 0,
+    right: 40,
     bottom: 30,
     borderTopWidth: 1,
   },
@@ -1299,6 +1378,19 @@ const styles = StyleSheet.create({
   moodOptionText: { color: '#000000', fontSize: 12, fontWeight: '700' },
   moodOptionTextDark: { color: '#FFFFFF' },
   moodOptionTextActive: { color: '#FFFFFF' },
+  checkinInput: {
+    minHeight: 72,
+    textAlignVertical: 'top',
+  },
+  checkinSummaryBlock: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#6B7280',
+    paddingTop: 8,
+    gap: 4,
+  },
+  checkinSummaryTitle: { fontSize: 12, fontWeight: '800' },
+  checkinSummaryText: { fontSize: 12, lineHeight: 17 },
   financialStatusCard: {
     marginBottom: 16,
     borderRadius: 20,
@@ -1309,6 +1401,7 @@ const styles = StyleSheet.create({
   financialStatusCardLight: { backgroundColor: '#E5E5E5', borderColor: '#C8C8C8' },
   financialStatusTitle: { fontSize: 16, fontWeight: '800' },
   financialStatusPrimary: { marginTop: 8, fontSize: 13, fontWeight: '700' },
+  financialStatusSecondary: { marginTop: 6, fontSize: 13, lineHeight: 18 },
   coachingCard: {
     marginTop: 8,
     borderRadius: 14,
