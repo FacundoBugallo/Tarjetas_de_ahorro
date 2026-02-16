@@ -605,7 +605,7 @@ export default function App() {
             Check-in personal
           </Text>
           <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-            ¿Cómo estás hoy?
+            Elige tu estado de ánimo para personalizar tu experiencia.
           </Text>
 
           <View style={styles.moodOptionsRow}>
@@ -628,42 +628,6 @@ export default function App() {
               );
             })}
           </View>
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            1. ¿Qué fue lo más importante que sentiste hoy con tu dinero?
-          </Text>
-          <TextInput
-            value={checkinAnswers.mainFeeling}
-            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, mainFeeling: value }))}
-            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Escribe con detalle cómo te sentiste"
-            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
-            multiline
-          />
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            2. ¿Qué situación disparó esa emoción?
-          </Text>
-          <TextInput
-            value={checkinAnswers.moneyTrigger}
-            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, moneyTrigger: value }))}
-            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Cuéntame el contexto"
-            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
-            multiline
-          />
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            3. ¿Qué te gustaría que un agente de IA te recomendara?
-          </Text>
-          <TextInput
-            value={checkinAnswers.aiHelpRequest}
-            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, aiHelpRequest: value }))}
-            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Describe la ayuda que esperas"
-            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
-            multiline
-          />
 
           <Pressable onPress={handleSubmitDailyCheckin} style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Entrar al home</Text>
