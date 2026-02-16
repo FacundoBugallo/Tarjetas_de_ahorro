@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 
 import CreateCardModal from './components/CreateCardModal';
@@ -18,6 +18,54 @@ const tabs = [
   { key: 'inicio', label: 'Inicio 🏠' },
   { key: 'graficos', label: 'Gráficos 📊' },
   { key: 'perfil', label: 'Perfil 👤' },
+];
+
+
+const landingQuestions = [
+  {
+    key: 'meta',
+    title: '1. ¿Qué meta querés cumplir primero?',
+    options: [
+      { key: 'emergencia', label: 'Fondo de emergencia' },
+      { key: 'viaje', label: 'Viaje o descanso' },
+      { key: 'deudas', label: 'Pagar deudas' },
+    ],
+  },
+  {
+    key: 'ritmo',
+    title: '2. ¿Cada cuánto te gustaría ahorrar?',
+    options: [
+      { key: 'diario', label: 'Todos los días' },
+      { key: 'semanal', label: 'Cada semana' },
+      { key: 'quincenal', label: 'Cada 15 días' },
+    ],
+  },
+  {
+    key: 'prioridad',
+    title: '3. ¿Qué te importa más este mes?',
+    options: [
+      { key: 'constancia', label: 'No cortar la racha' },
+      { key: 'equilibrio', label: 'Avanzar sin presionarme' },
+      { key: 'avance', label: 'Crecer lo más rápido posible' },
+    ],
+  },
+  {
+    key: 'acompanamiento',
+    title: '4. ¿Cómo querés el acompañamiento de la app?',
+    options: [
+      { key: 'ligero', label: 'Simple y rápido' },
+      { key: 'retos', label: 'Con retos y motivación' },
+      { key: 'detalle', label: 'Con más detalle y datos' },
+    ],
+  },
+  {
+    key: 'monedaBase',
+    title: '5. ¿Qué moneda vas a usar?',
+    options: [
+      { key: 'COP', label: 'Pesos (COP)' },
+      { key: 'USD', label: 'Dólares (USD)' },
+    ],
+  },
 ];
 
 const getDateKey = () => new Date().toISOString().slice(0, 10);
@@ -106,9 +154,13 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('inicio');
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
-  const [draftName, setDraftName] = useState('');
-  const [draftPhoto, setDraftPhoto] = useState('');
-  const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
+  const [landingAnswers, setLandingAnswers] = useState({
+    meta: 'emergencia',
+    ritmo: 'semanal',
+    prioridad: 'equilibrio',
+    acompanamiento: 'ligero',
+    monedaBase: 'COP',
+  });
   const [selectedCurrency, setSelectedCurrency] = useState('COP');
   const [transactions, setTransactions] = useState([]);
   const [chartGranularity] = useState('day');
@@ -348,15 +400,22 @@ export default function App() {
   };
 
   const handleCompleteOnboarding = () => {
-    const parsedInvestment = Number(draftPlannedInvestment);
+    const isUsd = landingAnswers.monedaBase === 'USD';
+    const suggestedByPriority = {
+      constancia: isUsd ? 80 : 300000,
+      equilibrio: isUsd ? 120 : 500000,
+      avance: isUsd ? 180 : 800000,
+    };
+    const nameByGoal = {
+      emergencia: 'Plan Respaldo',
+      viaje: 'Plan Viaje',
+      deudas: 'Plan Deuda Cero',
+    };
 
-    if (!draftName.trim() || !draftPhoto.trim() || Number.isNaN(parsedInvestment) || parsedInvestment < 0) {
-      return;
-    }
-
-    setUserName(draftName.trim());
-    setUserPhoto(draftPhoto.trim());
-    setPlannedInvestment(parsedInvestment);
+    setSelectedCurrency(landingAnswers.monedaBase);
+    setUserName(nameByGoal[landingAnswers.meta]);
+    setUserPhoto('https://i.pravatar.cc/160?img=12');
+    setPlannedInvestment(suggestedByPriority[landingAnswers.prioridad]);
     setOnboardingCompletedAt(new Date().toISOString());
     setIsOnboardingDone(true);
   };
@@ -524,78 +583,54 @@ export default function App() {
   if (!isOnboardingDone) {
     return (
       <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
-        <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
-          <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
-            Configuremos tu mes ✨
-          </Text>
-          <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-            Dinos tu nombre, una foto de perfil, tu moneda y cuánto crees que vas a ahorrar este mes.
-          </Text>
+        <ScrollView contentContainerStyle={styles.landingScrollContent}>
+          <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
+            <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
+              Armá tu plan ideal en minutos ✨
+            </Text>
+            <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
+              En 5 minutos podés tener tu plan de ahorro armado.
+            </Text>
 
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Tu nombre</Text>
-          <TextInput
-            value={draftName}
-            onChangeText={setDraftName}
-            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Escribe tu nombre"
-            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
-          />
+            {landingQuestions.map((question) => (
+              <View key={question.key} style={styles.landingQuestionBlock}>
+                <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>{question.title}</Text>
+                <View style={styles.moodOptionsRow}>
+                  {question.options.map((option) => {
+                    const isActive = landingAnswers[question.key] === option.key;
+                    return (
+                      <Pressable
+                        key={option.key}
+                        onPress={() => setLandingAnswers((prev) => ({ ...prev, [question.key]: option.key }))}
+                        style={[
+                          styles.moodOption,
+                          isDarkMode ? styles.moodOptionDark : styles.moodOptionLight,
+                          isActive && styles.moodOptionActive,
+                        ]}
+                      >
+                        <Text style={[styles.moodOptionText, isDarkMode && styles.moodOptionTextDark, isActive && styles.moodOptionTextActive]}>
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
 
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Foto (URL)</Text>
-          <TextInput
-            value={draftPhoto}
-            onChangeText={setDraftPhoto}
-            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="https://..."
-            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
-            autoCapitalize="none"
-          />
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            Destinado a ahorrar
-          </Text>
-          <TextInput
-            value={draftPlannedInvestment}
-            onChangeText={setDraftPlannedInvestment}
-            keyboardType="numeric"
-            style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="0"
-            placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
-          />
-          <Text style={[styles.helperText, isDarkMode ? styles.helperTextDark : styles.helperTextLight]}>
-            Es lo que tú sientes que podrás ahorrar este mes. Este valor se reinicia cada mes.
-          </Text>
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Moneda base</Text>
-          <View style={styles.currencyRow}>
-            {[
-              { code: 'COP', label: 'Pesos' },
-              { code: 'USD', label: 'Dólares' },
-            ].map((option) => {
-              const isActive = selectedCurrency === option.code;
-              return (
-                <Pressable
-                  key={option.code}
-                  onPress={() => setSelectedCurrency(option.code)}
-                  style={[styles.currencyButton, isActive && styles.currencyButtonActive]}
-                >
-                  <Text style={[styles.currencyButtonText, isActive && styles.currencyButtonTextActive]}>{option.label}</Text>
-                </Pressable>
-              );
-            })}
+            <Pressable onPress={handleCompleteOnboarding} style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Crear mi primer objetivo</Text>
+            </Pressable>
+            <Pressable onPress={() => setIsDarkMode((prev) => !prev)} style={styles.secondaryThemeButton}>
+              <Text style={[styles.secondaryThemeButtonText, isDarkMode && styles.secondaryThemeButtonTextDark]}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
+            </Pressable>
           </View>
-
-          <Pressable onPress={handleCompleteOnboarding} style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Empezar</Text>
-          </Pressable>
-          <Pressable onPress={() => setIsDarkMode((prev) => !prev)} style={styles.secondaryThemeButton}>
-            <Text style={[styles.secondaryThemeButtonText, isDarkMode && styles.secondaryThemeButtonTextDark]}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
-          </Pressable>
-        </View>
+        </ScrollView>
         <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       </SafeAreaView>
     );
   }
+
 
   if (isCheckinPending) {
     return (
@@ -605,7 +640,7 @@ export default function App() {
             Check-in personal
           </Text>
           <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-            ¿Cómo estás hoy?
+            Elige tu estado de ánimo para personalizar tu experiencia.
           </Text>
 
           <View style={styles.moodOptionsRow}>
@@ -628,42 +663,6 @@ export default function App() {
               );
             })}
           </View>
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            1. ¿Qué fue lo más importante que sentiste hoy con tu dinero?
-          </Text>
-          <TextInput
-            value={checkinAnswers.mainFeeling}
-            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, mainFeeling: value }))}
-            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Escribe con detalle cómo te sentiste"
-            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
-            multiline
-          />
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            2. ¿Qué situación disparó esa emoción?
-          </Text>
-          <TextInput
-            value={checkinAnswers.moneyTrigger}
-            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, moneyTrigger: value }))}
-            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Cuéntame el contexto"
-            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
-            multiline
-          />
-
-          <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
-            3. ¿Qué te gustaría que un agente de IA te recomendara?
-          </Text>
-          <TextInput
-            value={checkinAnswers.aiHelpRequest}
-            onChangeText={(value) => setCheckinAnswers((prev) => ({ ...prev, aiHelpRequest: value }))}
-            style={[styles.input, styles.checkinInput, isDarkMode ? styles.inputDark : styles.inputLight]}
-            placeholder="Describe la ayuda que esperas"
-            placeholderTextColor={isDarkMode ? '#737373' : '#737373'}
-            multiline
-          />
 
           <Pressable onPress={handleSubmitDailyCheckin} style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Entrar al home</Text>
@@ -1319,6 +1318,8 @@ const styles = StyleSheet.create({
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
   onboardingSubtitleDark: { color: '#FFFFFF' },
   onboardingSubtitleLight: { color: '#000000' },
+  landingScrollContent: { paddingVertical: 20 },
+  landingQuestionBlock: { marginBottom: 8 },
   inputLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6, marginTop: 8 },
   inputLabelDark: { color: '#FFFFFF' },
   inputLabelLight: { color: '#000000' },
