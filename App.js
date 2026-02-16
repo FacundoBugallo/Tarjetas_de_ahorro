@@ -3,6 +3,8 @@ import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextIn
 import { useMemo, useState } from 'react';
 
 import CreateCardModal from './components/CreateCardModal';
+import CreateDebtModal from './components/CreateDebtModal';
+import DebtCard from './components/DebtCard';
 import Header from './components/Header';
 import HistoryCard from './components/HistoryCard';
 import SavingsCard from './components/SavingsCard';
@@ -15,6 +17,7 @@ import { clampPercentage, formatCurrency } from './utils/formatters';
 
 const tabs = [
   { key: 'inicio', label: 'Inicio 🏠' },
+  { key: 'ia', label: 'IA ☕' },
   { key: 'graficos', label: 'Gráficos 📊' },
   { key: 'perfil', label: 'Perfil 👤' },
 ];
@@ -139,10 +142,12 @@ export default function App() {
   const [plannedInvestment, setPlannedInvestment] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
+  const [isCreateDebtVisible, setIsCreateDebtVisible] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('inicio');
+  const [activePlan, setActivePlan] = useState('ahorro');
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [isPlanSetupPending, setIsPlanSetupPending] = useState(false);
   const [accountForm, setAccountForm] = useState({ name: '', email: '', password: '' });
@@ -161,6 +166,15 @@ export default function App() {
   const [dailyTip] = useState(dailyTips[0]);
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState('');
   const [snapshotMessage, setSnapshotMessage] = useState('');
+  const [debtCards, setDebtCards] = useState([]);
+  const [aiInput, setAiInput] = useState('');
+  const [aiMessages, setAiMessages] = useState([
+    {
+      id: 'ia-welcome',
+      role: 'assistant',
+      text: 'Hola, soy tu asistente GPT. Puedo ayudarte con tus cuentas con calma y tacto. Si quieres un acompañamiento profundo, te invito a conocer el coaching personalizado (archivos, documentación y seguimiento 1:1), como una charla de café ☕.',
+    },
+  ]);
 
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === 'USD' ? 100 : 100000;
@@ -441,6 +455,70 @@ export default function App() {
     setPlannedInvestment(updatedUser.plannedInvestment);
   };
 
+  const handleAddDebtCard = (debtCard) => {
+    setDebtCards((prev) => [...prev, debtCard]);
+    setIsCreateDebtVisible(false);
+  };
+
+  const handleAddDebtPayment = (debtId) => {
+    setDebtCards((prev) => prev.map((debt) => {
+      if (debt.id !== debtId) {
+        return debt;
+      }
+
+      const nextPaid = Math.min(debt.paidAmount + debt.nextContribution, debt.totalToPay);
+      const delta = nextPaid - debt.paidAmount;
+      if (delta > 0) {
+        registerTransaction(-delta);
+      }
+      return { ...debt, paidAmount: nextPaid };
+    }));
+  };
+
+  const handleRemoveDebtPayment = (debtId) => {
+    setDebtCards((prev) => prev.map((debt) => {
+      if (debt.id !== debtId) {
+        return debt;
+      }
+
+      const removable = Math.min(debt.nextContribution, debt.paidAmount);
+      if (removable <= 0) {
+        return debt;
+      }
+
+      registerTransaction(removable);
+      return { ...debt, paidAmount: debt.paidAmount - removable };
+    }));
+  };
+
+  const handleSendAiMessage = async () => {
+    const message = aiInput.trim();
+    if (!message) {
+      return;
+    }
+
+    setAiMessages((prev) => [
+      ...prev,
+      { id: `user-${Date.now()}`, role: 'user', text: message },
+      {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        text: 'Gracias por tu consulta. Si quieres, también te invito a un café para contarte del coaching premium: incluye ayuda financiera con archivos personalizados, documentación y seguimiento continuo.',
+      },
+    ]);
+    setAiInput('');
+
+    try {
+      await fetch('http://localhost:8000/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+    } catch (error) {
+      // Si no hay backend aún en ejecución, mantenemos respuesta local.
+    }
+  };
+
   const handleWithdrawBonus = () => {
     if (bonusAvailable <= 0) {
       return;
@@ -606,6 +684,8 @@ export default function App() {
           levelLabel={levelLabel}
           pointsLabel={pointsLabel}
           profilePhoto={userPhoto}
+          onTogglePlan={() => setActivePlan((prev) => (prev === 'ahorro' ? 'deudas' : 'ahorro'))}
+          activePlan={activePlan}
         />
 
         {activeTab === 'inicio' && (
@@ -638,10 +718,32 @@ export default function App() {
                 </Text>
               </View>
             )}
-            <SectionHeader onCreate={() => setIsCreateCardVisible(true)} isDarkMode={isDarkMode} />
+            <SectionHeader
+              title={activePlan === 'deudas' ? 'Plan de deudas 💳' : 'Plan de Ahorro 💳'}
+              createLabel={activePlan === 'deudas' ? 'Crear deuda ➕' : 'Crear tarjeta ➕'}
+              onCreate={() => (activePlan === 'deudas' ? setIsCreateDebtVisible(true) : setIsCreateCardVisible(true))}
+              isDarkMode={isDarkMode}
+            />
 
             <View style={styles.cardList}>
-              {cards.length === 0 ? (
+              {activePlan === 'deudas' ? (
+                debtCards.length === 0 ? (
+                  <Text style={[styles.emptyText, isDarkMode ? styles.emptyTextDark : styles.emptyTextLight]}>
+                    No hay deudas cargadas. Crea tu primera tarjeta de deuda para empezar.
+                  </Text>
+                ) : (
+                  debtCards.map((debt) => (
+                    <DebtCard
+                      key={debt.id}
+                      debt={debt}
+                      onAddPayment={handleAddDebtPayment}
+                      onRemovePayment={handleRemoveDebtPayment}
+                      isDarkMode={isDarkMode}
+                      currencyCode={selectedCurrency}
+                    />
+                  ))
+                )
+              ) : cards.length === 0 ? (
                 <Text style={[styles.emptyText, isDarkMode ? styles.emptyTextDark : styles.emptyTextLight]}>
                   No hay tarjetas creadas. Crea la primera para empezar.
                 </Text>
@@ -662,7 +764,7 @@ export default function App() {
             </View>
 
 
-            <HistoryCard items={historyItems} isDarkMode={isDarkMode} currencyCode={selectedCurrency} />
+            {activePlan === 'ahorro' && <HistoryCard items={historyItems} isDarkMode={isDarkMode} currencyCode={selectedCurrency} />}
           </>
         )}
 
@@ -902,6 +1004,32 @@ export default function App() {
           </View>
         )}
 
+        {activeTab === 'ia' && (
+          <View style={[styles.panel, isDarkMode ? styles.panelDark : styles.panelLight]}>
+            <Text style={[styles.panelTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>Agente IA GPT 🤝</Text>
+            <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+              Asistente tranquilo y comprensivo para resolver dudas. También te puede invitar al coaching financiero premium con acompañamiento más profundo.
+            </Text>
+            <View style={styles.aiMessagesBox}>
+              {aiMessages.map((message) => (
+                <View key={message.id} style={[styles.aiMessageBubble, message.role === 'user' ? styles.aiMessageUser : styles.aiMessageAssistant]}>
+                  <Text style={[styles.aiMessageText, message.role === 'user' && styles.aiMessageTextUser]}>{message.text}</Text>
+                </View>
+              ))}
+            </View>
+            <TextInput
+              value={aiInput}
+              onChangeText={setAiInput}
+              style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+              placeholder="Escribe tu duda financiera"
+              placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+            />
+            <Pressable onPress={handleSendAiMessage} style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Consultar a GPT</Text>
+            </Pressable>
+          </View>
+        )}
+
         {activeTab === 'perfil' && (
           <View style={[styles.panel, isDarkMode ? styles.panelDark : styles.panelLight]}>
             <Text style={[styles.panelTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>Tu zona financiera 💼</Text>
@@ -970,6 +1098,12 @@ export default function App() {
         onSubmit={handleAddCard}
         isDarkMode={isDarkMode}
       />
+      <CreateDebtModal
+        visible={isCreateDebtVisible}
+        onClose={() => setIsCreateDebtVisible(false)}
+        onSubmit={handleAddDebtCard}
+        isDarkMode={isDarkMode}
+      />
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
     </SafeAreaView>
   );
@@ -990,6 +1124,30 @@ const styles = StyleSheet.create({
   },
   emptyTextDark: { borderColor: '#FFFFFF', color: '#FFFFFF', backgroundColor: '#000000' },
   emptyTextLight: { borderColor: '#000000', color: '#000000', backgroundColor: '#FFFFFF' },
+  aiMessagesBox: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  aiMessageBubble: {
+    borderRadius: 12,
+    padding: 10,
+    maxWidth: '92%',
+  },
+  aiMessageAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E5E7EB',
+  },
+  aiMessageUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#111111',
+  },
+  aiMessageText: {
+    color: '#111111',
+    fontWeight: '600',
+  },
+  aiMessageTextUser: {
+    color: '#FFFFFF',
+  },
   panel: {
     borderRadius: 20,
     padding: 18,
