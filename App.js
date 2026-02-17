@@ -168,6 +168,8 @@ export default function App() {
   const [snapshotMessage, setSnapshotMessage] = useState('');
   const [debtCards, setDebtCards] = useState([]);
   const [aiInput, setAiInput] = useState('');
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+=======
   const [dailyCheckInAnswers, setDailyCheckInAnswers] = useState({
     spendingControl: '',
     savingsAction: '',
@@ -175,6 +177,7 @@ export default function App() {
   });
   const [dailyRecommendation, setDailyRecommendation] = useState('');
   const [isDailyRecommendationLoading, setIsDailyRecommendationLoading] = useState(false);
+>>>>>>> main
   const [aiMessages, setAiMessages] = useState([
     {
       id: 'ia-welcome',
@@ -512,20 +515,54 @@ export default function App() {
     setAiMessages((prev) => [
       ...prev,
       { id: `user-${Date.now()}`, role: 'user', text: message },
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+=======
       {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
         text: 'Gracias por tu consulta. Si quieres, también te invito a un café para contarte del coaching premium: incluye ayuda financiera con archivos personalizados, documentación y seguimiento continuo.',
       },
+>>>>>>> main
     ]);
     setAiInput('');
 
     try {
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+      const response = await fetch('http://localhost:8000/api/ai/chat', {
+=======
       await fetch('http://localhost:8000/api/ai/chat', {
+>>>>>>> main
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       });
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+
+      if (!response.ok) {
+        throw new Error(`Error del backend (${response.status})`);
+      }
+
+      const data = await response.json();
+      const backendText = data?.response?.trim();
+
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          text: backendText || 'No se recibió respuesta de GPT. Intenta de nuevo.',
+        },
+      ]);
+    } catch (error) {
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-fallback-${Date.now()}`,
+          role: 'assistant',
+          text: 'No pude conectar con GPT ahora mismo. Si quieres, te invito a un café para contarte del coaching premium con seguimiento personalizado.',
+        },
+      ]);
+=======
     } catch (error) {
       // Si no hay backend aún en ejecución, mantenemos respuesta local.
     }
@@ -568,6 +605,7 @@ export default function App() {
       );
     } finally {
       setIsDailyRecommendationLoading(false);
+>>>>>>> main
     }
   };
 

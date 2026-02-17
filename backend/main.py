@@ -1,7 +1,11 @@
 import os
 from typing import Literal
 
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+from fastapi import FastAPI, HTTPException
+=======
 from fastapi import FastAPI
+>>>>>>> main
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -26,6 +30,13 @@ class ChatRequest(BaseModel):
     message: str
 
 
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+class ChatResponse(BaseModel):
+    provider: str
+    model: str
+    input: str
+    response: str
+=======
 class DailyRecommendationRequest(BaseModel):
     spending_control: str
     savings_action: str
@@ -35,6 +46,7 @@ class DailyRecommendationRequest(BaseModel):
     saved_this_month: float = 0
     pending_debt_total: float = 0
     currency: str = 'COP'
+>>>>>>> main
 
 
 SYSTEM_PROMPT = (
@@ -62,6 +74,41 @@ def calculate_debt_plan(payload: DebtPlanRequest) -> dict:
     }
 
 
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+@app.post('/api/ai/chat', response_model=ChatResponse)
+def ai_chat(payload: ChatRequest) -> ChatResponse:
+    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+    api_key = os.getenv('OPENAI_API_KEY')
+
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail='Falta OPENAI_API_KEY en variables de entorno del backend.',
+        )
+
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(api_key=api_key)
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {'role': 'system', 'content': SYSTEM_PROMPT},
+                {'role': 'user', 'content': payload.message},
+            ],
+            temperature=0.5,
+        )
+        response_text = completion.choices[0].message.content or ''
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f'Error consultando OpenAI: {exc}') from exc
+
+    return ChatResponse(
+        provider='openai',
+        model=model,
+        input=payload.message,
+        response=response_text,
+    )
+=======
 @app.post('/api/ai/chat')
 def ai_chat(payload: ChatRequest) -> dict:
     model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
@@ -118,3 +165,4 @@ def daily_recommendation(payload: DailyRecommendationRequest) -> dict:
         'recommendation': ' '.join(recommendation_parts),
         'input': payload.model_dump(),
     }
+>>>>>>> main
