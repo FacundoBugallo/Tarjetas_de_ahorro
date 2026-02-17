@@ -13,6 +13,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 - `GET /health`
 - `POST /api/debts/plan` calcula el total a pagar (`pago * periodos`).
 - `POST /api/ai/chat` deja lista la integración del asistente GPT.
+- `POST /api/ai/daily-recommendation` genera una recomendación diaria usando 3 respuestas del usuario (ahorro + deudas).
 
 ## Integración GPT (OpenAI)
 1. Define `OPENAI_API_KEY` y opcional `OPENAI_MODEL` (por defecto `gpt-4o-mini`).
