@@ -777,25 +777,6 @@ export default function App() {
             Destinado a ahorrar vs ahorrado real (reinicio mensual).
             </Text>
 
-            <View style={styles.granularityRow}>
-              {[
-                { key: 'day', label: 'Diaria' },
-                { key: 'week', label: 'Semanal' },
-                { key: 'month', label: 'Mensual' },
-              ].map((option) => {
-                const isActive = chartGranularity === option.key;
-                return (
-                  <Pressable
-                    key={option.key}
-                    onPress={() => setChartGranularity(option.key)}
-                    style={[styles.currencyButton, isActive && styles.currencyButtonActive]}
-                  >
-                    <Text style={[styles.currencyButtonText, isActive && styles.currencyButtonTextActive]}>{option.label}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <View style={styles.chartRow}>
               <View style={styles.chartHeader}>
                 <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Destinado</Text>
@@ -879,16 +860,11 @@ export default function App() {
             )}
 
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
-              Velas históricas
+              Historial de ahorros y deudas
             </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-              Desde que comenzaste. Vista diaria con eje horizontal por días y eje vertical de referencia 1-100.
+              (Historial de ahorros y deudas).
             </Text>
-            <View style={styles.zoomButtonsRow}>
-              <View style={[styles.zoomButton, styles.zoomButtonActive]}>
-                <Text style={[styles.zoomButtonText, styles.zoomButtonTextActive]}>Temporalidad diaria</Text>
-              </View>
-            </View>
             <View style={[styles.candleChartFrame, styles.candleChartFrameDark]}>
               <View style={styles.candleScaleHeader}>
                 <Text style={[styles.candleScaleLabel, styles.candleScaleLabelLight]}>
@@ -940,6 +916,34 @@ export default function App() {
                 })}
               </ScrollView>
               <View style={[styles.timeAxisLine, styles.timeAxisLineDark]} />
+            </View>
+
+            <View style={styles.granularityRow}>
+              {[
+                { key: 'day', label: 'Diaria' },
+                { key: 'week', label: 'Semanal' },
+                { key: 'month', label: 'Mensual' },
+              ].map((option) => {
+                const isActive = chartGranularity === option.key;
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => setChartGranularity(option.key)}
+                    style={[styles.currencyButton, isActive && styles.currencyButtonActive]}
+                  >
+                    <Text style={[styles.currencyButtonText, isActive && styles.currencyButtonTextActive]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={styles.zoomButtonsRow}>
+              <View style={[styles.zoomButton, styles.zoomButtonActive]}>
+                <Text style={[styles.zoomButtonText, styles.zoomButtonTextActive]}>Temporalidad diaria</Text>
+              </View>
+            </View>
+            <View style={styles.legendRow}>
+              <Text style={[styles.legendText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>Ahorro (verde)</Text>
+              <Text style={[styles.legendText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>Pago de deudas (azul)</Text>
             </View>
 
             <Pressable onPress={handleDownloadChartExcel} style={[styles.snapshotButton, styles.snapshotButtonSecondary]}>
@@ -1280,8 +1284,10 @@ const styles = StyleSheet.create({
   candleWickDark: { backgroundColor: '#94A3B8' },
   candleBody: { width: 16, marginTop: -4, borderRadius: 1, borderWidth: 1 },
   candleBodyUp: { backgroundColor: '#22C55E', borderColor: '#15803D' },
-  candleBodyDown: { backgroundColor: '#EF4444', borderColor: '#B91C1C' },
+  candleBodyDown: { backgroundColor: '#2563EB', borderColor: '#1D4ED8' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
+  legendRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
+  legendText: { fontSize: 12, fontWeight: '700' },
   timeAxisLine: {
     position: 'absolute',
     left: 0,
