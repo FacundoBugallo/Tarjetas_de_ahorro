@@ -168,6 +168,13 @@ export default function App() {
   const [snapshotMessage, setSnapshotMessage] = useState('');
   const [debtCards, setDebtCards] = useState([]);
   const [aiInput, setAiInput] = useState('');
+  const [dailyCheckInAnswers, setDailyCheckInAnswers] = useState({
+    spendingControl: '',
+    savingsAction: '',
+    debtAction: '',
+  });
+  const [dailyRecommendation, setDailyRecommendation] = useState('');
+  const [isDailyRecommendationLoading, setIsDailyRecommendationLoading] = useState(false);
   const [aiMessages, setAiMessages] = useState([
     {
       id: 'ia-welcome',
@@ -211,6 +218,11 @@ export default function App() {
       withdrawn: Math.max(-monthlyNet, 0),
     };
   }, [monthlyTransactions]);
+
+  const totalDebtPending = useMemo(
+    () => debtCards.reduce((acc, debt) => acc + Math.max(debt.totalToPay - debt.paidAmount, 0), 0),
+    [debtCards],
+  );
 
   const savedTotalAcrossCards = useMemo(
     () => cards.reduce((acc, card) => acc + card.savedAmount, 0),
@@ -516,6 +528,46 @@ export default function App() {
       });
     } catch (error) {
       // Si no hay backend aún en ejecución, mantenemos respuesta local.
+    }
+  };
+
+  const handleDailyRecommendation = async () => {
+    const { spendingControl, savingsAction, debtAction } = dailyCheckInAnswers;
+    if (!spendingControl.trim() || !savingsAction.trim() || !debtAction.trim()) {
+      setDailyRecommendation('Por favor responde las 3 preguntas para poder darte una recomendación personalizada.');
+      return;
+    }
+
+    setIsDailyRecommendationLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/ai/daily-recommendation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spending_control: spendingControl,
+          savings_action: savingsAction,
+          debt_action: debtAction,
+          user_name: userName || 'Usuario',
+          planned_investment: plannedInvestment,
+          saved_this_month: totalInvestedThisMonth + bonusAvailable,
+          pending_debt_total: totalDebtPending,
+          currency: selectedCurrency,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo generar la recomendación diaria.');
+      }
+
+      const data = await response.json();
+      setDailyRecommendation(data.recommendation || 'Hoy avanza con una decisión pequeña y sostenible para tu ahorro.');
+    } catch (error) {
+      setDailyRecommendation(
+        'No pude conectar con el backend ahora. Como guía rápida: protege tus gastos esenciales, separa una cantidad fija para ahorrar y paga hoy una parte de tu deuda más costosa.',
+      );
+    } finally {
+      setIsDailyRecommendationLoading(false);
     }
   };
 
@@ -1065,6 +1117,64 @@ export default function App() {
             <Pressable onPress={() => setIsSummaryVisible(true)} style={styles.profileButton}>
               <Text style={styles.profileButtonText}>Editar datos del usuario</Text>
             </Pressable>
+
+            <View style={[styles.coachingCard, isDarkMode ? styles.coachingCardDark : styles.coachingCardLight]}>
+              <Text style={[styles.coachingTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
+                3 preguntas diarias IA
+              </Text>
+              <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                Responde estas 3 preguntas para recibir una recomendación financiera diaria enfocada en ahorrar y pagar deudas.
+              </Text>
+
+              <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+                1) ¿Cómo controlaste tus gastos hoy?
+              </Text>
+              <TextInput
+                value={dailyCheckInAnswers.spendingControl}
+                onChangeText={(value) => setDailyCheckInAnswers((prev) => ({ ...prev, spendingControl: value }))}
+                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                placeholder="Ej: Evité compras impulsivas"
+                placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+              />
+
+              <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+                2) ¿Qué acción concreta hiciste para ahorrar?
+              </Text>
+              <TextInput
+                value={dailyCheckInAnswers.savingsAction}
+                onChangeText={(value) => setDailyCheckInAnswers((prev) => ({ ...prev, savingsAction: value }))}
+                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                placeholder="Ej: Separé $10.000"
+                placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+              />
+
+              <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+                3) ¿Qué hiciste hoy para reducir tus deudas?
+              </Text>
+              <TextInput
+                value={dailyCheckInAnswers.debtAction}
+                onChangeText={(value) => setDailyCheckInAnswers((prev) => ({ ...prev, debtAction: value }))}
+                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                placeholder="Ej: Pagué una cuota"
+                placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+              />
+
+              <Pressable
+                onPress={handleDailyRecommendation}
+                style={styles.primaryButton}
+                disabled={isDailyRecommendationLoading}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isDailyRecommendationLoading ? 'Generando recomendación...' : 'Obtener recomendación diaria'}
+                </Text>
+              </Pressable>
+
+              {!!dailyRecommendation && (
+                <Text style={[styles.coachingTip, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                  {dailyRecommendation}
+                </Text>
+              )}
+            </View>
           </View>
         )}
       </ScrollView>
