@@ -168,6 +168,16 @@ export default function App() {
   const [snapshotMessage, setSnapshotMessage] = useState('');
   const [debtCards, setDebtCards] = useState([]);
   const [aiInput, setAiInput] = useState('');
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+=======
+  const [dailyCheckInAnswers, setDailyCheckInAnswers] = useState({
+    spendingControl: '',
+    savingsAction: '',
+    debtAction: '',
+  });
+  const [dailyRecommendation, setDailyRecommendation] = useState('');
+  const [isDailyRecommendationLoading, setIsDailyRecommendationLoading] = useState(false);
+>>>>>>> main
   const [aiMessages, setAiMessages] = useState([
     {
       id: 'ia-welcome',
@@ -211,6 +221,11 @@ export default function App() {
       withdrawn: Math.max(-monthlyNet, 0),
     };
   }, [monthlyTransactions]);
+
+  const totalDebtPending = useMemo(
+    () => debtCards.reduce((acc, debt) => acc + Math.max(debt.totalToPay - debt.paidAmount, 0), 0),
+    [debtCards],
+  );
 
   const savedTotalAcrossCards = useMemo(
     () => cards.reduce((acc, card) => acc + card.savedAmount, 0),
@@ -500,15 +515,28 @@ export default function App() {
     setAiMessages((prev) => [
       ...prev,
       { id: `user-${Date.now()}`, role: 'user', text: message },
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
+=======
+      {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        text: 'Gracias por tu consulta. Si quieres, también te invito a un café para contarte del coaching premium: incluye ayuda financiera con archivos personalizados, documentación y seguimiento continuo.',
+      },
+>>>>>>> main
     ]);
     setAiInput('');
 
     try {
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
       const response = await fetch('http://localhost:8000/api/ai/chat', {
+=======
+      await fetch('http://localhost:8000/api/ai/chat', {
+>>>>>>> main
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       });
+<<<<<<< codex/add-debt-plan-feature-to-app-kayr5o
 
       if (!response.ok) {
         throw new Error(`Error del backend (${response.status})`);
@@ -534,6 +562,50 @@ export default function App() {
           text: 'No pude conectar con GPT ahora mismo. Si quieres, te invito a un café para contarte del coaching premium con seguimiento personalizado.',
         },
       ]);
+=======
+    } catch (error) {
+      // Si no hay backend aún en ejecución, mantenemos respuesta local.
+    }
+  };
+
+  const handleDailyRecommendation = async () => {
+    const { spendingControl, savingsAction, debtAction } = dailyCheckInAnswers;
+    if (!spendingControl.trim() || !savingsAction.trim() || !debtAction.trim()) {
+      setDailyRecommendation('Por favor responde las 3 preguntas para poder darte una recomendación personalizada.');
+      return;
+    }
+
+    setIsDailyRecommendationLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/ai/daily-recommendation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spending_control: spendingControl,
+          savings_action: savingsAction,
+          debt_action: debtAction,
+          user_name: userName || 'Usuario',
+          planned_investment: plannedInvestment,
+          saved_this_month: totalInvestedThisMonth + bonusAvailable,
+          pending_debt_total: totalDebtPending,
+          currency: selectedCurrency,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo generar la recomendación diaria.');
+      }
+
+      const data = await response.json();
+      setDailyRecommendation(data.recommendation || 'Hoy avanza con una decisión pequeña y sostenible para tu ahorro.');
+    } catch (error) {
+      setDailyRecommendation(
+        'No pude conectar con el backend ahora. Como guía rápida: protege tus gastos esenciales, separa una cantidad fija para ahorrar y paga hoy una parte de tu deuda más costosa.',
+      );
+    } finally {
+      setIsDailyRecommendationLoading(false);
+>>>>>>> main
     }
   };
 
@@ -795,25 +867,6 @@ export default function App() {
             Destinado a ahorrar vs ahorrado real (reinicio mensual).
             </Text>
 
-            <View style={styles.granularityRow}>
-              {[
-                { key: 'day', label: 'Diaria' },
-                { key: 'week', label: 'Semanal' },
-                { key: 'month', label: 'Mensual' },
-              ].map((option) => {
-                const isActive = chartGranularity === option.key;
-                return (
-                  <Pressable
-                    key={option.key}
-                    onPress={() => setChartGranularity(option.key)}
-                    style={[styles.currencyButton, isActive && styles.currencyButtonActive]}
-                  >
-                    <Text style={[styles.currencyButtonText, isActive && styles.currencyButtonTextActive]}>{option.label}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <View style={styles.chartRow}>
               <View style={styles.chartHeader}>
                 <Text style={[styles.chartName, isDarkMode ? styles.chartNameDark : styles.chartNameLight]}>Destinado</Text>
@@ -897,16 +950,11 @@ export default function App() {
             )}
 
             <Text style={[styles.panelTitle, styles.innerTitle, isDarkMode ? styles.panelTitleDark : styles.panelTitleLight]}>
-              Velas históricas
+              Historial de ahorros y deudas
             </Text>
             <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-              Desde que comenzaste. Vista diaria con eje horizontal por días y eje vertical de referencia 1-100.
+              (Historial de ahorros y deudas).
             </Text>
-            <View style={styles.zoomButtonsRow}>
-              <View style={[styles.zoomButton, styles.zoomButtonActive]}>
-                <Text style={[styles.zoomButtonText, styles.zoomButtonTextActive]}>Temporalidad diaria</Text>
-              </View>
-            </View>
             <View style={[styles.candleChartFrame, styles.candleChartFrameDark]}>
               <View style={styles.candleScaleHeader}>
                 <Text style={[styles.candleScaleLabel, styles.candleScaleLabelLight]}>
@@ -958,6 +1006,34 @@ export default function App() {
                 })}
               </ScrollView>
               <View style={[styles.timeAxisLine, styles.timeAxisLineDark]} />
+            </View>
+
+            <View style={styles.granularityRow}>
+              {[
+                { key: 'day', label: 'Diaria' },
+                { key: 'week', label: 'Semanal' },
+                { key: 'month', label: 'Mensual' },
+              ].map((option) => {
+                const isActive = chartGranularity === option.key;
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => setChartGranularity(option.key)}
+                    style={[styles.currencyButton, isActive && styles.currencyButtonActive]}
+                  >
+                    <Text style={[styles.currencyButtonText, isActive && styles.currencyButtonTextActive]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={styles.zoomButtonsRow}>
+              <View style={[styles.zoomButton, styles.zoomButtonActive]}>
+                <Text style={[styles.zoomButtonText, styles.zoomButtonTextActive]}>Temporalidad diaria</Text>
+              </View>
+            </View>
+            <View style={styles.legendRow}>
+              <Text style={[styles.legendText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>Ahorro (verde)</Text>
+              <Text style={[styles.legendText, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>Pago de deudas (azul)</Text>
             </View>
 
             <Pressable onPress={handleDownloadChartExcel} style={[styles.snapshotButton, styles.snapshotButtonSecondary]}>
@@ -1079,6 +1155,64 @@ export default function App() {
             <Pressable onPress={() => setIsSummaryVisible(true)} style={styles.profileButton}>
               <Text style={styles.profileButtonText}>Editar datos del usuario</Text>
             </Pressable>
+
+            <View style={[styles.coachingCard, isDarkMode ? styles.coachingCardDark : styles.coachingCardLight]}>
+              <Text style={[styles.coachingTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
+                3 preguntas diarias IA
+              </Text>
+              <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                Responde estas 3 preguntas para recibir una recomendación financiera diaria enfocada en ahorrar y pagar deudas.
+              </Text>
+
+              <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+                1) ¿Cómo controlaste tus gastos hoy?
+              </Text>
+              <TextInput
+                value={dailyCheckInAnswers.spendingControl}
+                onChangeText={(value) => setDailyCheckInAnswers((prev) => ({ ...prev, spendingControl: value }))}
+                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                placeholder="Ej: Evité compras impulsivas"
+                placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+              />
+
+              <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+                2) ¿Qué acción concreta hiciste para ahorrar?
+              </Text>
+              <TextInput
+                value={dailyCheckInAnswers.savingsAction}
+                onChangeText={(value) => setDailyCheckInAnswers((prev) => ({ ...prev, savingsAction: value }))}
+                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                placeholder="Ej: Separé $10.000"
+                placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+              />
+
+              <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
+                3) ¿Qué hiciste hoy para reducir tus deudas?
+              </Text>
+              <TextInput
+                value={dailyCheckInAnswers.debtAction}
+                onChangeText={(value) => setDailyCheckInAnswers((prev) => ({ ...prev, debtAction: value }))}
+                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                placeholder="Ej: Pagué una cuota"
+                placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
+              />
+
+              <Pressable
+                onPress={handleDailyRecommendation}
+                style={styles.primaryButton}
+                disabled={isDailyRecommendationLoading}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isDailyRecommendationLoading ? 'Generando recomendación...' : 'Obtener recomendación diaria'}
+                </Text>
+              </Pressable>
+
+              {!!dailyRecommendation && (
+                <Text style={[styles.coachingTip, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
+                  {dailyRecommendation}
+                </Text>
+              )}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -1298,8 +1432,10 @@ const styles = StyleSheet.create({
   candleWickDark: { backgroundColor: '#94A3B8' },
   candleBody: { width: 16, marginTop: -4, borderRadius: 1, borderWidth: 1 },
   candleBodyUp: { backgroundColor: '#22C55E', borderColor: '#15803D' },
-  candleBodyDown: { backgroundColor: '#EF4444', borderColor: '#B91C1C' },
+  candleBodyDown: { backgroundColor: '#2563EB', borderColor: '#1D4ED8' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
+  legendRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
+  legendText: { fontSize: 12, fontWeight: '700' },
   timeAxisLine: {
     position: 'absolute',
     left: 0,
