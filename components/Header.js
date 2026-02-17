@@ -7,8 +7,11 @@ export default function Header({
   profilePhoto,
   isDarkMode,
   onToggleTheme,
+  onTogglePlan,
+  activePlan,
 }) {
   const userInitial = userName?.trim()?.charAt(0)?.toUpperCase() || 'U';
+  const debtButtonLabel = activePlan === 'deudas' ? 'Plan de ahorro' : 'Plan deudas';
 
   return (
     <View style={styles.wrapper}>
@@ -43,14 +46,25 @@ export default function Header({
         </View>
       </View>
 
-      <TouchableOpacity
-        onPress={onToggleTheme}
-        style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
-      >
-        <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
-          {isDarkMode ? 'Modo claro' : 'Modo oscuro'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.actionsRow}>
+        <TouchableOpacity
+          onPress={onToggleTheme}
+          style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
+        >
+          <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
+            {isDarkMode ? 'Modo claro' : 'Modo oscuro'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onTogglePlan}
+          style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
+        >
+          <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
+            {debtButtonLabel}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -151,17 +165,21 @@ const styles = StyleSheet.create({
   pointsPillLabelLight: { color: '#4A4A4A' },
   pointsPillValue: { marginTop: 2, fontSize: 14, fontWeight: '800' },
   pointsPillValueDark: { color: '#FFFFFF' },
-  pointsPillValueLight: { color: '#111111' },
+  pointsPillValueLight: { color: '#000000' },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
   themeButton: {
-    alignSelf: 'flex-start',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     borderRadius: 999,
     borderWidth: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
   },
-  themeButtonDark: { borderColor: '#4D4D4D', backgroundColor: '#000000' },
-  themeButtonLight: { borderColor: '#D1D1D1', backgroundColor: '#F5F5F5' },
-  themeButtonText: { fontSize: 12, fontWeight: '700' },
+  themeButtonDark: { backgroundColor: '#000000', borderColor: '#FFFFFF' },
+  themeButtonLight: { backgroundColor: '#FFFFFF', borderColor: '#000000' },
+  themeButtonText: { fontWeight: '700', fontSize: 14 },
   themeButtonTextDark: { color: '#FFFFFF' },
   themeButtonTextLight: { color: '#000000' },
 });
