@@ -248,7 +248,7 @@ export default function App() {
     });
   }, [cards, savedTotalAcrossCards]);
 
-  const candles = useMemo(() => {
+  const flowBars = useMemo(() => {
     const ordered = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
     const today = startOfDay(new Date());
 
@@ -261,38 +261,38 @@ export default function App() {
       : parseDateKey(ordered[0].date);
 
     const txByDay = ordered.reduce((acc, tx) => {
-      acc[tx.date] = (acc[tx.date] || 0) + tx.delta;
+      if (!acc[tx.date]) {
+        acc[tx.date] = { savings: 0, debt: 0 };
+      }
+
+      const txType = tx.type || (tx.delta < 0 ? 'debt' : 'savings');
+      if (txType === 'debt') {
+        acc[tx.date].debt += tx.delta;
+      } else {
+        acc[tx.date].savings += tx.delta;
+      }
+
       return acc;
     }, {});
 
     const periodMap = {};
-    let runningBalance = 0;
     for (let cursor = new Date(startingDate); cursor <= today; cursor = addDays(cursor, 1)) {
       const dateKey = toDateKey(cursor);
-      const delta = txByDay[dateKey] || 0;
-      const openValue = runningBalance;
-      const closeValue = runningBalance + delta;
-      const highValue = Math.max(openValue, closeValue);
-      const lowValue = Math.min(openValue, closeValue);
+      const dayFlow = txByDay[dateKey] || { savings: 0, debt: 0 };
       const periodKey = getPeriodKey(cursor, chartGranularity);
 
       if (!periodMap[periodKey]) {
         periodMap[periodKey] = {
-          id: `candle-${periodKey}`,
+          id: `flow-${periodKey}`,
           label: getPeriodLabel(cursor, chartGranularity),
           periodStart: getPeriodStart(cursor, chartGranularity),
-          open: openValue,
-          close: closeValue,
-          high: highValue,
-          low: lowValue,
+          savings: 0,
+          debt: 0,
         };
-      } else {
-        periodMap[periodKey].close = closeValue;
-        periodMap[periodKey].high = Math.max(periodMap[periodKey].high, highValue);
-        periodMap[periodKey].low = Math.min(periodMap[periodKey].low, lowValue);
       }
 
-      runningBalance = closeValue;
+      periodMap[periodKey].savings += dayFlow.savings;
+      periodMap[periodKey].debt += Math.abs(dayFlow.debt);
     }
 
     return Object.values(periodMap)
@@ -300,28 +300,32 @@ export default function App() {
       .slice(-24);
   }, [transactions, onboardingCompletedAt, chartGranularity]);
 
-  const candlesScale = useMemo(() => {
-    if (!candles.length) {
+  const flowScale = useMemo(() => {
+    if (!flowBars.length) {
       return 1;
     }
 
-    const highs = candles.map((period) => period.high);
-    const lows = candles.map((period) => period.low);
-    const range = Math.max(...highs) - Math.min(...lows);
+    const maxSavings = Math.max(...flowBars.map((period) => Math.max(period.savings, 0)));
+    const maxDebt = Math.max(...flowBars.map((period) => Math.max(period.debt, 0)));
+    const range = Math.max(maxSavings, maxDebt);
 
     return range || 1;
-  }, [candles]);
+  }, [flowBars]);
 
-  const candlesBounds = useMemo(() => {
-    if (!candles.length) {
+  const flowBounds = useMemo(() => {
+    if (!flowBars.length) {
       return { max: 0, min: 0 };
     }
 
+    const maxSavings = Math.max(...flowBars.map((period) => Math.max(period.savings, 0)));
+    const maxDebt = Math.max(...flowBars.map((period) => Math.max(period.debt, 0)));
+    const max = Math.max(maxSavings, maxDebt);
+
     return {
-      max: Math.max(...candles.map((period) => period.high)),
-      min: Math.min(...candles.map((period) => period.low)),
+      max,
+      min: 0,
     };
-  }, [candles]);
+  }, [flowBars]);
 
   const startedLabel = useMemo(() => {
     if (!onboardingCompletedAt) {
@@ -376,11 +380,12 @@ export default function App() {
     setIsPlanSetupPending(false);
   };
 
-  const registerTransaction = (delta) => {
+  const registerTransaction = (delta, type = 'savings') => {
     setTransactions((prev) => [
       {
         id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         delta,
+        type,
         date: new Date().toISOString().slice(0, 10),
       },
       ...prev,
@@ -397,7 +402,7 @@ export default function App() {
         }
 
         const updatedAmount = card.savedAmount + card.nextContribution;
-        registerTransaction(card.nextContribution);
+        registerTransaction(card.nextContribution, 'savings');
 
         if (updatedAmount >= card.targetAmount) {
           const overflow = updatedAmount - card.targetAmount;
@@ -436,7 +441,7 @@ export default function App() {
         return card;
       }
 
-      registerTransaction(-removableAmount);
+      registerTransaction(-removableAmount, 'savings');
 
       return {
         ...card,
@@ -481,7 +486,7 @@ export default function App() {
       const nextPaid = Math.min(debt.paidAmount + debt.nextContribution, debt.totalToPay);
       const delta = nextPaid - debt.paidAmount;
       if (delta > 0) {
-        registerTransaction(-delta);
+        registerTransaction(-delta, 'debt');
       }
       return { ...debt, paidAmount: nextPaid };
     }));
@@ -498,7 +503,7 @@ export default function App() {
         return debt;
       }
 
-      registerTransaction(removable);
+      registerTransaction(removable, 'debt');
       return { ...debt, paidAmount: debt.paidAmount - removable };
     }));
   };
@@ -938,10 +943,10 @@ export default function App() {
             <View style={[styles.candleChartFrame, styles.candleChartFrameDark]}>
               <View style={styles.candleScaleHeader}>
                 <Text style={[styles.candleScaleLabel, styles.candleScaleLabelLight]}>
-                  Máx: {formatCurrency(candlesBounds.max, selectedCurrency)}
+                  Máx: {formatCurrency(flowBounds.max, selectedCurrency)}
                 </Text>
                 <Text style={[styles.candleScaleLabel, styles.candleScaleLabelLight]}>
-                  Mín: {formatCurrency(candlesBounds.min, selectedCurrency)}
+                  Mín: {formatCurrency(flowBounds.min, selectedCurrency)}
                 </Text>
               </View>
               <View style={styles.candleGrid}>
@@ -963,23 +968,17 @@ export default function App() {
                 ))}
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.candleRow}>
-                {candles.map((period) => {
-                  const wickHeight = Math.max(14, ((period.high - period.low) / candlesScale) * 126);
-                  const bodyHeight = Math.max(8, (Math.abs(period.close - period.open) / candlesScale) * 92);
-                  const isUp = period.close >= period.open;
+                {flowBars.map((period) => {
+                  const savingsHeight = Math.max(4, (Math.max(period.savings, 0) / flowScale) * 120);
+                  const debtHeight = Math.max(4, (Math.max(period.debt, 0) / flowScale) * 120);
                   const dayLabel = period.periodStart.toLocaleDateString('es-CO', { day: '2-digit' });
 
                   return (
                     <View key={period.id} style={styles.candleItem}>
-                      <View style={[styles.candleWick, { height: wickHeight }, styles.candleWickDark]} />
-                      <View style={[
-                        styles.candleBody,
-                        isUp ? styles.candleBodyUp : styles.candleBodyDown,
-                        {
-                          height: bodyHeight,
-                        },
-                      ]}
-                      />
+                      <View style={styles.groupedBarsWrap}>
+                        <View style={[styles.groupedBar, styles.groupedBarSavings, { height: savingsHeight }]} />
+                        <View style={[styles.groupedBar, styles.groupedBarDebt, { height: debtHeight }]} />
+                      </View>
                       <Text style={[styles.candleLabel, styles.candleScaleLabelLight]}>{dayLabel}</Text>
                     </View>
                   );
@@ -1408,11 +1407,21 @@ const styles = StyleSheet.create({
   },
   rightAxisLabelText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   candleItem: { alignItems: 'center', width: 42, marginRight: 6 },
-  candleWick: { width: 2, backgroundColor: '#6B7280', borderRadius: 999 },
-  candleWickDark: { backgroundColor: '#94A3B8' },
-  candleBody: { width: 16, marginTop: -4, borderRadius: 1, borderWidth: 1 },
-  candleBodyUp: { backgroundColor: '#22C55E', borderColor: '#15803D' },
-  candleBodyDown: { backgroundColor: '#2563EB', borderColor: '#1D4ED8' },
+  groupedBarsWrap: {
+    height: 126,
+    width: 24,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  groupedBar: {
+    flex: 1,
+    borderRadius: 2,
+    minHeight: 4,
+  },
+  groupedBarSavings: { backgroundColor: '#22C55E' },
+  groupedBarDebt: { backgroundColor: '#2563EB' },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: '700' },
   legendRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
   legendText: { fontSize: 12, fontWeight: '700' },
