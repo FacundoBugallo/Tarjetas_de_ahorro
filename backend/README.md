@@ -17,6 +17,18 @@ export OPENAI_MODEL="gpt-4o-mini"
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## Conectar la app móvil al backend local
+- Web usa `http://localhost:8000` automáticamente.
+- Android Emulator usa `http://10.0.2.2:8000` automáticamente.
+- Dispositivo físico (iOS/Android): define la URL de tu máquina en Expo antes de iniciar:
+
+```bash
+export EXPO_PUBLIC_BACKEND_URL="http://TU_IP_LOCAL:8000"
+npm run start
+```
+
+> Ejemplo: `http://192.168.1.25:8000` (tu celular y tu computadora deben estar en la misma red Wi-Fi).
+
 > Con eso ya queda vinculado a GPT: solo pegas tu key en `OPENAI_API_KEY`.
 
 ## Endpoints listos
