@@ -66,6 +66,20 @@ const getBackendBaseUrl = () => {
 };
 
 const BACKEND_BASE_URL = getBackendBaseUrl();
+const AI_REQUEST_TIMEOUT_MS = 15000;
+
+const getErrorMessageFromResponse = async (response) => {
+  try {
+    const data = await response.json();
+    if (typeof data?.detail === 'string' && data.detail.trim()) {
+      return data.detail.trim();
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+};
 
 
 const landingQuestions = [
@@ -220,6 +234,7 @@ export default function App() {
   });
   const [dailyRecommendation, setDailyRecommendation] = useState('');
   const [isDailyRecommendationLoading, setIsDailyRecommendationLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiMessages, setAiMessages] = useState([
     {
       id: 'ia-welcome',
@@ -555,7 +570,7 @@ export default function App() {
 
   const handleSendAiMessage = async () => {
     const message = aiInput.trim();
-    if (!message) {
+    if (!message || isAiLoading) {
       return;
     }
 
@@ -564,16 +579,23 @@ export default function App() {
       { id: `user-${Date.now()}`, role: 'user', text: message },
     ]);
     setAiInput('');
+    setIsAiLoading(true);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
 
     try {
       const response = await fetch(`${BACKEND_BASE_URL}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`Error del backend (${response.status})`);
+        const backendDetail = await getErrorMessageFromResponse(response);
+        const detail = backendDetail ? `: ${backendDetail}` : '';
+        throw new Error(`Error del backend (${response.status})${detail}`);
       }
 
       const data = await response.json();
@@ -588,14 +610,22 @@ export default function App() {
         },
       ]);
     } catch (error) {
+      const isTimeout = error?.name === 'AbortError';
+      const fallbackText = isTimeout
+        ? 'La consulta tardó más de lo esperado. Revisa tu conexión o el backend y vuelve a intentar.'
+        : `No pude conectar con GPT ahora mismo (${error?.message || 'sin detalle'}). Si quieres, te invito a un café para contarte del coaching premium con seguimiento personalizado.`;
+
       setAiMessages((prev) => [
         ...prev,
         {
           id: `assistant-fallback-${Date.now()}`,
           role: 'assistant',
-          text: 'No pude conectar con GPT ahora mismo. Si quieres, te invito a un café para contarte del coaching premium con seguimiento personalizado.',
+          text: fallbackText,
         },
       ]);
+    } finally {
+      clearTimeout(timeout);
+      setIsAiLoading(false);
     }
   };
 
@@ -1138,12 +1168,13 @@ export default function App() {
             <TextInput
               value={aiInput}
               onChangeText={setAiInput}
+              editable={!isAiLoading}
               style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
               placeholder="Escribe tu duda financiera"
               placeholderTextColor={isDarkMode ? '#737373' : '#6B7280'}
             />
-            <Pressable onPress={handleSendAiMessage} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Consultar a GPT</Text>
+            <Pressable onPress={handleSendAiMessage} style={[styles.primaryButton, isAiLoading && styles.primaryButtonDisabled]}>
+              <Text style={styles.primaryButtonText}>{isAiLoading ? 'Consultando...' : 'Consultar a GPT'}</Text>
             </Pressable>
           </View>
         )}
@@ -1603,6 +1634,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
+  },
+  primaryButtonDisabled: {
+    opacity: 0.65,
   },
   primaryButtonText: { color: '#FFFFFF', fontWeight: '700' },
   secondaryThemeButton: {
