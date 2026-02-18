@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useMemo, useState } from 'react';
+import Constants from 'expo-constants';
 
 import CreateCardModal from './components/CreateCardModal';
 import CreateDebtModal from './components/CreateDebtModal';
@@ -21,6 +22,50 @@ const tabs = [
   { key: 'graficos', label: 'Gráficos 📊' },
   { key: 'perfil', label: 'Perfil 👤' },
 ];
+
+const normalizeBackendBaseUrl = (value) => {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim().replace(/\/$/, '');
+  if (!trimmed) {
+    return null;
+  }
+
+  if (/^https?:\/\//.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `http://${trimmed}`;
+};
+
+const getBackendBaseUrl = () => {
+  const envBaseUrl = normalizeBackendBaseUrl(process.env.EXPO_PUBLIC_BACKEND_URL);
+  if (envBaseUrl) {
+    return envBaseUrl;
+  }
+
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8000';
+  }
+
+  if (Platform.OS === 'web') {
+    return 'http://localhost:8000';
+  }
+
+  const hostUri = Constants?.expoConfig?.hostUri || Constants?.manifest2?.extra?.expoGo?.debuggerHost;
+  if (hostUri) {
+    const host = hostUri.split(':')[0];
+    if (host) {
+      return `http://${host}:8000`;
+    }
+  }
+
+  return 'http://localhost:8000';
+};
+
+const BACKEND_BASE_URL = getBackendBaseUrl();
 
 
 const landingQuestions = [
@@ -521,7 +566,7 @@ export default function App() {
     setAiInput('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/ai/chat', {
+      const response = await fetch(`${BACKEND_BASE_URL}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
@@ -564,7 +609,7 @@ export default function App() {
     setIsDailyRecommendationLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/ai/daily-recommendation', {
+      const response = await fetch(`${BACKEND_BASE_URL}/api/ai/daily-recommendation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
