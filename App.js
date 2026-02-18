@@ -81,6 +81,23 @@ const getErrorMessageFromResponse = async (response) => {
   return '';
 };
 
+const postJson = async (path, payload) => {
+  const response = await fetch(`${BACKEND_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const message = await getErrorMessageFromResponse(response);
+    throw new Error(message || 'No se pudo completar la solicitud.');
+  }
+
+  return response.json();
+};
+
 
 const landingQuestions = [
   {
@@ -208,6 +225,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('inicio');
   const [activePlan, setActivePlan] = useState('ahorro');
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [authUserId, setAuthUserId] = useState(null);
+  const [authError, setAuthError] = useState('');
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isOnboardingLoading, setIsOnboardingLoading] = useState(false);
   const [isPlanSetupPending, setIsPlanSetupPending] = useState(false);
   const [accountForm, setAccountForm] = useState({ name: '', email: '', password: '' });
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState('');
@@ -410,8 +433,66 @@ export default function App() {
 
   const annualProjection = plannedInvestment * 12;
 
-  const handleCompleteOnboarding = () => {
-    if (!accountForm.name.trim() || !accountForm.email.trim() || !accountForm.password.trim()) {
+  const handleSubmitAuth = async () => {
+    if (!accountForm.email.trim() || !accountForm.password.trim()) {
+      setAuthError('Completa email y contraseña para continuar.');
+      return;
+    }
+
+    if (authMode === 'register' && !accountForm.name.trim()) {
+      setAuthError('Para crear la cuenta necesitamos tu nombre.');
+      return;
+    }
+
+    setIsAuthLoading(true);
+    setAuthError('');
+
+    try {
+      const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const payload = authMode === 'register'
+        ? {
+          name: accountForm.name.trim(),
+          email: accountForm.email.trim(),
+          password: accountForm.password,
+        }
+        : {
+          email: accountForm.email.trim(),
+          password: accountForm.password,
+        };
+
+      const user = await postJson(endpoint, payload);
+      setAuthUserId(user.id);
+      setUserName(user.name);
+      setAccountForm((prev) => ({ ...prev, name: user.name }));
+      setIsAuthenticated(true);
+    } catch (error) {
+      setAuthError(error?.message || 'No pudimos validar tu cuenta.');
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleCompleteOnboarding = async () => {
+    if (!authUserId) {
+      setAuthError('Inicia sesión o crea cuenta antes de responder las preguntas.');
+      return;
+    }
+
+    setIsOnboardingLoading(true);
+    setAuthError('');
+
+    try {
+      await postJson('/api/auth/onboarding', {
+        user_id: authUserId,
+        meta: landingAnswers.meta,
+        ritmo: landingAnswers.ritmo,
+        prioridad: landingAnswers.prioridad,
+        acompanamiento: landingAnswers.acompanamiento,
+        moneda_base: landingAnswers.monedaBase,
+      });
+    } catch (error) {
+      setAuthError(error?.message || 'No pudimos guardar tus respuestas ahora.');
+      setIsOnboardingLoading(false);
       return;
     }
 
@@ -428,6 +509,7 @@ export default function App() {
     setOnboardingCompletedAt(new Date().toISOString());
     setIsOnboardingDone(true);
     setIsPlanSetupPending(true);
+    setIsOnboardingLoading(false);
   };
 
   const handleSavePlannedInvestment = () => {
@@ -717,70 +799,112 @@ export default function App() {
       <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
         <ScrollView contentContainerStyle={styles.landingScrollContent}>
           <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
-            <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
-              Armá tu plan ideal en minutos ✨
-            </Text>
-            <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
-              En 5 minutos podés tener tu plan de ahorro armado.
-            </Text>
+            {!isAuthenticated ? (
+              <>
+                <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
+                  Bienvenido 👋
+                </Text>
+                <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
+                  Primero iniciá sesión o creá tu cuenta para guardar tus datos.
+                </Text>
 
-            <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Nombre</Text>
-            <TextInput
-              value={accountForm.name}
-              onChangeText={(value) => setAccountForm((prev) => ({ ...prev, name: value }))}
-              style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
-              placeholder="Tu nombre"
-              placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
-            />
-            <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Email</Text>
-            <TextInput
-              value={accountForm.email}
-              onChangeText={(value) => setAccountForm((prev) => ({ ...prev, email: value }))}
-              style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
-              placeholder="tu@email.com"
-              placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-            <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Contraseña</Text>
-            <TextInput
-              value={accountForm.password}
-              onChangeText={(value) => setAccountForm((prev) => ({ ...prev, password: value }))}
-              style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
-              placeholder="Mínimo 6 caracteres"
-              placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
-              secureTextEntry
-            />
-
-            {landingQuestions.map((question) => (
-              <View key={question.key} style={styles.landingQuestionBlock}>
-                <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>{question.title}</Text>
-                <View style={styles.moodOptionsRow}>
-                  {question.options.map((option) => {
-                    const isActive = landingAnswers[question.key] === option.key;
-                    return (
-                      <Pressable
-                        key={option.key}
-                        onPress={() => setLandingAnswers((prev) => ({ ...prev, [question.key]: option.key }))}
-                        style={[
-                          styles.moodOption,
-                          isDarkMode ? styles.moodOptionDark : styles.moodOptionLight,
-                          isActive && styles.moodOptionActive,
-                        ]}
-                      >
-                        <Text style={[styles.moodOptionText, isDarkMode && styles.moodOptionTextDark, isActive && styles.moodOptionTextActive]}>
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+                <View style={styles.authTabs}>
+                  <Pressable
+                    onPress={() => setAuthMode('login')}
+                    style={[styles.authTabButton, authMode === 'login' && styles.authTabButtonActive]}
+                  >
+                    <Text style={[styles.authTabText, authMode === 'login' && styles.authTabTextActive]}>Iniciar sesión</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setAuthMode('register')}
+                    style={[styles.authTabButton, authMode === 'register' && styles.authTabButtonActive]}
+                  >
+                    <Text style={[styles.authTabText, authMode === 'register' && styles.authTabTextActive]}>Crear cuenta</Text>
+                  </Pressable>
                 </View>
-              </View>
-            ))}
 
-            <Pressable onPress={handleCompleteOnboarding} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Crear mi primer objetivo</Text>
-            </Pressable>
+                {authMode === 'register' && (
+                  <>
+                    <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Nombre</Text>
+                    <TextInput
+                      value={accountForm.name}
+                      onChangeText={(value) => setAccountForm((prev) => ({ ...prev, name: value }))}
+                      style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                      placeholder="Tu nombre"
+                      placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+                    />
+                  </>
+                )}
+
+                <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Email</Text>
+                <TextInput
+                  value={accountForm.email}
+                  onChangeText={(value) => setAccountForm((prev) => ({ ...prev, email: value }))}
+                  style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                  placeholder="tu@email.com"
+                  placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+                <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>Contraseña</Text>
+                <TextInput
+                  value={accountForm.password}
+                  onChangeText={(value) => setAccountForm((prev) => ({ ...prev, password: value }))}
+                  style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                  placeholder="Mínimo 6 caracteres"
+                  placeholderTextColor={isDarkMode ? '#525252' : '#737373'}
+                  secureTextEntry
+                />
+
+                {Boolean(authError) && <Text style={styles.authErrorText}>{authError}</Text>}
+
+                <Pressable onPress={handleSubmitAuth} style={styles.primaryButton} disabled={isAuthLoading}>
+                  <Text style={styles.primaryButtonText}>{isAuthLoading ? 'Procesando...' : authMode === 'register' ? 'Crear cuenta' : 'Iniciar sesión'}</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.onboardingTitle, isDarkMode ? styles.onboardingTitleDark : styles.onboardingTitleLight]}>
+                  Armá tu plan ideal en minutos ✨
+                </Text>
+                <Text style={[styles.onboardingSubtitle, isDarkMode ? styles.onboardingSubtitleDark : styles.onboardingSubtitleLight]}>
+                  Ahora respondé estas preguntas para personalizar tu plan.
+                </Text>
+
+                {landingQuestions.map((question) => (
+                  <View key={question.key} style={styles.landingQuestionBlock}>
+                    <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>{question.title}</Text>
+                    <View style={styles.moodOptionsRow}>
+                      {question.options.map((option) => {
+                        const isActive = landingAnswers[question.key] === option.key;
+                        return (
+                          <Pressable
+                            key={option.key}
+                            onPress={() => setLandingAnswers((prev) => ({ ...prev, [question.key]: option.key }))}
+                            style={[
+                              styles.moodOption,
+                              isDarkMode ? styles.moodOptionDark : styles.moodOptionLight,
+                              isActive && styles.moodOptionActive,
+                            ]}
+                          >
+                            <Text style={[styles.moodOptionText, isDarkMode && styles.moodOptionTextDark, isActive && styles.moodOptionTextActive]}>
+                              {option.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ))}
+
+                {Boolean(authError) && <Text style={styles.authErrorText}>{authError}</Text>}
+
+                <Pressable onPress={handleCompleteOnboarding} style={styles.primaryButton} disabled={isOnboardingLoading}>
+                  <Text style={styles.primaryButtonText}>{isOnboardingLoading ? 'Guardando...' : 'Continuar con mi objetivo'}</Text>
+                </Pressable>
+              </>
+            )}
+
             <Pressable onPress={() => setIsDarkMode((prev) => !prev)} style={styles.secondaryThemeButton}>
               <Text style={[styles.secondaryThemeButtonText, isDarkMode && styles.secondaryThemeButtonTextDark]}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
             </Pressable>
@@ -1612,6 +1736,20 @@ const styles = StyleSheet.create({
   onboardingSubtitleDark: { color: '#FFFFFF' },
   onboardingSubtitleLight: { color: '#000000' },
   landingScrollContent: { paddingVertical: 20 },
+  authTabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  authTabButton: {
+    flex: 1,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#000000',
+    paddingVertical: 8,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  authTabButtonActive: { backgroundColor: '#000000', borderColor: '#000000' },
+  authTabText: { color: '#000000', fontWeight: '700' },
+  authTabTextActive: { color: '#FFFFFF' },
+  authErrorText: { marginTop: 10, color: '#B91C1C', fontSize: 12, fontWeight: '700' },
   landingQuestionBlock: { marginBottom: 8 },
   inputLabel: { fontSize: 12, fontWeight: '700', marginBottom: 6, marginTop: 8 },
   inputLabelDark: { color: '#FFFFFF' },
