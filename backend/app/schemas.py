@@ -29,3 +29,33 @@ class DailyRecommendationRequest(BaseModel):
     saved_this_month: float = 0
     pending_debt_total: float = 0
     currency: str = 'COP'
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(min_length=2)
+    email: str
+    password: str = Field(min_length=6)
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=6)
+
+
+class AuthResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+
+
+class SaveOnboardingRequest(BaseModel):
+    user_id: int = Field(gt=0)
+    meta: str
+    ritmo: str
+    prioridad: str
+    acompanamiento: str
+    moneda_base: str
+
+
+class SaveOnboardingResponse(BaseModel):
+    success: bool

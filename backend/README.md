@@ -36,6 +36,9 @@ npm run start
 - `POST /api/debts/plan` calcula el total a pagar (`pago * periodos`).
 - `POST /api/ai/chat` consulta GPT vía OpenAI SDK usando `OPENAI_API_KEY`.
 - `POST /api/ai/daily-recommendation` genera recomendación diaria personalizada con GPT.
+- `POST /api/auth/register` crea un usuario y guarda credenciales en SQLite (`backend/data.sqlite3`).
+- `POST /api/auth/login` valida credenciales contra la base de datos.
+- `POST /api/auth/onboarding` guarda respuestas del onboarding por usuario.
 
 ## Seguridad importante
 - **Nunca** pegues una API key en el código, commits, PRs o chat.
