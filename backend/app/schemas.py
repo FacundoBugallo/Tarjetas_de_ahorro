@@ -43,13 +43,13 @@ class LoginRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    id: int
+    id: str
     name: str
     email: str
 
 
 class SaveOnboardingRequest(BaseModel):
-    user_id: int = Field(gt=0)
+    user_id: str = Field(min_length=1)
     meta: str
     ritmo: str
     prioridad: str

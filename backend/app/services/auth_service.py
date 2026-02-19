@@ -1,122 +1,104 @@
-import hashlib
-import hmac
-import os
-import sqlite3
-from datetime import datetime
-from pathlib import Path
-
 from fastapi import HTTPException
+from supabase import Client, create_client
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DB_PATH = BASE_DIR / 'data.sqlite3'
+from app.config import SUPABASE_ANON_KEY, SUPABASE_ONBOARDING_TABLE, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL
+
+_supabase_auth_client: Client | None = None
+_supabase_admin_client: Client | None = None
 
 
-def _get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+def _validate_supabase_env() -> None:
+    if not SUPABASE_URL:
+        raise HTTPException(status_code=500, detail='Falta configurar SUPABASE_URL en el backend.')
+    if not SUPABASE_ANON_KEY:
+        raise HTTPException(status_code=500, detail='Falta configurar SUPABASE_ANON_KEY en el backend.')
+
+
+def _get_auth_client() -> Client:
+    global _supabase_auth_client
+    _validate_supabase_env()
+
+    if _supabase_auth_client is None:
+        _supabase_auth_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    return _supabase_auth_client
+
+
+def _get_admin_client() -> Client:
+    global _supabase_admin_client
+    if not SUPABASE_URL:
+        raise HTTPException(status_code=500, detail='Falta configurar SUPABASE_URL en el backend.')
+    if not SUPABASE_SERVICE_ROLE_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail='Falta configurar SUPABASE_SERVICE_ROLE_KEY para guardar onboarding.',
+        )
+
+    if _supabase_admin_client is None:
+        _supabase_admin_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+    return _supabase_admin_client
 
 
 def init_auth_db() -> None:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with _get_connection() as conn:
-        conn.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                password_salt TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-            '''
-        )
-        conn.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS onboarding_answers (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                meta TEXT NOT NULL,
-                ritmo TEXT NOT NULL,
-                prioridad TEXT NOT NULL,
-                acompanamiento TEXT NOT NULL,
-                moneda_base TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                UNIQUE(user_id),
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            )
-            '''
-        )
-
-
-def _hash_password(password: str, salt: str) -> str:
-    return hashlib.sha256(f'{salt}{password}'.encode('utf-8')).hexdigest()
+    """Se mantiene por compatibilidad con el startup hook."""
 
 
 def register_user(name: str, email: str, password: str) -> dict:
     normalized_email = email.strip().lower()
+    normalized_name = name.strip()
+
     if not normalized_email:
         raise HTTPException(status_code=400, detail='El email es obligatorio.')
+    if not normalized_name:
+        raise HTTPException(status_code=400, detail='El nombre es obligatorio.')
 
-    salt = os.urandom(16).hex()
-    password_hash = _hash_password(password, salt)
-    now = datetime.utcnow().isoformat()
+    client = _get_auth_client()
+    response = client.auth.sign_up(
+        {
+            'email': normalized_email,
+            'password': password,
+            'options': {'data': {'name': normalized_name}},
+        }
+    )
 
-    with _get_connection() as conn:
-        existing = conn.execute('SELECT id FROM users WHERE email = ?', (normalized_email,)).fetchone()
-        if existing:
-            raise HTTPException(status_code=409, detail='Ya existe una cuenta con ese email.')
+    if not response.user:
+        raise HTTPException(status_code=400, detail='No fue posible crear la cuenta en Supabase.')
 
-        cursor = conn.execute(
-            'INSERT INTO users (name, email, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?)',
-            (name.strip(), normalized_email, password_hash, salt, now),
-        )
-        user_id = cursor.lastrowid
-
-    return {'id': user_id, 'name': name.strip(), 'email': normalized_email}
+    return {'id': response.user.id, 'name': normalized_name, 'email': normalized_email}
 
 
 def login_user(email: str, password: str) -> dict:
     normalized_email = email.strip().lower()
-    with _get_connection() as conn:
-        row = conn.execute(
-            'SELECT id, name, email, password_hash, password_salt FROM users WHERE email = ?',
-            (normalized_email,),
-        ).fetchone()
+    client = _get_auth_client()
 
-    if row is None:
+    try:
+        response = client.auth.sign_in_with_password({'email': normalized_email, 'password': password})
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail='Credenciales inválidas.') from exc
+
+    if not response.user:
         raise HTTPException(status_code=401, detail='Credenciales inválidas.')
 
-    calculated_hash = _hash_password(password, row['password_salt'])
-    if not hmac.compare_digest(calculated_hash, row['password_hash']):
-        raise HTTPException(status_code=401, detail='Credenciales inválidas.')
-
-    return {'id': row['id'], 'name': row['name'], 'email': row['email']}
+    profile_name = (response.user.user_metadata or {}).get('name') or normalized_email.split('@')[0]
+    return {'id': response.user.id, 'name': profile_name, 'email': normalized_email}
 
 
-def save_onboarding_answers(user_id: int, meta: str, ritmo: str, prioridad: str, acompanamiento: str, moneda_base: str) -> dict:
-    now = datetime.utcnow().isoformat()
+def save_onboarding_answers(user_id: str, meta: str, ritmo: str, prioridad: str, acompanamiento: str, moneda_base: str) -> dict:
+    client = _get_admin_client()
 
-    with _get_connection() as conn:
-        user_exists = conn.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()
-        if not user_exists:
-            raise HTTPException(status_code=404, detail='Usuario no encontrado.')
+    payload = {
+        'user_id': user_id,
+        'meta': meta,
+        'ritmo': ritmo,
+        'prioridad': prioridad,
+        'acompanamiento': acompanamiento,
+        'moneda_base': moneda_base,
+    }
 
-        conn.execute(
-            '''
-            INSERT INTO onboarding_answers (user_id, meta, ritmo, prioridad, acompanamiento, moneda_base, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET
-                meta = excluded.meta,
-                ritmo = excluded.ritmo,
-                prioridad = excluded.prioridad,
-                acompanamiento = excluded.acompanamiento,
-                moneda_base = excluded.moneda_base,
-                updated_at = excluded.updated_at
-            ''',
-            (user_id, meta, ritmo, prioridad, acompanamiento, moneda_base, now, now),
-        )
+    try:
+        client.table(SUPABASE_ONBOARDING_TABLE).upsert(payload, on_conflict='user_id').execute()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail='No pudimos guardar el onboarding en Supabase.') from exc
 
     return {'success': True}

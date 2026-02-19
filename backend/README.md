@@ -14,6 +14,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 export OPENAI_API_KEY="pega_aqui_tu_api_key"
 export OPENAI_MODEL="gpt-4o-mini"
+export SUPABASE_URL="https://TU-PROYECTO.supabase.co"
+export SUPABASE_ANON_KEY="tu_anon_key"
+export SUPABASE_SERVICE_ROLE_KEY="tu_service_role_key"
+# opcional:
+# export SUPABASE_ONBOARDING_TABLE="onboarding_answers"
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -29,20 +34,47 @@ npm run start
 
 > Ejemplo: `http://192.168.1.25:8000` (tu celular y tu computadora deben estar en la misma red Wi-Fi).
 
-> Con eso ya queda vinculado a GPT: solo pegas tu key en `OPENAI_API_KEY`.
-
 ## Endpoints listos
 - `GET /health`
 - `POST /api/debts/plan` calcula el total a pagar (`pago * periodos`).
 - `POST /api/ai/chat` consulta GPT vía OpenAI SDK usando `OPENAI_API_KEY`.
 - `POST /api/ai/daily-recommendation` genera recomendación diaria personalizada con GPT.
-- `POST /api/auth/register` crea un usuario y guarda credenciales en SQLite (`backend/data.sqlite3`).
-- `POST /api/auth/login` valida credenciales contra la base de datos.
-- `POST /api/auth/onboarding` guarda respuestas del onboarding por usuario.
+- `POST /api/auth/register` crea un usuario en Supabase Auth.
+- `POST /api/auth/login` valida credenciales en Supabase Auth.
+- `POST /api/auth/onboarding` guarda respuestas del onboarding en Supabase (`onboarding_answers` por defecto).
+
+## Tabla recomendada para onboarding en Supabase
+Ejecutá este SQL en Supabase (SQL Editor):
+
+```sql
+create table if not exists public.onboarding_answers (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  meta text not null,
+  ritmo text not null,
+  prioridad text not null,
+  acompanamiento text not null,
+  moneda_base text not null,
+  updated_at timestamptz not null default now()
+);
+
+create or replace function public.set_onboarding_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_onboarding_updated_at on public.onboarding_answers;
+create trigger trg_onboarding_updated_at
+before update on public.onboarding_answers
+for each row execute procedure public.set_onboarding_updated_at();
+```
 
 ## Seguridad importante
 - **Nunca** pegues una API key en el código, commits, PRs o chat.
-- Si una key fue expuesta, **revócala y genera otra** desde OpenAI.
+- Si una key fue expuesta, **revócala y genera otra** desde OpenAI/Supabase.
+- `SUPABASE_SERVICE_ROLE_KEY` solo debe vivir en el backend (nunca en frontend).
 
 ## Ejemplos rápidos de uso
 ### Chat
