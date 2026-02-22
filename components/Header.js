@@ -9,6 +9,7 @@ export default function Header({
   onToggleTheme,
   onTogglePlan,
   activePlan,
+  showActionButtons,
 }) {
   const userInitial = userName?.trim()?.charAt(0)?.toUpperCase() || 'U';
   const debtButtonLabel = activePlan === 'deudas' ? 'Plan de ahorro' : 'Plan deudas';
@@ -46,25 +47,27 @@ export default function Header({
         </View>
       </View>
 
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          onPress={onToggleTheme}
-          style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
-        >
-          <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
-            {isDarkMode ? 'Modo claro' : 'Modo oscuro'}
-          </Text>
-        </TouchableOpacity>
+      {showActionButtons && (
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            onPress={onToggleTheme}
+            style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
+          >
+            <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
+              {isDarkMode ? 'Modo claro' : 'Modo oscuro'}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={onTogglePlan}
-          style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
-        >
-          <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
-            {debtButtonLabel}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            onPress={onTogglePlan}
+            style={[styles.themeButton, isDarkMode ? styles.themeButtonDark : styles.themeButtonLight]}
+          >
+            <Text style={[styles.themeButtonText, isDarkMode ? styles.themeButtonTextDark : styles.themeButtonTextLight]}>
+              {debtButtonLabel}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
