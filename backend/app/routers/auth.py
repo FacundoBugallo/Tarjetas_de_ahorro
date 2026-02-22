@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.schemas import AuthResponse, LoginRequest, RegisterRequest, SaveOnboardingRequest, SaveOnboardingResponse
-from app.services.auth_service import login_user, register_user, save_onboarding_answers
+from app.services.auth_service import get_onboarding_answers, login_user, register_user, save_onboarding_answers
 
 router = APIRouter(prefix='/api/auth', tags=['auth'])
 
@@ -26,3 +26,8 @@ def save_onboarding(payload: SaveOnboardingRequest) -> dict:
         acompanamiento=payload.acompanamiento,
         moneda_base=payload.moneda_base,
     )
+
+
+@router.get('/onboarding/{user_id}')
+def get_onboarding(user_id: str) -> dict:
+    return get_onboarding_answers(user_id)

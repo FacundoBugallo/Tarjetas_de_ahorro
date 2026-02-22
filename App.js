@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useMemo, useState } from 'react';
 import Constants from 'expo-constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CreateCardModal from './components/CreateCardModal';
 import CreateDebtModal from './components/CreateDebtModal';
@@ -257,6 +258,7 @@ export default function App() {
   });
   const [dailyRecommendation, setDailyRecommendation] = useState('');
   const [isDailyRecommendationLoading, setIsDailyRecommendationLoading] = useState(false);
+  const [lastWeeklyCheckInDate, setLastWeeklyCheckInDate] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiMessages, setAiMessages] = useState([
     {
@@ -432,6 +434,11 @@ export default function App() {
   }, [onboardingCompletedAt]);
 
   const annualProjection = plannedInvestment * 12;
+  const currentWeekStartDate = startOfWeek(new Date());
+  const currentWeekKey = toDateKey(currentWeekStartDate);
+  const weeklyCheckInCompleted = lastWeeklyCheckInDate
+    ? startOfWeek(new Date(lastWeeklyCheckInDate)).getTime() === currentWeekStartDate.getTime()
+    : false;
 
   const handleSubmitAuth = async () => {
     if (!accountForm.email.trim() || !accountForm.password.trim()) {
@@ -465,6 +472,31 @@ export default function App() {
       setUserName(user.name);
       setAccountForm((prev) => ({ ...prev, name: user.name }));
       setIsAuthenticated(true);
+
+      try {
+        const onboardingData = await fetch(`${BACKEND_BASE_URL}/api/auth/onboarding/${user.id}`).then((response) => {
+          if (!response.ok) {
+            return null;
+          }
+          return response.json();
+        });
+
+        if (onboardingData?.meta) {
+          setLandingAnswers({
+            meta: onboardingData.meta,
+            ritmo: onboardingData.ritmo,
+            prioridad: onboardingData.prioridad,
+            acompanamiento: onboardingData.acompanamiento,
+            monedaBase: onboardingData.moneda_base,
+          });
+          setSelectedCurrency(onboardingData.moneda_base || 'COP');
+          setOnboardingCompletedAt(new Date().toISOString());
+          setIsOnboardingDone(true);
+          setIsPlanSetupPending(false);
+        }
+      } catch {
+        // Si no se puede recuperar onboarding, mantenemos flujo normal.
+      }
     } catch (error) {
       setAuthError(error?.message || 'No pudimos validar tu cuenta.');
     } finally {
@@ -742,6 +774,7 @@ export default function App() {
 
       const data = await response.json();
       setDailyRecommendation(data.recommendation || 'Hoy avanza con una decisión pequeña y sostenible para tu ahorro.');
+      setLastWeeklyCheckInDate(new Date().toISOString());
     } catch (error) {
       setDailyRecommendation(
         'No pude conectar con el backend ahora. Como guía rápida: protege tus gastos esenciales, separa una cantidad fija para ahorrar y paga hoy una parte de tu deuda más costosa.',
@@ -797,7 +830,7 @@ export default function App() {
   if (!isOnboardingDone) {
     return (
       <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
-        <ScrollView contentContainerStyle={styles.landingScrollContent}>
+        <View style={styles.landingScrollContent}>
           <View style={[styles.onboardingCard, isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight]}>
             {!isAuthenticated ? (
               <>
@@ -909,7 +942,7 @@ export default function App() {
               <Text style={[styles.secondaryThemeButtonText, isDarkMode && styles.secondaryThemeButtonTextDark]}>{isDarkMode ? 'Modo claro' : 'Modo oscuro'}</Text>
             </Pressable>
           </View>
-        </ScrollView>
+        </View>
         <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       </SafeAreaView>
     );
@@ -950,7 +983,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode ? styles.safeAreaDark : styles.safeAreaLight]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.scrollContent}>
         <Header
           onToggleTheme={() => setIsDarkMode((prev) => !prev)}
           isDarkMode={isDarkMode}
@@ -960,6 +993,7 @@ export default function App() {
           profilePhoto={userPhoto}
           onTogglePlan={() => setActivePlan((prev) => (prev === 'ahorro' ? 'deudas' : 'ahorro'))}
           activePlan={activePlan}
+          showActionButtons={activeTab === 'inicio'}
         />
 
         {activeTab === 'inicio' && (
@@ -1166,8 +1200,8 @@ export default function App() {
                   <Text key={`axis-${axisValue}`} style={styles.rightAxisLabelText}>{axisValue}</Text>
                 ))}
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.candleRow}>
-                {flowBars.map((period) => {
+              <View style={styles.candleRow}>
+                {flowBars.slice(-8).map((period) => {
                   const savingsHeight = Math.max(4, (Math.max(period.savings, 0) / flowScale) * 120);
                   const debtHeight = Math.max(4, (Math.max(period.debt, 0) / flowScale) * 120);
                   const dayLabel = period.periodStart.toLocaleDateString('es-CO', { day: '2-digit' });
@@ -1182,7 +1216,7 @@ export default function App() {
                     </View>
                   );
                 })}
-              </ScrollView>
+              </View>
               <View style={[styles.timeAxisLine, styles.timeAxisLineDark]} />
             </View>
 
@@ -1337,11 +1371,14 @@ export default function App() {
 
             <View style={[styles.coachingCard, isDarkMode ? styles.coachingCardDark : styles.coachingCardLight]}>
               <Text style={[styles.coachingTitle, isDarkMode ? styles.emotionalTitleDark : styles.emotionalTitleLight]}>
-                3 preguntas diarias IA
+                Check-in semanal (cada lunes)
               </Text>
               <Text style={[styles.panelSubTitle, isDarkMode ? styles.panelSubTitleDark : styles.panelSubTitleLight]}>
-                Responde estas 3 preguntas para recibir una recomendación financiera diaria enfocada en ahorrar y pagar deudas.
+                Estas preguntas se responden una vez por semana para ajustar tu enfoque emocional y financiero.
               </Text>
+              {!weeklyCheckInCompleted && (
+                <Text style={[styles.authErrorText, { color: '#2563EB' }]}>Pendiente de esta semana ({currentWeekKey}).</Text>
+              )}
 
               <Text style={[styles.inputLabel, isDarkMode ? styles.inputLabelDark : styles.inputLabelLight]}>
                 1) ¿Cómo controlaste tus gastos hoy?
@@ -1382,7 +1419,7 @@ export default function App() {
                 disabled={isDailyRecommendationLoading}
               >
                 <Text style={styles.primaryButtonText}>
-                  {isDailyRecommendationLoading ? 'Generando recomendación...' : 'Obtener recomendación diaria'}
+                  {isDailyRecommendationLoading ? 'Generando recomendación...' : weeklyCheckInCompleted ? 'Actualizar recomendación semanal' : 'Completar check-in semanal'}
                 </Text>
               </Pressable>
 
@@ -1394,7 +1431,7 @@ export default function App() {
             </View>
           </View>
         )}
-      </ScrollView>
+      </View>
 
       <View style={[styles.bottomNav, isDarkMode ? styles.bottomNavDark : styles.bottomNavLight]}>
         {tabs.map((tab) => {
@@ -1444,7 +1481,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   safeAreaDark: { backgroundColor: '#000000' },
   safeAreaLight: { backgroundColor: '#FFFFFF' },
-  scrollContent: { padding: 20, paddingBottom: 120 },
+  scrollContent: { flex: 1, padding: 20, paddingBottom: 120 },
   cardList: { gap: 16, marginBottom: 24 },
   emptyText: {
     borderRadius: 14,
@@ -1735,7 +1772,7 @@ const styles = StyleSheet.create({
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
   onboardingSubtitleDark: { color: '#FFFFFF' },
   onboardingSubtitleLight: { color: '#000000' },
-  landingScrollContent: { paddingVertical: 20 },
+  landingScrollContent: { flex: 1, paddingVertical: 20 },
   authTabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   authTabButton: {
     flex: 1,

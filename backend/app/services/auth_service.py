@@ -102,3 +102,21 @@ def save_onboarding_answers(user_id: str, meta: str, ritmo: str, prioridad: str,
         raise HTTPException(status_code=500, detail='No pudimos guardar el onboarding en Supabase.') from exc
 
     return {'success': True}
+
+
+def get_onboarding_answers(user_id: str) -> dict:
+    client = _get_admin_client()
+
+    try:
+        response = (
+            client
+            .table(SUPABASE_ONBOARDING_TABLE)
+            .select('meta, ritmo, prioridad, acompanamiento, moneda_base')
+            .eq('user_id', user_id)
+            .maybe_single()
+            .execute()
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail='No pudimos consultar el onboarding en Supabase.') from exc
+
+    return response.data or {}
