@@ -9,9 +9,10 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import Constants from "expo-constants";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CreateCardModal from "./components/CreateCardModal";
 import CreateDebtModal from "./components/CreateDebtModal";
@@ -27,10 +28,10 @@ import savingsCards from "./data/savingsCards";
 import { clampPercentage, formatCurrency } from "./utils/formatters";
 
 const tabs = [
-  { key: "inicio", label: "Inicio 🏠" },
-  { key: "ia", label: "IA ☕" },
-  { key: "graficos", label: "Gráficos 📊" },
-  { key: "config", label: "Config ⚙️" },
+  { key: "inicio", label: "Inicio", icon: "home-outline" },
+  { key: "ia", label: "Coach", icon: "coffee-outline" },
+  { key: "graficos", label: "Gráficos", icon: "chart-line" },
+  { key: "config", label: "Perfil", icon: "account-circle-outline" },
 ];
 
 const normalizeBackendBaseUrl = (value) => {
@@ -227,6 +228,7 @@ const getPeriodLabel = (value, granularity) => {
 };
 
 export default function App() {
+  const insets = useSafeAreaInsets();
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState("");
   const [userPhoto, setUserPhoto] = useState("");
@@ -263,9 +265,8 @@ export default function App() {
   });
   const [selectedCurrency, setSelectedCurrency] = useState("COP");
   const [transactions, setTransactions] = useState([]);
-  const [chartGranularity, setChartGranularity] = useState("week");
+  const [chartGranularity, setChartGranularity] = useState("day");
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState("");
-  const [dailyTip] = useState(dailyTips[0]);
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState("");
   const [snapshotMessage, setSnapshotMessage] = useState("");
   const [debtCards, setDebtCards] = useState([]);
@@ -497,6 +498,51 @@ export default function App() {
     ? startOfWeek(new Date(lastWeeklyCheckInDate)).getTime() ===
       currentWeekStartDate.getTime()
     : false;
+  const isNativeMobile = Platform.OS === "ios" || Platform.OS === "android";
+
+  const dailyTip = useMemo(() => {
+    if (!dailyTips.length) {
+      return "Cada día cuenta: una pequeña acción hoy vale más que esperar al momento perfecto.";
+    }
+
+    const now = new Date();
+    const dayOfYear = Math.floor(
+      (startOfDay(now) - new Date(now.getFullYear(), 0, 0)) /
+        (1000 * 60 * 60 * 24),
+    );
+
+    return dailyTips[dayOfYear % dailyTips.length];
+  }, [toDateKey(new Date())]);
+
+  const handlePickProfilePhoto = async () => {
+    try {
+      const picker = await import("expo-image-picker");
+      const permission = await picker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        setAuthError("Necesitamos permiso para abrir la galería.");
+        return;
+      }
+
+      const result = await picker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (result.canceled || !result.assets?.length) {
+        return;
+      }
+
+      const selectedUri = result.assets[0].uri || "";
+      setAccountForm((prev) => ({ ...prev, photo: selectedUri }));
+      setUserPhoto(selectedUri);
+      setAuthError("");
+    } catch {
+      setAuthError(
+        "No pudimos abrir la galería. Instala expo-image-picker para habilitar esta función.",
+      );
+    }
+  };
 
   const handleSubmitAuth = async () => {
     if (!accountForm.email.trim() || !accountForm.password.trim()) {
@@ -510,7 +556,11 @@ export default function App() {
     }
 
     if (authMode === "register" && !accountForm.photo.trim()) {
-      setAuthError("Agrega la foto de perfil (URL) para crear la cuenta.");
+      setAuthError(
+        isNativeMobile
+          ? "Selecciona una foto desde la galería para crear la cuenta."
+          : "Agrega la foto de perfil (URL) para crear la cuenta.",
+      );
       return;
     }
 
@@ -948,9 +998,11 @@ export default function App() {
 
   if (!isOnboardingDone) {
     return (
-      <SafeAreaView
+      <View
         style={[
           styles.safeArea,
+          styles.rootContainer,
+          { paddingTop: insets.top },
           isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
         ]}
       >
@@ -1053,21 +1105,58 @@ export default function App() {
                           : styles.inputLabelLight,
                       ]}
                     >
-                      Foto de perfil (URL)
+                      Foto de perfil
                     </Text>
-                    <TextInput
-                      value={accountForm.photo}
-                      onChangeText={(value) =>
-                        setAccountForm((prev) => ({ ...prev, photo: value }))
-                      }
-                      style={[
-                        styles.input,
-                        isDarkMode ? styles.inputDark : styles.inputLight,
-                      ]}
-                      placeholder="https://..."
-                      placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
-                      autoCapitalize="none"
-                    />
+                    {isNativeMobile ? (
+                      <>
+                        <Pressable
+                          onPress={handlePickProfilePhoto}
+                          style={[
+                            styles.galleryButton,
+                            isDarkMode
+                              ? styles.galleryButtonDark
+                              : styles.galleryButtonLight,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.galleryButtonText,
+                              isDarkMode
+                                ? styles.galleryButtonTextDark
+                                : styles.galleryButtonTextLight,
+                            ]}
+                          >
+                            Abrir galería
+                          </Text>
+                        </Pressable>
+                        {!!accountForm.photo && (
+                          <Text
+                            style={[
+                              styles.helperText,
+                              isDarkMode
+                                ? styles.helperTextDark
+                                : styles.helperTextLight,
+                            ]}
+                          >
+                            Foto cargada ✅
+                          </Text>
+                        )}
+                      </>
+                    ) : (
+                      <TextInput
+                        value={accountForm.photo}
+                        onChangeText={(value) =>
+                          setAccountForm((prev) => ({ ...prev, photo: value }))
+                        }
+                        style={[
+                          styles.input,
+                          isDarkMode ? styles.inputDark : styles.inputLight,
+                        ]}
+                        placeholder="https://..."
+                        placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
+                        autoCapitalize="none"
+                      />
+                    )}
                   </>
                 )}
 
@@ -1239,15 +1328,17 @@ export default function App() {
           </View>
         </View>
         <StatusBar style={isDarkMode ? "light" : "dark"} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (isPlanSetupPending) {
     return (
-      <SafeAreaView
+      <View
         style={[
           styles.safeArea,
+          styles.rootContainer,
+          { paddingTop: insets.top },
           isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
         ]}
       >
@@ -1306,14 +1397,16 @@ export default function App() {
             <Text style={styles.primaryButtonText}>Guardar y entrar</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeArea,
+        styles.rootContainer,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
         isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
       ]}
     >
@@ -1645,10 +1738,11 @@ export default function App() {
                     >
                       Torta: participación de todas las tarjetas
                     </Text>
-                    {pieByAllCards.map((item) => (
-                      <View key={`all-pie-${item.id}`} style={styles.pieRow}>
-                        <View style={styles.pieTrack}>
+                    <View style={styles.pieRow}>
+                      <View style={styles.pieTrack}>
+                        {pieByAllCards.map((item) => (
                           <View
+                            key={`all-pie-segment-${item.id}`}
                             style={[
                               styles.pieFill,
                               {
@@ -1657,18 +1751,19 @@ export default function App() {
                               },
                             ]}
                           />
-                        </View>
-                        <Text
-                          style={[
-                            styles.pieLabel,
-                            isDarkMode
-                              ? styles.chartNameDark
-                              : styles.chartNameLight,
-                          ]}
-                        >
-                          {item.name}: {item.piePercent.toFixed(0)}%
-                        </Text>
+                        ))}
                       </View>
+                    </View>
+                    {pieByAllCards.map((item) => (
+                      <Text
+                        key={`all-pie-label-${item.id}`}
+                        style={[
+                          styles.pieLabel,
+                          isDarkMode ? styles.chartNameDark : styles.chartNameLight,
+                        ]}
+                      >
+                        {item.name}: {item.piePercent.toFixed(0)}%
+                      </Text>
                     ))}
                   </>
                 )}
@@ -1842,6 +1937,7 @@ export default function App() {
 
                 <View style={styles.granularityRow}>
                   {[
+                    { key: "day", label: "Diario" },
                     { key: "week", label: "Semanal" },
                     { key: "month", label: "Mensual" },
                   ].map((option) => {
@@ -2184,19 +2280,40 @@ export default function App() {
                     isDarkMode ? styles.inputLabelDark : styles.inputLabelLight,
                   ]}
                 >
-                  Foto de usuario (URL)
+                  Foto de usuario
                 </Text>
-                <TextInput
-                  value={userPhoto}
-                  onChangeText={setUserPhoto}
-                  style={[
-                    styles.input,
-                    isDarkMode ? styles.inputDark : styles.inputLight,
-                  ]}
-                  placeholder="https://..."
-                  placeholderTextColor={isDarkMode ? "#737373" : "#6B7280"}
-                  autoCapitalize="none"
-                />
+                {isNativeMobile ? (
+                  <Pressable
+                    onPress={handlePickProfilePhoto}
+                    style={[
+                      styles.galleryButton,
+                      isDarkMode ? styles.galleryButtonDark : styles.galleryButtonLight,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.galleryButtonText,
+                        isDarkMode
+                          ? styles.galleryButtonTextDark
+                          : styles.galleryButtonTextLight,
+                      ]}
+                    >
+                      Cambiar desde galería
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <TextInput
+                    value={userPhoto}
+                    onChangeText={setUserPhoto}
+                    style={[
+                      styles.input,
+                      isDarkMode ? styles.inputDark : styles.inputLight,
+                    ]}
+                    placeholder="https://..."
+                    placeholderTextColor={isDarkMode ? "#737373" : "#6B7280"}
+                    autoCapitalize="none"
+                  />
+                )}
 
                 <Pressable
                   onPress={handleContactPress}
@@ -2265,6 +2382,7 @@ export default function App() {
       <View
         style={[
           styles.bottomNav,
+          { bottom: Math.max(insets.bottom, 12) },
           isDarkMode ? styles.bottomNavDark : styles.bottomNavLight,
         ]}
       >
@@ -2274,11 +2392,18 @@ export default function App() {
             <Pressable
               key={tab.key}
               onPress={() => setActiveTab(tab.key)}
-              style={[styles.navButton, isActive && styles.navButtonActive]}
+              style={[
+                styles.navButton,
+                tab.key === "ia" && styles.navButtonCenter,
+                isActive && styles.navButtonActive,
+              ]}
             >
-              <Text
-                style={[styles.navLabel, isActive && styles.navLabelActive]}
-              >
+              <MaterialCommunityIcons
+                name={tab.icon}
+                size={tab.key === "ia" ? 24 : 21}
+                color={isActive ? "#5B3DF5" : "#9CA3AF"}
+              />
+              <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>
                 {tab.label}
               </Text>
             </Pressable>
@@ -2311,12 +2436,13 @@ export default function App() {
         isDarkMode={isDarkMode}
       />
       <StatusBar style={isDarkMode ? "light" : "dark"} />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  rootContainer: { paddingHorizontal: 0 },
   safeAreaDark: { backgroundColor: "#000000" },
   safeAreaLight: { backgroundColor: "#FFFFFF" },
   scrollContent: { padding: 20, paddingBottom: 120 },
@@ -2609,29 +2735,42 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
-    bottom: 16,
-    borderRadius: 20,
-    padding: 10,
+    borderRadius: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     borderWidth: 1,
     shadowColor: "#000000",
-    shadowOpacity: 0.45,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
-  bottomNavDark: { backgroundColor: "#FFFFFF", borderColor: "#FFFFFF" },
-  bottomNavLight: { backgroundColor: "#FFFFFF", borderColor: "#000000" },
+  bottomNavDark: { backgroundColor: "#111111", borderColor: "#1F2937" },
+  bottomNavLight: { backgroundColor: "#111111", borderColor: "#1F2937" },
   navButton: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 10,
-    borderRadius: 8,
+    justifyContent: "center",
+    gap: 4,
+    paddingVertical: 8,
+    borderRadius: 16,
   },
-  navButtonActive: { backgroundColor: "#111827" },
-  navLabel: { color: "#000000", fontSize: 12, fontWeight: "700" },
-  navLabelActive: { color: "#FFFFFF" },
+  navButtonCenter: {
+    marginTop: -28,
+    borderRadius: 999,
+    width: 68,
+    maxWidth: 68,
+    height: 68,
+    alignSelf: "center",
+    backgroundColor: "#1F2937",
+    borderWidth: 4,
+    borderColor: "#111111",
+  },
+  navButtonActive: { backgroundColor: "#1F2937" },
+  navLabel: { color: "#9CA3AF", fontSize: 11, fontWeight: "700" },
+  navLabelActive: { color: "#5B3DF5" },
 
   onboardingCard: {
     margin: 20,
@@ -2698,6 +2837,19 @@ const styles = StyleSheet.create({
     color: "#000000",
     backgroundColor: "#FFFFFF",
   },
+
+  galleryButton: {
+    marginTop: 2,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  galleryButtonDark: { backgroundColor: "#111111", borderColor: "#FFFFFF" },
+  galleryButtonLight: { backgroundColor: "#FFFFFF", borderColor: "#000000" },
+  galleryButtonText: { fontWeight: "700" },
+  galleryButtonTextDark: { color: "#FFFFFF" },
+  galleryButtonTextLight: { color: "#000000" },
   helperText: { marginTop: 8, fontSize: 11, fontWeight: "600" },
   helperTextDark: { color: "#FFFFFF" },
   helperTextLight: { color: "#404040" },
