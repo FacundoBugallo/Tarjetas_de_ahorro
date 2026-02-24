@@ -9,7 +9,7 @@ Backend componentizado por capas:
 ## Ejecutar local
 ```bash
 cd backend
-python -m venv .venv
+py -3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export OPENAI_API_KEY="pega_aqui_tu_api_key"
