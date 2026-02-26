@@ -28,8 +28,8 @@ import savingsCards from "./data/savingsCards";
 import { clampPercentage, formatCurrency } from "./utils/formatters";
 
 const tabs = [
-  { key: "inicio", label: "Inicio", icon: "home-outline" },
-  { key: "ia", label: "Coach", icon: "coffee-outline" },
+  { key: "ahorro", label: "Ahorro", icon: "piggy-bank-outline" },
+  { key: "deudas", label: "Deudas", icon: "credit-card-outline" },
   { key: "graficos", label: "Gráficos", icon: "chart-line" },
   { key: "config", label: "Perfil", icon: "account-circle-outline" },
 ];
@@ -239,8 +239,7 @@ export default function App() {
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("inicio");
-  const [activePlan, setActivePlan] = useState("ahorro");
+  const [activeTab, setActiveTab] = useState("ahorro");
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState("login");
@@ -1401,6 +1400,10 @@ export default function App() {
     );
   }
 
+  const isSavingsTab = activeTab === "ahorro";
+  const isDebtTab = activeTab === "deudas";
+  const currentPlan = isDebtTab ? "deudas" : "ahorro";
+
   return (
     <View
       style={[
@@ -1422,17 +1425,14 @@ export default function App() {
             levelLabel={levelLabel}
             pointsLabel={pointsLabel}
             profilePhoto={userPhoto}
-            onTogglePlan={() =>
-              setActivePlan((prev) => (prev === "ahorro" ? "deudas" : "ahorro"))
-            }
-            activePlan={activePlan}
+            activePlan={currentPlan}
             onOpenProfile={() => setActiveTab("config")}
-            showActionButtons={activeTab === "inicio"}
+            showActionButtons={isSavingsTab || isDebtTab}
           />
         }
         renderItem={() => (
           <>
-            {activeTab === "inicio" && (
+            {(isSavingsTab || isDebtTab) && (
               <>
                 <SummaryCard
                   plannedInvestment={plannedInvestment}
@@ -1505,17 +1505,17 @@ export default function App() {
                 )}
                 <SectionHeader
                   title={
-                    activePlan === "deudas"
+                    currentPlan === "deudas"
                       ? "Plan de deudas 💳"
                       : "Plan de Ahorro 💳"
                   }
                   createLabel={
-                    activePlan === "deudas"
+                    currentPlan === "deudas"
                       ? "Crear deuda ➕"
                       : "Crear tarjeta ➕"
                   }
                   onCreate={() =>
-                    activePlan === "deudas"
+                    currentPlan === "deudas"
                       ? setIsCreateDebtVisible(true)
                       : setIsCreateCardVisible(true)
                   }
@@ -1523,7 +1523,7 @@ export default function App() {
                 />
 
                 <View style={styles.cardList}>
-                  {activePlan === "deudas" ? (
+                  {currentPlan === "deudas" ? (
                     debtCards.length === 0 ? (
                       <Text
                         style={[
@@ -1575,7 +1575,7 @@ export default function App() {
                   )}
                 </View>
 
-                {activePlan === "ahorro" && (
+                {currentPlan === "ahorro" && (
                   <HistoryCard
                     items={historyItems}
                     isDarkMode={isDarkMode}
@@ -2120,80 +2120,6 @@ export default function App() {
               </View>
             )}
 
-            {activeTab === "ia" && (
-              <View
-                style={[
-                  styles.panel,
-                  isDarkMode ? styles.panelDark : styles.panelLight,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.panelTitle,
-                    isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
-                  ]}
-                >
-                  Agente IA GPT 🤝
-                </Text>
-                <Text
-                  style={[
-                    styles.panelSubTitle,
-                    isDarkMode
-                      ? styles.panelSubTitleDark
-                      : styles.panelSubTitleLight,
-                  ]}
-                >
-                  Asistente tranquilo y comprensivo para resolver dudas. También
-                  te puede invitar al coaching financiero premium con
-                  acompañamiento más profundo.
-                </Text>
-                <View style={styles.aiMessagesBox}>
-                  {aiMessages.map((message) => (
-                    <View
-                      key={message.id}
-                      style={[
-                        styles.aiMessageBubble,
-                        message.role === "user"
-                          ? styles.aiMessageUser
-                          : styles.aiMessageAssistant,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.aiMessageText,
-                          message.role === "user" && styles.aiMessageTextUser,
-                        ]}
-                      >
-                        {message.text}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-                <TextInput
-                  value={aiInput}
-                  onChangeText={setAiInput}
-                  editable={!isAiLoading}
-                  style={[
-                    styles.input,
-                    isDarkMode ? styles.inputDark : styles.inputLight,
-                  ]}
-                  placeholder="Escribe tu duda financiera"
-                  placeholderTextColor={isDarkMode ? "#737373" : "#6B7280"}
-                />
-                <Pressable
-                  onPress={handleSendAiMessage}
-                  style={[
-                    styles.primaryButton,
-                    isAiLoading && styles.primaryButtonDisabled,
-                  ]}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    {isAiLoading ? "Consultando..." : "Consultar a GPT"}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-
             {activeTab === "config" && (
               <View
                 style={[
@@ -2386,7 +2312,63 @@ export default function App() {
           isDarkMode ? styles.bottomNavDark : styles.bottomNavLight,
         ]}
       >
+        <Pressable
+          onPress={() => setActiveTab("ahorro")}
+          style={[styles.navButton, activeTab === "ahorro" && styles.navButtonActive]}
+        >
+          <MaterialCommunityIcons
+            name="piggy-bank-outline"
+            size={21}
+            color={activeTab === "ahorro" ? "#5B3DF5" : "#9CA3AF"}
+          />
+          <Text
+            style={[
+              styles.navLabel,
+              activeTab === "ahorro" && styles.navLabelActive,
+            ]}
+          >
+            Ahorro
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setActiveTab("deudas")}
+          style={[styles.navButton, activeTab === "deudas" && styles.navButtonActive]}
+        >
+          <MaterialCommunityIcons
+            name="credit-card-outline"
+            size={21}
+            color={activeTab === "deudas" ? "#5B3DF5" : "#9CA3AF"}
+          />
+          <Text
+            style={[
+              styles.navLabel,
+              activeTab === "deudas" && styles.navLabelActive,
+            ]}
+          >
+            Deudas
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            if (activeTab === "deudas") {
+              setIsCreateDebtVisible(true);
+              return;
+            }
+
+            setIsCreateCardVisible(true);
+          }}
+          style={styles.navButtonCenter}
+        >
+          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
+        </Pressable>
+
         {tabs.map((tab) => {
+          if (tab.key === "ahorro" || tab.key === "deudas") {
+            return null;
+          }
+
           const isActive = activeTab === tab.key;
           return (
             <Pressable
@@ -2394,13 +2376,12 @@ export default function App() {
               onPress={() => setActiveTab(tab.key)}
               style={[
                 styles.navButton,
-                tab.key === "ia" && styles.navButtonCenter,
                 isActive && styles.navButtonActive,
               ]}
             >
               <MaterialCommunityIcons
                 name={tab.icon}
-                size={tab.key === "ia" ? 24 : 21}
+                size={21}
                 color={isActive ? "#5B3DF5" : "#9CA3AF"}
               />
               <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>

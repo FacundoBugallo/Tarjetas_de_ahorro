@@ -112,24 +112,26 @@ export default function Header({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={onTogglePlan}
-            style={[
-              styles.themeButton,
-              isDarkMode ? styles.themeButtonDark : styles.themeButtonLight,
-            ]}
-          >
-            <Text
+          {onTogglePlan && (
+            <TouchableOpacity
+              onPress={onTogglePlan}
               style={[
-                styles.themeButtonText,
-                isDarkMode
-                  ? styles.themeButtonTextDark
-                  : styles.themeButtonTextLight,
+                styles.themeButton,
+                isDarkMode ? styles.themeButtonDark : styles.themeButtonLight,
               ]}
             >
-              {debtButtonLabel}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.themeButtonText,
+                  isDarkMode
+                    ? styles.themeButtonTextDark
+                    : styles.themeButtonTextLight,
+                ]}
+              >
+                {debtButtonLabel}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
