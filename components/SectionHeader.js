@@ -1,12 +1,20 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function SectionHeader({ title, createLabel, onCreate, isDarkMode }) {
+export default function SectionHeader({
+  title,
+  createLabel,
+  onCreate,
+  isDarkMode,
+  showCreateButton = true,
+}) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={[styles.sectionTitle, isDarkMode ? styles.sectionTitleDark : styles.sectionTitleLight]}>{title}</Text>
-      <TouchableOpacity onPress={onCreate} style={[styles.createButton, isDarkMode ? styles.createButtonDark : styles.createButtonLight]}>
-        <Text style={[styles.createButtonText, isDarkMode && styles.createButtonTextDark]}>{createLabel}</Text>
-      </TouchableOpacity>
+      {showCreateButton && (
+        <TouchableOpacity onPress={onCreate} style={[styles.createButton, isDarkMode ? styles.createButtonDark : styles.createButtonLight]}>
+          <Text style={[styles.createButtonText, isDarkMode && styles.createButtonTextDark]}>{createLabel}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
