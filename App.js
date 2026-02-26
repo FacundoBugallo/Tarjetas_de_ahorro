@@ -228,6 +228,91 @@ const getPeriodLabel = (value, granularity) => {
   return value.toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
 };
 
+const PieChartProgress = ({
+  percentage,
+  size = 132,
+  color = "#22C55E",
+  trackColor = "#E5E7EB",
+  centerColor = "#FFFFFF",
+}) => {
+  const safePercent = clampPercentage(percentage);
+  const firstHalfRotation = `${Math.min(safePercent, 50) * 3.6}deg`;
+  const secondHalfRotation = `${Math.max(safePercent - 50, 0) * 3.6}deg`;
+  const holeSize = size * 0.62;
+
+  return (
+    <View style={[styles.pieCircle, { width: size, height: size, borderRadius: size / 2 }]}>
+      <View
+        style={[
+          styles.pieCircleBase,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: trackColor,
+          },
+        ]}
+      />
+
+      <View
+        style={[
+          styles.pieHalfWrap,
+          { width: size / 2, height: size, right: 0 },
+        ]}
+      >
+        <View
+          style={[
+            styles.pieHalf,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              backgroundColor: color,
+              left: -(size / 2),
+              transform: [{ rotate: firstHalfRotation }],
+            },
+          ]}
+        />
+      </View>
+
+      {safePercent > 50 && (
+        <View
+          style={[
+            styles.pieHalfWrap,
+            { width: size / 2, height: size, left: 0 },
+          ]}
+        >
+          <View
+            style={[
+              styles.pieHalf,
+              {
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: color,
+                left: -(size / 2),
+                transform: [{ rotate: secondHalfRotation }],
+              },
+            ]}
+          />
+        </View>
+      )}
+
+      <View
+        style={[
+          styles.pieHole,
+          {
+            width: holeSize,
+            height: holeSize,
+            borderRadius: holeSize / 2,
+            backgroundColor: centerColor,
+          },
+        ]}
+      />
+    </View>
+  );
+};
+
 export default function App() {
   const insets = useSafeAreaInsets();
   const [cards, setCards] = useState(savingsCards);
@@ -370,6 +455,33 @@ export default function App() {
       ),
     [debtCards],
   );
+
+  const savingsPieData = useMemo(() => {
+    const goal = Math.max(plannedInvestment, 0);
+    const saved = Math.max(totalInvestedThisMonth, 0);
+    const remaining = Math.max(goal - saved, 0);
+    const total = goal > 0 ? goal : saved;
+
+    return {
+      saved,
+      remaining,
+      total,
+      percent: total > 0 ? clampPercentage((saved / total) * 100) : 0,
+    };
+  }, [plannedInvestment, totalInvestedThisMonth]);
+
+  const debtPieData = useMemo(() => {
+    const paid = Math.max(monthlyDistribution.debt, 0);
+    const pending = Math.max(totalDebtPending, 0);
+    const total = paid + pending;
+
+    return {
+      paid,
+      pending,
+      total,
+      percent: total > 0 ? clampPercentage((paid / total) * 100) : 0,
+    };
+  }, [monthlyDistribution.debt, totalDebtPending]);
 
   const savedTotalAcrossCards = useMemo(
     () => cards.reduce((acc, card) => acc + card.savedAmount, 0),
@@ -1821,69 +1933,48 @@ export default function App() {
                     isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
                   ]}
                 >
-                  Torta mensual: ahorro vs deudas
+                  Gráficos de torta por separado
                 </Text>
-                <Text
-                  style={[
-                    styles.panelSubTitle,
-                    isDarkMode
-                      ? styles.panelSubTitleDark
-                      : styles.panelSubTitleLight,
-                  ]}
-                >
-                  Participación del mes actual separada por ahorro y pago de deudas.
-                </Text>
+
                 <View style={[styles.monthlyPieCard, styles.candleChartFrameDark]}>
-                  <View style={styles.pieTrack}>
-                    <View
-                      style={[
-                        styles.pieFill,
-                        {
-                          width: `${monthlyDistribution.savingsPercent}%`,
-                          backgroundColor: "#22C55E",
-                        },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.pieFillSecondary,
-                        { width: `${monthlyDistribution.debtPercent}%` },
-                      ]}
-                    />
-                  </View>
+                  <Text style={[styles.pieTitle, styles.candleScaleLabelLight]}>
+                    Ahorro mensual
+                  </Text>
+                  <PieChartProgress
+                    percentage={savingsPieData.percent}
+                    color="#22C55E"
+                    trackColor="#D1FAE5"
+                    centerColor="#101010"
+                  />
                   <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                    Ahorro: {monthlyDistribution.savingsPercent.toFixed(0)}% ({formatCurrency(monthlyDistribution.savings, selectedCurrency)})
+                    Ahorrado: {savingsPieData.percent.toFixed(0)}% ({formatCurrency(savingsPieData.saved, selectedCurrency)})
                   </Text>
                   <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                    Deudas: {monthlyDistribution.debtPercent.toFixed(0)}% ({formatCurrency(monthlyDistribution.debt, selectedCurrency)})
+                    Pendiente: {formatCurrency(savingsPieData.remaining, selectedCurrency)}
                   </Text>
-                  {!monthlyDistribution.total && (
+                </View>
+
+                <View style={[styles.monthlyPieCard, styles.candleChartFrameDark]}>
+                  <Text style={[styles.pieTitle, styles.candleScaleLabelLight]}>
+                    Deudas del mes
+                  </Text>
+                  <PieChartProgress
+                    percentage={debtPieData.percent}
+                    color="#3B82F6"
+                    trackColor="#DBEAFE"
+                    centerColor="#101010"
+                  />
+                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
+                    Pagado: {debtPieData.percent.toFixed(0)}% ({formatCurrency(debtPieData.paid, selectedCurrency)})
+                  </Text>
+                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
+                    Pendiente total: {formatCurrency(debtPieData.pending, selectedCurrency)}
+                  </Text>
+                  {!debtPieData.total && (
                     <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                      Aún no hay movimientos este mes.
+                      No hay pagos de deuda registrados este mes.
                     </Text>
                   )}
-                </View>
-                <View style={styles.legendRow}>
-                  <Text
-                    style={[
-                      styles.legendText,
-                      isDarkMode
-                        ? styles.panelSubTitleDark
-                        : styles.panelSubTitleLight,
-                    ]}
-                  >
-                    Ahorro (verde)
-                  </Text>
-                  <Text
-                    style={[
-                      styles.legendText,
-                      isDarkMode
-                        ? styles.panelSubTitleDark
-                        : styles.panelSubTitleLight,
-                    ]}
-                  >
-                    Pago de deudas (azul)
-                  </Text>
                 </View>
 
                 <Pressable
@@ -2425,6 +2516,32 @@ const styles = StyleSheet.create({
   pieFill: { height: "100%" },
   pieFillSecondary: { height: "100%", backgroundColor: "#D4D4D4" },
   pieLabel: { marginTop: 6, fontSize: 12, fontWeight: "700" },
+  pieTitle: { marginBottom: 10, fontSize: 14, fontWeight: "800", textAlign: "center" },
+  pieCircle: {
+    alignSelf: "center",
+    marginVertical: 8,
+    position: "relative",
+    overflow: "hidden",
+  },
+  pieCircleBase: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+  pieHalfWrap: {
+    position: "absolute",
+    top: 0,
+    overflow: "hidden",
+  },
+  pieHalf: {
+    position: "absolute",
+    top: 0,
+  },
+  pieHole: {
+    position: "absolute",
+    top: "19%",
+    left: "19%",
+  },
   zoomButtonsRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
   zoomButton: {
     borderRadius: 999,
