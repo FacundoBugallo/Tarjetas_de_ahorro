@@ -264,7 +264,7 @@ export default function App() {
   });
   const [selectedCurrency, setSelectedCurrency] = useState("COP");
   const [transactions, setTransactions] = useState([]);
-  const [chartGranularity, setChartGranularity] = useState("day");
+  const chartGranularity = "month";
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState("");
   const [onboardingCompletedAt, setOnboardingCompletedAt] = useState("");
   const [snapshotMessage, setSnapshotMessage] = useState("");
@@ -333,6 +333,31 @@ export default function App() {
     return {
       invested: Math.max(monthlyNet, 0),
       withdrawn: Math.max(-monthlyNet, 0),
+    };
+  }, [monthlyTransactions]);
+
+  const monthlyDistribution = useMemo(() => {
+    const totals = monthlyTransactions.reduce(
+      (acc, tx) => {
+        const txType = tx.type || (tx.delta < 0 ? "debt" : "savings");
+
+        if (txType === "debt") {
+          acc.debt += Math.abs(tx.delta);
+          return acc;
+        }
+
+        acc.savings += Math.max(tx.delta, 0);
+        return acc;
+      },
+      { savings: 0, debt: 0 },
+    );
+
+    const total = totals.savings + totals.debt;
+    return {
+      ...totals,
+      total,
+      savingsPercent: total ? clampPercentage((totals.savings / total) * 100) : 0,
+      debtPercent: total ? clampPercentage((totals.debt / total) * 100) : 0,
     };
   }, [monthlyTransactions]);
 
@@ -430,41 +455,6 @@ export default function App() {
       .sort((a, b) => a.periodStart - b.periodStart)
       .slice(-24);
   }, [transactions, onboardingCompletedAt, chartGranularity]);
-
-  const flowScale = useMemo(() => {
-    if (!flowBars.length) {
-      return 1;
-    }
-
-    const maxSavings = Math.max(
-      ...flowBars.map((period) => Math.max(period.savings, 0)),
-    );
-    const maxDebt = Math.max(
-      ...flowBars.map((period) => Math.max(period.debt, 0)),
-    );
-    const range = Math.max(maxSavings, maxDebt);
-
-    return range || 1;
-  }, [flowBars]);
-
-  const flowBounds = useMemo(() => {
-    if (!flowBars.length) {
-      return { max: 0, min: 0 };
-    }
-
-    const maxSavings = Math.max(
-      ...flowBars.map((period) => Math.max(period.savings, 0)),
-    );
-    const maxDebt = Math.max(
-      ...flowBars.map((period) => Math.max(period.debt, 0)),
-    );
-    const max = Math.max(maxSavings, maxDebt);
-
-    return {
-      max,
-      min: 0,
-    };
-  }, [flowBars]);
 
   const startedLabel = useMemo(() => {
     if (!onboardingCompletedAt) {
@@ -1520,6 +1510,7 @@ export default function App() {
                       : setIsCreateCardVisible(true)
                   }
                   isDarkMode={isDarkMode}
+                  showCreateButton={false}
                 />
 
                 <View style={styles.cardList}>
@@ -1829,7 +1820,7 @@ export default function App() {
                     isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
                   ]}
                 >
-                  Historial de ahorros y deudas
+                  Torta mensual: ahorro vs deudas
                 </Text>
                 <Text
                   style={[
@@ -1839,129 +1830,37 @@ export default function App() {
                       : styles.panelSubTitleLight,
                   ]}
                 >
-                  (Historial de ahorros y deudas).
+                  Participación del mes actual separada por ahorro y pago de deudas.
                 </Text>
-                <View
-                  style={[styles.candleChartFrame, styles.candleChartFrameDark]}
-                >
-                  <View style={styles.candleScaleHeader}>
-                    <Text
+                <View style={[styles.monthlyPieCard, styles.candleChartFrameDark]}>
+                  <View style={styles.pieTrack}>
+                    <View
                       style={[
-                        styles.candleScaleLabel,
-                        styles.candleScaleLabelLight,
+                        styles.pieFill,
+                        {
+                          width: `${monthlyDistribution.savingsPercent}%`,
+                          backgroundColor: "#22C55E",
+                        },
                       ]}
-                    >
-                      Máx: {formatCurrency(flowBounds.max, selectedCurrency)}
-                    </Text>
-                    <Text
+                    />
+                    <View
                       style={[
-                        styles.candleScaleLabel,
-                        styles.candleScaleLabelLight,
+                        styles.pieFillSecondary,
+                        { width: `${monthlyDistribution.debtPercent}%` },
                       ]}
-                    >
-                      Mín: {formatCurrency(flowBounds.min, selectedCurrency)}
+                    />
+                  </View>
+                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
+                    Ahorro: {monthlyDistribution.savingsPercent.toFixed(0)}% ({formatCurrency(monthlyDistribution.savings, selectedCurrency)})
+                  </Text>
+                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
+                    Deudas: {monthlyDistribution.debtPercent.toFixed(0)}% ({formatCurrency(monthlyDistribution.debt, selectedCurrency)})
+                  </Text>
+                  {!monthlyDistribution.total && (
+                    <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
+                      Aún no hay movimientos este mes.
                     </Text>
-                  </View>
-                  <View style={styles.candleGrid}>
-                    {[0, 1, 2, 3].map((line) => (
-                      <View
-                        key={`grid-${line}`}
-                        style={[
-                          styles.candleGridLine,
-                          { top: `${(line / 3) * 100}%` },
-                          styles.candleGridLineDark,
-                        ]}
-                      />
-                    ))}
-                  </View>
-                  <View style={styles.rightAxisLine} />
-                  <View style={styles.rightAxisLabels}>
-                    {[100, 75, 50, 25, 1].map((axisValue) => (
-                      <Text
-                        key={`axis-${axisValue}`}
-                        style={styles.rightAxisLabelText}
-                      >
-                        {axisValue}
-                      </Text>
-                    ))}
-                  </View>
-                  <View style={styles.candleRow}>
-                    {flowBars.slice(-8).map((period) => {
-                      const savingsHeight = Math.max(
-                        4,
-                        (Math.max(period.savings, 0) / flowScale) * 120,
-                      );
-                      const debtHeight = Math.max(
-                        4,
-                        (Math.max(period.debt, 0) / flowScale) * 120,
-                      );
-                      const dayLabel = period.periodStart.toLocaleDateString(
-                        "es-CO",
-                        { day: "2-digit" },
-                      );
-
-                      return (
-                        <View key={period.id} style={styles.candleItem}>
-                          <View style={styles.groupedBarsWrap}>
-                            <View
-                              style={[
-                                styles.groupedBar,
-                                styles.groupedBarSavings,
-                                { height: savingsHeight },
-                              ]}
-                            />
-                            <View
-                              style={[
-                                styles.groupedBar,
-                                styles.groupedBarDebt,
-                                { height: debtHeight },
-                              ]}
-                            />
-                          </View>
-                          <Text
-                            style={[
-                              styles.candleLabel,
-                              styles.candleScaleLabelLight,
-                            ]}
-                          >
-                            {dayLabel}
-                          </Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                  <View
-                    style={[styles.timeAxisLine, styles.timeAxisLineDark]}
-                  />
-                </View>
-
-                <View style={styles.granularityRow}>
-                  {[
-                    { key: "day", label: "Diario" },
-                    { key: "week", label: "Semanal" },
-                    { key: "month", label: "Mensual" },
-                  ].map((option) => {
-                    const isActive = chartGranularity === option.key;
-                    return (
-                      <Pressable
-                        key={option.key}
-                        onPress={() => setChartGranularity(option.key)}
-                        style={[
-                          styles.currencyButton,
-                          isActive && styles.currencyButtonActive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.currencyButtonText,
-                            isActive && styles.currencyButtonTextActive,
-                          ]}
-                        >
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+                  )}
                 </View>
                 <View style={styles.legendRow}>
                   <Text
@@ -2744,10 +2643,20 @@ const styles = StyleSheet.create({
     width: 68,
     maxWidth: 68,
     height: 68,
+    alignItems: "center",
+    justifyContent: "center",
     alignSelf: "center",
     backgroundColor: "#1F2937",
     borderWidth: 4,
     borderColor: "#111111",
+  },
+  monthlyPieCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+    padding: 14,
+    marginBottom: 12,
+    gap: 8,
   },
   navButtonActive: { backgroundColor: "#1F2937" },
   navLabel: { color: "#9CA3AF", fontSize: 11, fontWeight: "700" },
