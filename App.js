@@ -313,6 +313,69 @@ const PieChartProgress = ({
   );
 };
 
+const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
+  const normalizedSegments = Array.isArray(segments)
+    ? segments.filter((segment) => Number(segment?.piePercent) > 0)
+    : [];
+
+  if (!normalizedSegments.length) {
+    return null;
+  }
+
+  const totalSlices = 180;
+  const radius = (size - strokeWidth) / 2;
+  const slices = normalizedSegments.flatMap((segment) => {
+    const count = Math.max(1, Math.round((segment.piePercent / 100) * totalSlices));
+    return Array.from({ length: count }, () => ({
+      id: segment.id,
+      color: segment.color,
+    }));
+  });
+
+  const correctedSlices = slices.slice(0, totalSlices);
+  while (correctedSlices.length < totalSlices) {
+    correctedSlices.push({
+      id: normalizedSegments[normalizedSegments.length - 1].id,
+      color: normalizedSegments[normalizedSegments.length - 1].color,
+    });
+  }
+
+  return (
+    <View style={[styles.multiPieContainer, { width: size, height: size }]}>
+      {correctedSlices.map((slice, index) => {
+        const angle = (index / totalSlices) * 360;
+        return (
+          <View
+            key={`multi-pie-${slice.id}-${index}`}
+            style={[
+              styles.multiPieSlice,
+              {
+                width: 2,
+                height: strokeWidth + 2,
+                backgroundColor: slice.color,
+                borderRadius: 999,
+                top: size / 2 - (strokeWidth + 2) / 2,
+                left: size / 2 - 1,
+                transform: [{ rotate: `${angle}deg` }, { translateY: -radius }],
+              },
+            ]}
+          />
+        );
+      })}
+      <View
+        style={[
+          styles.multiPieHole,
+          {
+            width: size - strokeWidth * 1.18,
+            height: size - strokeWidth * 1.18,
+            borderRadius: 999,
+          },
+        ]}
+      />
+    </View>
+  );
+};
+
 export default function App() {
   const insets = useSafeAreaInsets();
   const [cards, setCards] = useState(savingsCards);
@@ -501,7 +564,7 @@ export default function App() {
       return [];
     }
 
-    return cards.map((card) => {
+    const segments = cards.map((card) => {
       const value =
         savedTotalAcrossCards > 0 ? card.savedAmount : card.targetAmount;
       return {
@@ -509,6 +572,27 @@ export default function App() {
         piePercent: clampPercentage((value / denominator) * 100),
       };
     });
+
+    const floors = segments.map((segment) => Math.floor(segment.piePercent));
+    let remainder = 100 - floors.reduce((acc, value) => acc + value, 0);
+    const rankedByDecimal = segments
+      .map((segment, index) => ({
+        index,
+        decimal: segment.piePercent - Math.floor(segment.piePercent),
+      }))
+      .sort((a, b) => b.decimal - a.decimal);
+
+    rankedByDecimal.forEach(({ index }) => {
+      if (remainder > 0) {
+        floors[index] += 1;
+        remainder -= 1;
+      }
+    });
+
+    return segments.map((segment, index) => ({
+      ...segment,
+      piePercentRounded: floors[index],
+    }));
   }, [cards, savedTotalAcrossCards]);
 
   const flowBars = useMemo(() => {
@@ -1842,33 +1926,28 @@ export default function App() {
                     >
                       Torta: participación de todas las tarjetas
                     </Text>
-                    <View style={styles.pieRow}>
-                      <View style={styles.pieTrack}>
-                        {pieByAllCards.map((item) => (
+                    <MultiSegmentPieChart segments={pieByAllCards} size={176} strokeWidth={40} />
+                    <View style={styles.multiPieLegend}>
+                      {pieByAllCards.map((item) => (
+                        <View key={`all-pie-label-${item.id}`} style={styles.multiPieLegendRow}>
                           <View
-                            key={`all-pie-segment-${item.id}`}
                             style={[
-                              styles.pieFill,
-                              {
-                                width: `${item.piePercent}%`,
-                                backgroundColor: item.color,
-                              },
+                              styles.multiPieLegendDot,
+                              { backgroundColor: item.color },
                             ]}
                           />
-                        ))}
-                      </View>
+                          <Text
+                            style={[
+                              styles.pieLabel,
+                              styles.multiPieLegendText,
+                              isDarkMode ? styles.chartNameDark : styles.chartNameLight,
+                            ]}
+                          >
+                            {item.name}: {item.piePercentRounded}% ({formatCurrency(item.savedAmount, selectedCurrency)})
+                          </Text>
+                        </View>
+                      ))}
                     </View>
-                    {pieByAllCards.map((item) => (
-                      <Text
-                        key={`all-pie-label-${item.id}`}
-                        style={[
-                          styles.pieLabel,
-                          isDarkMode ? styles.chartNameDark : styles.chartNameLight,
-                        ]}
-                      >
-                        {item.name}: {item.piePercent.toFixed(0)}%
-                      </Text>
-                    ))}
                   </>
                 )}
 
@@ -2541,6 +2620,38 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "19%",
     left: "19%",
+  },
+  multiPieContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+    alignSelf: "center",
+    position: "relative",
+  },
+  multiPieSlice: {
+    position: "absolute",
+  },
+  multiPieHole: {
+    backgroundColor: "#101010",
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+  multiPieLegend: {
+    marginTop: 10,
+    gap: 2,
+  },
+  multiPieLegendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  multiPieLegendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+  },
+  multiPieLegendText: {
+    marginTop: 0,
   },
   zoomButtonsRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
   zoomButton: {
