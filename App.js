@@ -25,6 +25,7 @@ import SummaryCard from "./components/SummaryCard";
 import UserSummaryModal from "./components/UserSummaryModal";
 import dailyTips from "./data/dailyTips";
 import savingsCards from "./data/savingsCards";
+import palette from "./theme/colors";
 import { clampPercentage, formatCurrency } from "./utils/formatters";
 
 const tabs = [
@@ -2424,8 +2425,8 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   rootContainer: { paddingHorizontal: 0 },
-  safeAreaDark: { backgroundColor: "#000000" },
-  safeAreaLight: { backgroundColor: "#FFFFFF" },
+  safeAreaDark: { backgroundColor: palette.black },
+  safeAreaLight: { backgroundColor: palette.silverMist },
   scrollContent: { padding: 20, paddingBottom: 120 },
   cardList: { gap: 16, marginBottom: 24 },
   emptyText: {
@@ -2473,20 +2474,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    shadowColor: "#000000",
+    shadowColor: palette.black,
     shadowOpacity: 0.45,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  panelDark: { backgroundColor: "#000000", borderColor: "#FFFFFF" },
-  panelLight: { backgroundColor: "#FFFFFF", borderColor: "#000000" },
+  panelDark: { backgroundColor: palette.midnightSlate, borderColor: palette.silverMist },
+  panelLight: { backgroundColor: palette.white, borderColor: palette.midnightSlate },
   panelTitle: { fontSize: 20, fontWeight: "800" },
-  panelTitleDark: { color: "#F8F6F0" },
-  panelTitleLight: { color: "#111111" },
+  panelTitleDark: { color: palette.white },
+  panelTitleLight: { color: palette.black },
   panelSubTitle: { marginTop: 8, marginBottom: 16, fontSize: 13 },
-  panelSubTitleDark: { color: "#FFFFFF" },
-  panelSubTitleLight: { color: "#000000" },
+  panelSubTitleDark: { color: palette.silverMist },
+  panelSubTitleLight: { color: palette.midnightSlate },
   innerTitle: { marginTop: 20, marginBottom: 8, fontSize: 16 },
   chartRow: { marginBottom: 14 },
   chartHeader: {
@@ -2534,9 +2535,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: "#FFFFFF",
   },
-  zoomButtonActive: { backgroundColor: "#111111", borderColor: "#111111" },
+  zoomButtonActive: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
   zoomButtonText: { fontSize: 12, fontWeight: "700", color: "#111111" },
-  zoomButtonTextActive: { color: "#FFFFFF" },
+  zoomButtonTextActive: { color: palette.black },
   candleRow: {
     marginTop: 8,
     marginBottom: 8,
@@ -2611,7 +2612,7 @@ const styles = StyleSheet.create({
     minHeight: 4,
   },
   groupedBarSavings: { backgroundColor: "#22C55E" },
-  groupedBarDebt: { backgroundColor: "#2563EB" },
+  groupedBarDebt: { backgroundColor: palette.midnightSlate },
   candleLabel: { marginTop: 8, fontSize: 11, fontWeight: "700" },
   legendRow: {
     flexDirection: "row",
@@ -2729,7 +2730,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   bottomNavDark: { backgroundColor: "#111111", borderColor: "#1F2937" },
-  bottomNavLight: { backgroundColor: "#111111", borderColor: "#1F2937" },
+  bottomNavLight: { backgroundColor: palette.midnightSlate, borderColor: palette.black },
   navButton: {
     flex: 1,
     alignItems: "center",
@@ -2745,13 +2746,13 @@ const styles = StyleSheet.create({
     maxWidth: 68,
     height: 68,
     alignSelf: "center",
-    backgroundColor: "#1F2937",
+    backgroundColor: palette.thunderLime,
     borderWidth: 4,
-    borderColor: "#111111",
+    borderColor: palette.black,
   },
-  navButtonActive: { backgroundColor: "#1F2937" },
-  navLabel: { color: "#9CA3AF", fontSize: 11, fontWeight: "700" },
-  navLabelActive: { color: "#5B3DF5" },
+  navButtonActive: { backgroundColor: palette.black },
+  navLabel: { color: palette.silverMist, fontSize: 11, fontWeight: "700" },
+  navLabelActive: { color: palette.thunderLime },
 
   onboardingCard: {
     margin: 20,
@@ -2764,14 +2765,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  onboardingCardDark: { backgroundColor: "#000000", borderColor: "#FFFFFF" },
-  onboardingCardLight: { backgroundColor: "#FFFFFF", borderColor: "#000000" },
+  onboardingCardDark: { backgroundColor: palette.midnightSlate, borderColor: palette.silverMist },
+  onboardingCardLight: { backgroundColor: palette.white, borderColor: palette.midnightSlate },
   onboardingTitle: { fontSize: 24, fontWeight: "800" },
-  onboardingTitleDark: { color: "#F8F6F0" },
-  onboardingTitleLight: { color: "#111111" },
+  onboardingTitleDark: { color: palette.white },
+  onboardingTitleLight: { color: palette.black },
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
-  onboardingSubtitleDark: { color: "#FFFFFF" },
-  onboardingSubtitleLight: { color: "#000000" },
+  onboardingSubtitleDark: { color: palette.silverMist },
+  onboardingSubtitleLight: { color: palette.midnightSlate },
   landingScrollContent: { flex: 1, paddingVertical: 20 },
   authTabs: { flexDirection: "row", gap: 8, marginBottom: 12 },
   authTabButton: {
@@ -2783,9 +2784,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
   },
-  authTabButtonActive: { backgroundColor: "#000000", borderColor: "#000000" },
+  authTabButtonActive: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
   authTabText: { color: "#000000", fontWeight: "700" },
-  authTabTextActive: { color: "#FFFFFF" },
+  authTabTextActive: { color: palette.black },
   authErrorText: {
     marginTop: 10,
     color: "#B91C1C",
@@ -2836,7 +2837,7 @@ const styles = StyleSheet.create({
   helperTextLight: { color: "#404040" },
   primaryButton: {
     marginTop: 18,
-    backgroundColor: "#000000",
+    backgroundColor: palette.thunderLime,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -2844,7 +2845,7 @@ const styles = StyleSheet.create({
   primaryButtonDisabled: {
     opacity: 0.65,
   },
-  primaryButtonText: { color: "#FFFFFF", fontWeight: "700" },
+  primaryButtonText: { color: palette.black, fontWeight: "700" },
   secondaryThemeButton: {
     marginTop: 10,
     alignItems: "center",
@@ -2863,9 +2864,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
   },
-  currencyButtonActive: { backgroundColor: "#000000", borderColor: "#000000" },
+  currencyButtonActive: { backgroundColor: palette.midnightSlate, borderColor: palette.midnightSlate },
   currencyButtonText: { color: "#000000", fontWeight: "700" },
-  currencyButtonTextActive: { color: "#FFFFFF" },
+  currencyButtonTextActive: { color: palette.white },
   emotionalTitle: { fontSize: 18, fontWeight: "800" },
   emotionalTitleDark: { color: "#FFFFFF" },
   emotionalTitleLight: { color: "#111111" },

@@ -1,12 +1,20 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import palette from '../theme/colors';
 
-export default function SectionHeader({ title, createLabel, onCreate, isDarkMode }) {
+export default function SectionHeader({ title, actionLabel, onActionPress, isDarkMode }) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={[styles.sectionTitle, isDarkMode ? styles.sectionTitleDark : styles.sectionTitleLight]}>{title}</Text>
-      <TouchableOpacity onPress={onCreate} style={[styles.createButton, isDarkMode ? styles.createButtonDark : styles.createButtonLight]}>
-        <Text style={[styles.createButtonText, isDarkMode && styles.createButtonTextDark]}>{createLabel}</Text>
-      </TouchableOpacity>
+      {onActionPress ? (
+        <Pressable
+          style={[styles.createButton, isDarkMode ? styles.createButtonDark : styles.createButtonLight]}
+          onPress={onActionPress}
+        >
+          <Text style={[styles.createButtonText, isDarkMode ? styles.createButtonTextDark : styles.createButtonTextLight]}>
+            {actionLabel}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -16,31 +24,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    gap: 10,
+    marginBottom: 12,
+    gap: 8,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  sectionTitleDark: { color: '#F8F6F0' },
-  sectionTitleLight: { color: '#111111' },
+  sectionTitle: { fontSize: 22, fontWeight: '800' },
+  sectionTitleDark: { color: palette.white },
+  sectionTitleLight: { color: palette.black },
   createButton: {
-    paddingVertical: 8,
+    borderRadius: 999,
     paddingHorizontal: 14,
-    borderRadius: 16,
-    shadowColor: '#FFFFFF',
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
+    paddingVertical: 8,
+    shadowColor: palette.black,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
-  createButtonDark: { backgroundColor: '#FFFFFF', shadowColor: '#FFFFFF' },
-  createButtonLight: { backgroundColor: '#000000', shadowColor: '#000000' },
+  createButtonDark: { backgroundColor: palette.thunderLime },
+  createButtonLight: { backgroundColor: palette.midnightSlate },
   createButtonText: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12,
   },
-  createButtonTextDark: { color: '#000000' },
+  createButtonTextDark: { color: palette.black },
+  createButtonTextLight: { color: palette.white },
 });
