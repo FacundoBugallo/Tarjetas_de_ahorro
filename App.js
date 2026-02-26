@@ -228,91 +228,6 @@ const getPeriodLabel = (value, granularity) => {
   return value.toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
 };
 
-const PieChartProgress = ({
-  percentage,
-  size = 132,
-  color = "#22C55E",
-  trackColor = "#E5E7EB",
-  centerColor = "#FFFFFF",
-}) => {
-  const safePercent = clampPercentage(percentage);
-  const firstHalfRotation = `${Math.min(safePercent, 50) * 3.6}deg`;
-  const secondHalfRotation = `${Math.max(safePercent - 50, 0) * 3.6}deg`;
-  const holeSize = size * 0.62;
-
-  return (
-    <View style={[styles.pieCircle, { width: size, height: size, borderRadius: size / 2 }]}>
-      <View
-        style={[
-          styles.pieCircleBase,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: trackColor,
-          },
-        ]}
-      />
-
-      <View
-        style={[
-          styles.pieHalfWrap,
-          { width: size / 2, height: size, right: 0 },
-        ]}
-      >
-        <View
-          style={[
-            styles.pieHalf,
-            {
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-              backgroundColor: color,
-              left: -(size / 2),
-              transform: [{ rotate: firstHalfRotation }],
-            },
-          ]}
-        />
-      </View>
-
-      {safePercent > 50 && (
-        <View
-          style={[
-            styles.pieHalfWrap,
-            { width: size / 2, height: size, left: 0 },
-          ]}
-        >
-          <View
-            style={[
-              styles.pieHalf,
-              {
-                width: size,
-                height: size,
-                borderRadius: size / 2,
-                backgroundColor: color,
-                left: -(size / 2),
-                transform: [{ rotate: secondHalfRotation }],
-              },
-            ]}
-          />
-        </View>
-      )}
-
-      <View
-        style={[
-          styles.pieHole,
-          {
-            width: holeSize,
-            height: holeSize,
-            borderRadius: holeSize / 2,
-            backgroundColor: centerColor,
-          },
-        ]}
-      />
-    </View>
-  );
-};
-
 const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
   const normalizedSegments = Array.isArray(segments)
     ? segments.filter((segment) => Number(segment?.piePercent) > 0)
@@ -519,32 +434,7 @@ export default function App() {
     [debtCards],
   );
 
-  const savingsPieData = useMemo(() => {
-    const goal = Math.max(plannedInvestment, 0);
-    const saved = Math.max(totalInvestedThisMonth, 0);
-    const remaining = Math.max(goal - saved, 0);
-    const total = goal > 0 ? goal : saved;
 
-    return {
-      saved,
-      remaining,
-      total,
-      percent: total > 0 ? clampPercentage((saved / total) * 100) : 0,
-    };
-  }, [plannedInvestment, totalInvestedThisMonth]);
-
-  const debtPieData = useMemo(() => {
-    const paid = Math.max(monthlyDistribution.debt, 0);
-    const pending = Math.max(totalDebtPending, 0);
-    const total = paid + pending;
-
-    return {
-      paid,
-      pending,
-      total,
-      percent: total > 0 ? clampPercentage((paid / total) * 100) : 0,
-    };
-  }, [monthlyDistribution.debt, totalDebtPending]);
 
   const savedTotalAcrossCards = useMemo(
     () => cards.reduce((acc, card) => acc + card.savedAmount, 0),
@@ -2005,56 +1895,59 @@ export default function App() {
                   </>
                 )}
 
-                <Text
-                  style={[
-                    styles.panelTitle,
-                    styles.innerTitle,
-                    isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
-                  ]}
-                >
-                  Gráficos de torta por separado
-                </Text>
-
-                <View style={[styles.monthlyPieCard, styles.candleChartFrameDark]}>
-                  <Text style={[styles.pieTitle, styles.candleScaleLabelLight]}>
-                    Ahorro mensual
-                  </Text>
-                  <PieChartProgress
-                    percentage={savingsPieData.percent}
-                    color="#22C55E"
-                    trackColor="#D1FAE5"
-                    centerColor="#101010"
-                  />
-                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                    Ahorrado: {savingsPieData.percent.toFixed(0)}% ({formatCurrency(savingsPieData.saved, selectedCurrency)})
-                  </Text>
-                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                    Pendiente: {formatCurrency(savingsPieData.remaining, selectedCurrency)}
-                  </Text>
-                </View>
-
-                <View style={[styles.monthlyPieCard, styles.candleChartFrameDark]}>
-                  <Text style={[styles.pieTitle, styles.candleScaleLabelLight]}>
-                    Deudas del mes
-                  </Text>
-                  <PieChartProgress
-                    percentage={debtPieData.percent}
-                    color="#3B82F6"
-                    trackColor="#DBEAFE"
-                    centerColor="#101010"
-                  />
-                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                    Pagado: {debtPieData.percent.toFixed(0)}% ({formatCurrency(debtPieData.paid, selectedCurrency)})
-                  </Text>
-                  <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                    Pendiente total: {formatCurrency(debtPieData.pending, selectedCurrency)}
-                  </Text>
-                  {!debtPieData.total && (
-                    <Text style={[styles.pieLabel, styles.candleScaleLabelLight]}>
-                      No hay pagos de deuda registrados este mes.
+                {!!debtCards.length && (
+                  <>
+                    <Text
+                      style={[
+                        styles.panelTitle,
+                        styles.innerTitle,
+                        isDarkMode
+                          ? styles.panelTitleDark
+                          : styles.panelTitleLight,
+                      ]}
+                    >
+                      Torta individual por deuda
                     </Text>
-                  )}
-                </View>
+                    {debtCards.map((debt) => {
+                      const percentPaid = clampPercentage(
+                        (debt.paidAmount / debt.totalToPay) * 100,
+                      );
+                      const percentPending = 100 - percentPaid;
+                      return (
+                        <View key={`debt-pie-${debt.id}`} style={styles.pieRow}>
+                          <View style={styles.pieTrack}>
+                            <View
+                              style={[
+                                styles.pieFill,
+                                {
+                                  width: `${percentPaid}%`,
+                                  backgroundColor: "#3B82F6",
+                                },
+                              ]}
+                            />
+                            <View
+                              style={[
+                                styles.pieFillSecondary,
+                                { width: `${percentPending}%` },
+                              ]}
+                            />
+                          </View>
+                          <Text
+                            style={[
+                              styles.pieLabel,
+                              isDarkMode
+                                ? styles.chartNameDark
+                                : styles.chartNameLight,
+                            ]}
+                          >
+                            {debt.name}: {percentPaid.toFixed(0)}% pagado /{" "}
+                            {percentPending.toFixed(0)}% pendiente
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </>
+                )}
 
                 <Pressable
                   onPress={handleDownloadChartExcel}
