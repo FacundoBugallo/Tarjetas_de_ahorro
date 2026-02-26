@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import palette from '../theme/colors';
 import { formatCurrency } from '../utils/formatters';
 
 export default function SummaryCard({ plannedInvestment, actualInvestment, isDarkMode, currencyCode }) {
@@ -36,46 +37,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
-    shadowColor: '#000000',
+    shadowColor: palette.black,
     shadowOpacity: 0.45,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
   summaryCardDark: {
-    backgroundColor: '#000000',
+    backgroundColor: palette.midnightSlate,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: palette.silverMist,
   },
   summaryCardLight: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: palette.midnightSlate,
   },
   summaryLabel: {
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  summaryLabelDark: { color: '#FFFFFF' },
-  summaryLabelLight: { color: '#000000' },
+  summaryLabelDark: { color: palette.silverMist },
+  summaryLabelLight: { color: palette.midnightSlate },
   summaryValue: {
     fontSize: 18,
     fontWeight: '800',
     marginTop: 6,
   },
-  summaryValueDark: { color: '#F8F6F0' },
-  summaryValueLight: { color: '#111111' },
+  summaryValueDark: { color: palette.white },
+  summaryValueLight: { color: palette.black },
   summaryDivider: {
     width: 1,
     height: 46,
   },
-  summaryDividerDark: { backgroundColor: '#FFFFFF' },
-  summaryDividerLight: { backgroundColor: '#000000' },
+  summaryDividerDark: { backgroundColor: palette.silverMist },
+  summaryDividerLight: { backgroundColor: palette.midnightSlate },
   remainingText: {
     marginTop: 4,
     fontSize: 12,
-    color: '#000000',
-    fontWeight: '600',
+    color: palette.thunderLime,
+    fontWeight: '700',
   },
 });

@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import palette from "../theme/colors";
 
 export default function Header({
   userName,
@@ -147,14 +148,14 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   headerDark: {
-    backgroundColor: "#0B0B0B",
+    backgroundColor: palette.black,
     borderWidth: 1,
-    borderColor: "#2E2E2E",
+    borderColor: palette.midnightSlate,
   },
   headerLight: {
-    backgroundColor: "#E8E8E8",
+    backgroundColor: palette.silverMist,
     borderWidth: 1,
-    borderColor: "#CFCFCF",
+    borderColor: palette.midnightSlate,
   },
   marbleOrbLarge: {
     position: "absolute",
@@ -196,19 +197,19 @@ const styles = StyleSheet.create({
   avatarFallback: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1A1A1A",
+    backgroundColor: palette.midnightSlate,
   },
   avatarFallbackText: {
-    color: "#FFFFFF",
+    color: palette.white,
     fontWeight: "800",
     fontSize: 18,
   },
   greeting: { fontSize: 20, fontWeight: "700" },
-  greetingDark: { color: "#F5F5F5" },
-  greetingLight: { color: "#111111" },
+  greetingDark: { color: palette.white },
+  greetingLight: { color: palette.black },
   level: { marginTop: 2, fontSize: 13, fontWeight: "600" },
-  levelDark: { color: "#D4D4D4" },
-  levelLight: { color: "#2A2A2A" },
+  levelDark: { color: palette.silverMist },
+  levelLight: { color: palette.midnightSlate },
   pointsPill: {
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -216,25 +217,25 @@ const styles = StyleSheet.create({
     minWidth: 82,
   },
   pointsPillDark: {
-    backgroundColor: "#111111",
+    backgroundColor: palette.midnightSlate,
     borderWidth: 1,
-    borderColor: "#3A3A3A",
+    borderColor: palette.silverMist,
   },
   pointsPillLight: {
-    backgroundColor: "#F2F2F2",
+    backgroundColor: palette.white,
     borderWidth: 1,
-    borderColor: "#BFBFBF",
+    borderColor: palette.midnightSlate,
   },
   pointsPillLabel: {
     fontSize: 10,
     fontWeight: "700",
     textTransform: "uppercase",
   },
-  pointsPillLabelDark: { color: "#A3A3A3" },
-  pointsPillLabelLight: { color: "#4A4A4A" },
+  pointsPillLabelDark: { color: palette.silverMist },
+  pointsPillLabelLight: { color: palette.midnightSlate },
   pointsPillValue: { marginTop: 2, fontSize: 14, fontWeight: "800" },
-  pointsPillValueDark: { color: "#FFFFFF" },
-  pointsPillValueLight: { color: "#000000" },
+  pointsPillValueDark: { color: palette.thunderLime },
+  pointsPillValueLight: { color: palette.black },
   actionsRow: {
     flexDirection: "row",
     gap: 10,
@@ -246,9 +247,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
-  themeButtonDark: { backgroundColor: "#000000", borderColor: "#FFFFFF" },
-  themeButtonLight: { backgroundColor: "#FFFFFF", borderColor: "#000000" },
+  themeButtonDark: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
+  themeButtonLight: { backgroundColor: palette.midnightSlate, borderColor: palette.midnightSlate },
   themeButtonText: { fontWeight: "700", fontSize: 14 },
-  themeButtonTextDark: { color: "#FFFFFF" },
-  themeButtonTextLight: { color: "#000000" },
+  themeButtonTextDark: { color: palette.black },
+  themeButtonTextLight: { color: palette.white },
 });
