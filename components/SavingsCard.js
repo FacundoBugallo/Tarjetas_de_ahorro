@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import DarkButton from './DarkButton';
 import { clampPercentage, formatCurrency } from '../utils/formatters';
 import { formatContributionSchedule, getDaysUntilNextContribution } from '../utils/schedule';
 
@@ -70,9 +71,13 @@ export default function SavingsCard({
       <View style={styles.cardHeader}>
         <View style={styles.titleRow}>
           <Text style={[styles.cardTitle, { color: contentColor }]}>{card.name}</Text>
-          <Pressable onPress={() => onDeleteCard(card.id)} style={[styles.deleteButton, { backgroundColor: buttonSurfaceColor }]}> 
-            <Text style={[styles.deleteButtonText, { color: contentColor }]}>Eliminar</Text>
-          </Pressable>
+          <DarkButton
+            onPress={() => onDeleteCard(card.id)}
+            label="Eliminar"
+            style={styles.deleteButtonWrapper}
+            gradientStyle={[styles.deleteButton, { borderColor: buttonSurfaceColor }]}
+            textStyle={[styles.deleteButtonText, { color: contentColor }]}
+          />
         </View>
         <Text style={[styles.cardTarget, { color: subtleContentColor }]}>Meta: {formatCurrency(card.targetAmount, currencyCode)}</Text>
         {!!card.description && <Text style={[styles.cardDescription, { color: subtleContentColor }]}>{card.description}</Text>}
@@ -104,9 +109,13 @@ export default function SavingsCard({
                 keyboardType="numeric"
                 style={[styles.editInput, { color: contentColor, borderColor: withOpacity(contentColor, 0.5), backgroundColor: withOpacity(contentColor, 0.12) }]}
               />
-              <Pressable onPress={handleSaveContribution} style={[styles.inlineButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-                <Text style={[styles.inlineButtonText, isDarkMode && styles.actionButtonTextDark]}>Guardar</Text>
-              </Pressable>
+              <DarkButton
+                onPress={handleSaveContribution}
+                label="Guardar"
+                style={styles.inlineButtonWrapper}
+                gradientStyle={styles.inlineButton}
+                textStyle={styles.inlineButtonText}
+              />
             </View>
           ) : (
             <Pressable
@@ -122,12 +131,18 @@ export default function SavingsCard({
         </View>
 
         <View style={styles.actionColumn}>
-          <Pressable onPress={() => onAddContribution(card.id)} style={[styles.addButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-            <Text style={[styles.addButtonText, isDarkMode && styles.actionButtonTextDark]}>+{formatCurrency(card.nextContribution, currencyCode)}</Text>
-          </Pressable>
-          <Pressable onPress={() => onRemoveContribution(card.id)} style={[styles.removeButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-            <Text style={[styles.removeButtonText, isDarkMode && styles.actionButtonTextDark]}>-{formatCurrency(card.nextContribution, currencyCode)}</Text>
-          </Pressable>
+          <DarkButton
+            onPress={() => onAddContribution(card.id)}
+            label={`+${formatCurrency(card.nextContribution, currencyCode)}`}
+            gradientStyle={styles.addButton}
+            textStyle={styles.addButtonText}
+          />
+          <DarkButton
+            onPress={() => onRemoveContribution(card.id)}
+            label={`-${formatCurrency(card.nextContribution, currencyCode)}`}
+            gradientStyle={styles.removeButton}
+            textStyle={styles.removeButtonText}
+          />
         </View>
       </View>
     </View>
@@ -149,7 +164,8 @@ const styles = StyleSheet.create({
   cardHeader: { marginBottom: 12 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   cardTitle: { fontSize: 16, fontWeight: '800', color: '#000000', flex: 1 },
-  deleteButton: { backgroundColor: 'rgba(15,23,42,0.16)', borderRadius: 999, paddingVertical: 6, paddingHorizontal: 10 },
+  deleteButtonWrapper: { minWidth: 88 },
+  deleteButton: { width: '100%', height: 34, borderRadius: 999 },
   deleteButtonText: { fontWeight: '700', fontSize: 12, color: '#000000' },
   cardTarget: { marginTop: 4, fontSize: 13, color: '#111111' },
   cardDescription: { marginTop: 8, fontSize: 12, color: '#262626' },
@@ -178,26 +194,17 @@ const styles = StyleSheet.create({
   nextContributionText: { marginTop: 6, fontSize: 12, fontWeight: '600', color: '#000000' },
   actionColumn: { gap: 8 },
   addButton: {
-    
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    width: 158,
+    height: 42,
     borderRadius: 14,
-    
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
   },
-  addButtonText: { color: '#F9FAFB', fontWeight: '700', fontSize: 13 },
-  actionButtonDark: { backgroundColor: '#FFFFFF', shadowColor: '#FFFFFF' },
-  actionButtonTextDark: { color: '#000000' },
-  actionButtonLight: { backgroundColor: '#000000', shadowColor: '#000000' },
+  addButtonText: { fontWeight: '700', fontSize: 13 },
   removeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    width: 158,
+    height: 42,
     borderRadius: 14,
   },
-  removeButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+  removeButtonText: { fontWeight: '700', fontSize: 13 },
   editTriggerButton: { marginTop: 8 },
   editTriggerText: { color: '#000000', fontWeight: '700', fontSize: 12 },
   editRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -210,6 +217,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: 'rgba(255,255,255,0.8)',
   },
-  inlineButton: {  paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10 },
-  inlineButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
+  inlineButtonWrapper: { minWidth: 110 },
+  inlineButton: { width: '100%', height: 38, borderRadius: 10 },
+  inlineButtonText: { fontWeight: '700', fontSize: 12 },
 });

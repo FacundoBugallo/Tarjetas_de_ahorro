@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import DarkButton from "./DarkButton";
 import palette from "../theme/colors";
 
 export default function Header({
@@ -94,44 +95,22 @@ export default function Header({
 
       {showActionButtons && (
         <View style={styles.actionsRow}>
-          <TouchableOpacity
+          <DarkButton
             onPress={onToggleTheme}
-            style={[
-              styles.themeButton,
-              isDarkMode ? styles.themeButtonDark : styles.themeButtonLight,
-            ]}
-          >
-            <Text
-              style={[
-                styles.themeButtonText,
-                isDarkMode
-                  ? styles.themeButtonTextDark
-                  : styles.themeButtonTextLight,
-              ]}
-            >
-              {isDarkMode ? "Modo claro" : "Modo oscuro"}
-            </Text>
-          </TouchableOpacity>
+            label={isDarkMode ? "Modo claro" : "Modo oscuro"}
+            style={styles.themeButtonWrapper}
+            gradientStyle={styles.themeButton}
+            textStyle={styles.themeButtonText}
+          />
 
           {onTogglePlan && (
-            <TouchableOpacity
+            <DarkButton
               onPress={onTogglePlan}
-              style={[
-                styles.themeButton,
-                isDarkMode ? styles.themeButtonDark : styles.themeButtonLight,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.themeButtonText,
-                  isDarkMode
-                    ? styles.themeButtonTextDark
-                    : styles.themeButtonTextLight,
-                ]}
-              >
-                {debtButtonLabel}
-              </Text>
-            </TouchableOpacity>
+              label={debtButtonLabel}
+              style={styles.themeButtonWrapper}
+              gradientStyle={styles.themeButton}
+              textStyle={styles.themeButtonText}
+            />
           )}
         </View>
       )}
@@ -241,15 +220,11 @@ const styles = StyleSheet.create({
     gap: 10,
     flexWrap: "wrap",
   },
+  themeButtonWrapper: { flex: 1, minWidth: 160 },
   themeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    borderWidth: 1,
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
   },
-  themeButtonDark: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
-  themeButtonLight: { backgroundColor: palette.midnightSlate, borderColor: palette.midnightSlate },
-  themeButtonText: { fontWeight: "700", fontSize: 14 },
-  themeButtonTextDark: { color: palette.black },
-  themeButtonTextLight: { color: palette.white },
+  themeButtonText: { fontWeight: "700", fontSize: 13 },
 });
