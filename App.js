@@ -2543,9 +2543,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: "#FFFFFF",
   },
-  zoomButtonActive: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
+  zoomButtonActive: { backgroundColor: "#1F2937", borderColor: "#FFFFFF" },
   zoomButtonText: { fontSize: 12, fontWeight: "700", color: "#111111" },
-  zoomButtonTextActive: { color: palette.black },
+  zoomButtonTextActive: { color: "#FFFFFF" },
   candleRow: {
     marginTop: 8,
     marginBottom: 8,
@@ -2747,7 +2747,7 @@ const styles = StyleSheet.create({
   },
   navButtonActive: { backgroundColor: palette.black },
   navLabel: { color: palette.silverMist, fontSize: 11, fontWeight: "700" },
-  navLabelActive: { color: palette.thunderLime },
+  navLabelActive: { color: "#FFFFFF" },
 
   onboardingCard: {
     margin: 20,
@@ -2788,9 +2788,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
   },
-  authTabButtonActive: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
+  authTabButtonActive: { backgroundColor: "#111111", borderColor: "#FFFFFF" },
   authTabText: { color: "#000000", fontWeight: "700" },
-  authTabTextActive: { color: palette.black },
+  authTabTextActive: { color: "#FFFFFF" },
   authErrorText: {
     marginTop: 10,
     color: "#B91C1C",
@@ -2805,7 +2805,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   inputLabelDark: { color: "#FFFFFF" },
-  inputLabelLight: { color: "#000000" },
+  inputLabelLight: { color: "#FFFFFF" },
   input: {
     borderWidth: 1,
     borderRadius: 10,
@@ -2841,7 +2841,9 @@ const styles = StyleSheet.create({
   helperTextLight: { color: "#E5E7EB" },
   primaryButton: {
     marginTop: 18,
-    backgroundColor: palette.thunderLime,
+    backgroundColor: "#111111",
+    borderWidth: 1,
+    borderColor: "#FFFFFF",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -2849,7 +2851,7 @@ const styles = StyleSheet.create({
   primaryButtonDisabled: {
     opacity: 0.65,
   },
-  primaryButtonText: { color: palette.black, fontWeight: "700" },
+  primaryButtonText: { color: "#FFFFFF", fontWeight: "700" },
   secondaryThemeButton: {
     marginTop: 10,
     alignItems: "center",

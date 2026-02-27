@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   remainingText: {
     marginTop: 4,
     fontSize: 12,
-    color: palette.thunderLime,
+    color: palette.white,
     fontWeight: '700',
   },
 });
