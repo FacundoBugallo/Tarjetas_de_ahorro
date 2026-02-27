@@ -25,7 +25,7 @@ const colorPalette = [
 ];
 const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
 
-export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode }) {
+export default function CreateCardModal({ visible, onClose, onSubmit }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
@@ -87,11 +87,11 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
     >
       <Pressable onPress={onClose} style={styles.backdrop}>
         <View
-          style={[styles.sheet, isDarkMode && styles.sheetDark]}
+          style={[styles.sheet, styles.sheetDark]}
           onStartShouldSetResponder={() => true}
         >
           <View style={styles.headerRow}>
-            <Text style={[styles.title, isDarkMode && styles.titleDark]}>Crear tarjeta</Text>
+            <Text style={[styles.title, styles.titleDark]}>Crear tarjeta</Text>
             <DarkButton
               onPress={onClose}
               label="Cerrar"
@@ -103,38 +103,38 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.content}>
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Nombre</Text>
-                <TextInput value={name} onChangeText={setName} style={[styles.input, isDarkMode && styles.inputDark]} />
+                <Text style={[styles.label, styles.labelDark]}>Nombre</Text>
+                <TextInput value={name} onChangeText={setName} style={[styles.input, styles.inputDark]} />
               </View>
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Descripción</Text>
+                <Text style={[styles.label, styles.labelDark]}>Descripción</Text>
                 <TextInput
                   value={description}
                   onChangeText={setDescription}
-                  style={[styles.input, styles.multilineInput, isDarkMode && styles.inputDark]}
+                  style={[styles.input, styles.multilineInput, styles.inputDark]}
                   multiline
                 />
               </View>
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Meta (no puede ser 0)</Text>
+                <Text style={[styles.label, styles.labelDark]}>Meta (no puede ser 0)</Text>
                 <TextInput
                   value={targetAmount}
                   onChangeText={setTargetAmount}
                   keyboardType="numeric"
-                  style={[styles.input, isDarkMode && styles.inputDark]}
+                  style={[styles.input, styles.inputDark]}
                 />
               </View>
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Valor inicial</Text>
+                <Text style={[styles.label, styles.labelDark]}>Valor inicial</Text>
                 <TextInput
                   value={savedAmount}
                   onChangeText={setSavedAmount}
                   keyboardType="numeric"
-                  style={[styles.input, isDarkMode && styles.inputDark]}
+                  style={[styles.input, styles.inputDark]}
                 />
               </View>
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Cadencia</Text>
+                <Text style={[styles.label, styles.labelDark]}>Cadencia</Text>
                 <View style={styles.optionRow}>
                   {cadenceOptions.map((option) => {
                     const isActive = cadence === option;
@@ -144,15 +144,15 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                         onPress={() => setCadence(option)}
                         style={[
                           styles.optionButton,
-                          isDarkMode && styles.optionButtonDark,
-                          isActive && (isDarkMode ? styles.optionButtonActiveDark : styles.optionButtonActive),
+                          styles.optionButtonDark,
+                          isActive && styles.optionButtonActiveDark,
                         ]}
                       >
                         <Text
                           style={[
                             styles.optionText,
-                            isDarkMode && styles.optionTextDark,
-                            isActive && (isDarkMode ? styles.optionTextActiveDark : styles.optionTextActive),
+                            styles.optionTextDark,
+                            isActive && styles.optionTextActiveDark,
                           ]}
                         >
                           {option}
@@ -165,7 +165,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
 
               {cadence === 'Semanal' && (
                 <View style={styles.field}>
-                  <Text style={[styles.label, isDarkMode && styles.labelDark]}>¿Qué día aportas cada semana?</Text>
+                  <Text style={[styles.label, styles.labelDark]}>¿Qué día aportas cada semana?</Text>
                   <View style={styles.optionRow}>
                     {weekdayOptions.map((option) => {
                       const isActive = selectedWeekday === option.value;
@@ -175,15 +175,15 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                           onPress={() => setSelectedWeekday(option.value)}
                           style={[
                             styles.optionButton,
-                            isDarkMode && styles.optionButtonDark,
-                            isActive && (isDarkMode ? styles.optionButtonActiveDark : styles.optionButtonActive),
+                            styles.optionButtonDark,
+                            isActive && styles.optionButtonActiveDark,
                           ]}
                         >
                           <Text
                             style={[
                               styles.optionText,
-                              isDarkMode && styles.optionTextDark,
-                              isActive && (isDarkMode ? styles.optionTextActiveDark : styles.optionTextActive),
+                              styles.optionTextDark,
+                              isActive && styles.optionTextActiveDark,
                             ]}
                           >
                             {option.label}
@@ -197,7 +197,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
 
               {cadence === 'Mensual' && (
                 <View style={styles.field}>
-                  <Text style={[styles.label, isDarkMode && styles.labelDark]}>¿Qué fecha aportas cada mes?</Text>
+                  <Text style={[styles.label, styles.labelDark]}>¿Qué fecha aportas cada mes?</Text>
                   <View style={styles.optionRow}>
                     {monthDayOptions.map((day) => {
                       const isActive = selectedMonthDay === day;
@@ -207,15 +207,15 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                           onPress={() => setSelectedMonthDay(day)}
                           style={[
                             styles.dayButton,
-                            isDarkMode && styles.dayButtonDark,
-                            isActive && (isDarkMode ? styles.optionButtonActiveDark : styles.optionButtonActive),
+                            styles.dayButtonDark,
+                            isActive && styles.optionButtonActiveDark,
                           ]}
                         >
                           <Text
                             style={[
                               styles.optionText,
-                              isDarkMode && styles.optionTextDark,
-                              isActive && (isDarkMode ? styles.optionTextActiveDark : styles.optionTextActive),
+                              styles.optionTextDark,
+                              isActive && styles.optionTextActiveDark,
                             ]}
                           >
                             {day}
@@ -228,16 +228,16 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
               )}
 
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Próximo aporte (no puede ser 0)</Text>
+                <Text style={[styles.label, styles.labelDark]}>Próximo aporte (no puede ser 0)</Text>
                 <TextInput
                   value={nextContribution}
                   onChangeText={setNextContribution}
                   keyboardType="numeric"
-                  style={[styles.input, isDarkMode && styles.inputDark]}
+                  style={[styles.input, styles.inputDark]}
                 />
               </View>
               <View style={styles.field}>
-                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Color</Text>
+                <Text style={[styles.label, styles.labelDark]}>Color</Text>
                 <View style={styles.colorRow}>
                   {colorPalette.map((color) => {
                     const isActive = selectedColor === color;
@@ -248,7 +248,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
                         style={[
                           styles.colorSwatch,
                           { backgroundColor: color },
-                          isActive && (isDarkMode ? styles.colorSwatchActiveDark : styles.colorSwatchActive),
+                          isActive && styles.colorSwatchActiveDark,
                         ]}
                       />
                     );
