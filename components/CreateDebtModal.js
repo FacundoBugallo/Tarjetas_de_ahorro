@@ -2,7 +2,7 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useState } from 'react';
 import DarkButton from './DarkButton';
 
-export default function CreateDebtModal({ visible, onClose, onSubmit, isDarkMode }) {
+export default function CreateDebtModal({ visible, onClose, onSubmit }) {
   const [name, setName] = useState('');
   const [paymentAmount, setPaymentAmount] = useState('');
   const [months, setMonths] = useState('');
@@ -41,31 +41,31 @@ export default function CreateDebtModal({ visible, onClose, onSubmit, isDarkMode
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.card, isDarkMode ? styles.cardDark : styles.cardLight]}>
-          <Text style={[styles.title, isDarkMode ? styles.titleDark : styles.titleLight]}>Nueva tarjeta de deuda</Text>
+        <View style={[styles.card, styles.cardDark]}>
+          <Text style={[styles.title, styles.titleDark]}>Nueva tarjeta de deuda</Text>
 
           <TextInput
             value={name}
             onChangeText={setName}
             placeholder="Ej: Tarjeta visa"
-            style={[styles.input, isDarkMode && styles.inputDark]}
-            placeholderTextColor={isDarkMode ? '#A3A3A3' : '#737373'}
+            style={[styles.input, styles.inputDark]}
+            placeholderTextColor="#A3A3A3"
           />
           <TextInput
             value={paymentAmount}
             onChangeText={setPaymentAmount}
             placeholder="Pago por periodo (ej: 150)"
             keyboardType="numeric"
-            style={[styles.input, isDarkMode && styles.inputDark]}
-            placeholderTextColor={isDarkMode ? '#A3A3A3' : '#737373'}
+            style={[styles.input, styles.inputDark]}
+            placeholderTextColor="#A3A3A3"
           />
           <TextInput
             value={months}
             onChangeText={setMonths}
             placeholder="Meses (ej: 3)"
             keyboardType="numeric"
-            style={[styles.input, isDarkMode && styles.inputDark]}
-            placeholderTextColor={isDarkMode ? '#A3A3A3' : '#737373'}
+            style={[styles.input, styles.inputDark]}
+            placeholderTextColor="#A3A3A3"
           />
 
           <View style={styles.frequencyRow}>

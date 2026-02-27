@@ -2348,13 +2348,11 @@ export default function App() {
         visible={isCreateCardVisible}
         onClose={() => setIsCreateCardVisible(false)}
         onSubmit={handleAddCard}
-        isDarkMode={isDarkMode}
       />
       <CreateDebtModal
         visible={isCreateDebtVisible}
         onClose={() => setIsCreateDebtVisible(false)}
         onSubmit={handleAddDebtCard}
-        isDarkMode={isDarkMode}
       />
         <StatusBar style={isDarkMode ? "light" : "dark"} />
       </View>
