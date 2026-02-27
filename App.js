@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CreateCardModal from "./components/CreateCardModal";
 import CreateDebtModal from "./components/CreateDebtModal";
+import DarkButton from "./components/DarkButton";
 import DebtCard from "./components/DebtCard";
 import Header from "./components/Header";
 import HistoryCard from "./components/HistoryCard";
@@ -1028,50 +1029,6 @@ export default function App() {
     );
   };
 
-  const handleDownloadChartExcel = () => {
-    if (!candles.length) {
-      setSnapshotMessage("No hay datos de velas para exportar todavía.");
-      return;
-    }
-
-    if (Platform.OS !== "web") {
-      setSnapshotMessage(
-        "La descarga como Excel está disponible en web por ahora.",
-      );
-      return;
-    }
-
-    const headers = [
-      "periodo",
-      "apertura",
-      "maximo",
-      "minimo",
-      "cierre",
-      "moneda",
-      "granularidad",
-    ];
-    const rows = candles.map((period) => [
-      period.label,
-      period.open,
-      period.high,
-      period.low,
-      period.close,
-      selectedCurrency,
-      chartGranularity,
-    ]);
-    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const objectUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = objectUrl;
-    anchor.download = `velas-historicas-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(objectUrl);
-    setSnapshotMessage(
-      "Archivo descargado en formato CSV compatible con Excel.",
-    );
-  };
-
   if (!isOnboardingDone) {
     return (
       <View
@@ -1949,17 +1906,6 @@ export default function App() {
                   </>
                 )}
 
-                <Pressable
-                  onPress={handleDownloadChartExcel}
-                  style={[
-                    styles.snapshotButton,
-                    styles.snapshotButtonSecondary,
-                  ]}
-                >
-                  <Text style={styles.snapshotButtonSecondaryText}>
-                    Descargar como Excel
-                  </Text>
-                </Pressable>
                 {!!snapshotMessage && (
                   <Text
                     style={[
@@ -2313,7 +2259,7 @@ export default function App() {
           </Text>
         </Pressable>
 
-        <Pressable
+        <DarkButton
           onPress={() => {
             if (activeTab === "deudas") {
               setIsCreateDebtVisible(true);
@@ -2322,10 +2268,11 @@ export default function App() {
 
             setIsCreateCardVisible(true);
           }}
-          style={styles.navButtonCenter}
-        >
-          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
-        </Pressable>
+          style={styles.navButtonCenterWrapper}
+          gradientStyle={styles.navButtonCenter}
+          textStyle={styles.navButtonCenterText}
+          label="+"
+        />
 
         {tabs.map((tab) => {
           if (tab.key === "ahorro" || tab.key === "deudas") {
@@ -2650,24 +2597,6 @@ const styles = StyleSheet.create({
   },
   timeAxisLineDark: { borderTopColor: "#525252" },
   timeAxisLineLight: { borderTopColor: "#525252" },
-  snapshotButton: {
-    borderRadius: 3,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  snapshotButtonSecondary: {
-    backgroundColor: "#111827",
-    borderColor: "#1F2937",
-    marginBottom: 4,
-  },
-  snapshotButtonSecondaryText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "800",
-  },
   snapshotMessage: {
     marginTop: 8,
     marginBottom: 4,
@@ -2759,18 +2688,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 16,
   },
-  navButtonCenter: {
+  navButtonCenterWrapper: {
     marginTop: -28,
-    borderRadius: 999,
-    width: 68,
-    maxWidth: 68,
-    height: 68,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 76,
+    maxWidth: 76,
     alignSelf: "center",
-    backgroundColor: palette.thunderLime,
-    borderWidth: 4,
-    borderColor: palette.black,
+  },
+  navButtonCenter: {
+    width: "100%",
+    height: 76,
+    borderRadius: 999,
+  },
+  navButtonCenterText: {
+    fontSize: 34,
+    lineHeight: 34,
+    fontWeight: "700",
   },
   navButtonActive: { backgroundColor: palette.black },
   navLabel: { color: palette.silverMist, fontSize: 11, fontWeight: "700" },
