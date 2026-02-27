@@ -240,7 +240,7 @@ const AppBackground = ({ children }) => (
       pointerEvents="none"
     />
     <LinearGradient
-      colors={["rgba(255,255,255,0.12)", "rgba(255,255,255,0)"]}
+      colors={["rgba(255, 255, 255, 0.44)", "rgba(255,255,255,0)"]}
       start={{ x: 0.42, y: 0 }}
       end={{ x: 0.55, y: 1 }}
       style={styles.textureBand}
