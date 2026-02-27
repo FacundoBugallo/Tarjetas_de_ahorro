@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import DarkButton from "./DarkButton";
 import palette from "../theme/colors";
 
 export default function Header({
@@ -94,44 +95,22 @@ export default function Header({
 
       {showActionButtons && (
         <View style={styles.actionsRow}>
-          <TouchableOpacity
+          <DarkButton
             onPress={onToggleTheme}
-            style={[
-              styles.themeButton,
-              isDarkMode ? styles.themeButtonDark : styles.themeButtonLight,
-            ]}
-          >
-            <Text
-              style={[
-                styles.themeButtonText,
-                isDarkMode
-                  ? styles.themeButtonTextDark
-                  : styles.themeButtonTextLight,
-              ]}
-            >
-              {isDarkMode ? "Modo claro" : "Modo oscuro"}
-            </Text>
-          </TouchableOpacity>
+            label={isDarkMode ? "Modo claro" : "Modo oscuro"}
+            style={styles.themeButtonWrapper}
+            gradientStyle={styles.themeButton}
+            textStyle={styles.themeButtonText}
+          />
 
           {onTogglePlan && (
-            <TouchableOpacity
+            <DarkButton
               onPress={onTogglePlan}
-              style={[
-                styles.themeButton,
-                isDarkMode ? styles.themeButtonDark : styles.themeButtonLight,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.themeButtonText,
-                  isDarkMode
-                    ? styles.themeButtonTextDark
-                    : styles.themeButtonTextLight,
-                ]}
-              >
-                {debtButtonLabel}
-              </Text>
-            </TouchableOpacity>
+              label={debtButtonLabel}
+              style={styles.themeButtonWrapper}
+              gradientStyle={styles.themeButton}
+              textStyle={styles.themeButtonText}
+            />
           )}
         </View>
       )}
@@ -142,20 +121,30 @@ export default function Header({
 const styles = StyleSheet.create({
   wrapper: { marginBottom: 20, gap: 10 },
   header: {
-    borderRadius: 12,
+    borderRadius: 28,
     padding: 14,
     overflow: "hidden",
     position: "relative",
   },
   headerDark: {
-    backgroundColor: palette.black,
+    backgroundColor: '#1B1B1F',
     borderWidth: 1,
-    borderColor: palette.midnightSlate,
+    borderColor: 'rgba(255,255,255,0.08)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    elevation: 12,
   },
   headerLight: {
-    backgroundColor: palette.silverMist,
+    backgroundColor: '#1B1B1F',
     borderWidth: 1,
-    borderColor: palette.midnightSlate,
+    borderColor: 'rgba(255,255,255,0.08)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    elevation: 12,
   },
   marbleOrbLarge: {
     position: "absolute",
@@ -206,10 +195,10 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 20, fontWeight: "700" },
   greetingDark: { color: palette.white },
-  greetingLight: { color: palette.black },
+  greetingLight: { color: palette.white },
   level: { marginTop: 2, fontSize: 13, fontWeight: "600" },
   levelDark: { color: palette.silverMist },
-  levelLight: { color: palette.midnightSlate },
+  levelLight: { color: palette.silverMist },
   pointsPill: {
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -222,9 +211,9 @@ const styles = StyleSheet.create({
     borderColor: palette.silverMist,
   },
   pointsPillLight: {
-    backgroundColor: palette.white,
+    backgroundColor: '#2A2A2E',
     borderWidth: 1,
-    borderColor: palette.midnightSlate,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
   pointsPillLabel: {
     fontSize: 10,
@@ -232,24 +221,20 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   pointsPillLabelDark: { color: palette.silverMist },
-  pointsPillLabelLight: { color: palette.midnightSlate },
+  pointsPillLabelLight: { color: palette.silverMist },
   pointsPillValue: { marginTop: 2, fontSize: 14, fontWeight: "800" },
   pointsPillValueDark: { color: palette.thunderLime },
-  pointsPillValueLight: { color: palette.black },
+  pointsPillValueLight: { color: palette.white },
   actionsRow: {
     flexDirection: "row",
     gap: 10,
     flexWrap: "wrap",
   },
+  themeButtonWrapper: { flex: 1, minWidth: 160 },
   themeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    borderWidth: 1,
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
   },
-  themeButtonDark: { backgroundColor: palette.thunderLime, borderColor: palette.thunderLime },
-  themeButtonLight: { backgroundColor: palette.midnightSlate, borderColor: palette.midnightSlate },
-  themeButtonText: { fontWeight: "700", fontSize: 14 },
-  themeButtonTextDark: { color: palette.black },
-  themeButtonTextLight: { color: palette.white },
+  themeButtonText: { fontWeight: "700", fontSize: 13 },
 });

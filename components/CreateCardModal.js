@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import DarkButton from './DarkButton';
 import { monthDayOptions, weekdayOptions } from '../utils/schedule';
 
 const colorPalette = [
@@ -91,9 +92,13 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
         >
           <View style={styles.headerRow}>
             <Text style={[styles.title, isDarkMode && styles.titleDark]}>Crear tarjeta</Text>
-            <Pressable onPress={onClose} style={[styles.closeButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-              <Text style={[styles.closeButtonText, isDarkMode && styles.actionButtonTextDark]}>Cerrar</Text>
-            </Pressable>
+            <DarkButton
+              onPress={onClose}
+              label="Cerrar"
+              style={styles.closeButtonWrapper}
+              gradientStyle={styles.closeButton}
+              textStyle={styles.closeButtonText}
+            />
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.content}>
@@ -252,9 +257,12 @@ export default function CreateCardModal({ visible, onClose, onSubmit, isDarkMode
               </View>
             </View>
           </ScrollView>
-          <Pressable onPress={handleSubmit} style={[styles.saveButton, isDarkMode ? styles.actionButtonDark : styles.actionButtonLight]}>
-            <Text style={[styles.saveButtonText, isDarkMode && styles.actionButtonTextDark]}>Agregar tarjeta</Text>
-          </Pressable>
+          <DarkButton
+            onPress={handleSubmit}
+            label="Agregar tarjeta"
+            gradientStyle={styles.saveButton}
+            textStyle={styles.saveButtonText}
+          />
         </View>
       </Pressable>
     </Modal>
@@ -291,19 +299,16 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   titleDark: { color: '#FFFFFF' },
+  closeButtonWrapper: { minWidth: 110 },
   closeButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    width: '100%',
+    height: 36,
     borderRadius: 999,
   },
   closeButtonText: {
-    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
-  actionButtonDark: { backgroundColor: '#FFFFFF' },
-  actionButtonTextDark: { color: '#000000' },
-  actionButtonLight: { backgroundColor: '#000000' },
   field: {
     gap: 6,
   },
@@ -400,12 +405,11 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: 6,
-    paddingVertical: 12,
+    width: '100%',
+    height: 48,
     borderRadius: 14,
-    alignItems: 'center',
   },
   saveButtonText: {
-    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 14,
   },
