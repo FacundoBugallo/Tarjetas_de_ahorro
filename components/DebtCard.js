@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import DarkButton from './DarkButton';
 import { formatCurrency } from '../utils/formatters';
 
 export default function DebtCard({ debt, onAddPayment, onRemovePayment, isDarkMode, currencyCode }) {
@@ -22,12 +23,20 @@ export default function DebtCard({ debt, onAddPayment, onRemovePayment, isDarkMo
       </Text>
 
       <View style={styles.actionsRow}>
-        <Pressable onPress={() => onRemovePayment(debt.id)} style={[styles.actionButton, styles.removeButton]}>
-          <Text style={styles.actionText}>Alejar monto</Text>
-        </Pressable>
-        <Pressable onPress={() => onAddPayment(debt.id)} style={[styles.actionButton, styles.addButton]}>
-          <Text style={styles.actionText}>Pagar periodo</Text>
-        </Pressable>
+        <DarkButton
+          onPress={() => onRemovePayment(debt.id)}
+          label="Alejar monto"
+          style={styles.actionButton}
+          gradientStyle={styles.actionGradient}
+          textStyle={styles.actionText}
+        />
+        <DarkButton
+          onPress={() => onAddPayment(debt.id)}
+          label="Pagar periodo"
+          style={styles.actionButton}
+          gradientStyle={styles.actionGradient}
+          textStyle={styles.actionText}
+        />
       </View>
     </View>
   );
@@ -53,8 +62,7 @@ const styles = StyleSheet.create({
   textDark: { color: '#E5E7EB' },
   textLight: { color: '#111111' },
   actionsRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
-  actionButton: { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-  addButton: { backgroundColor: '#111111' },
-  removeButton: { backgroundColor: '#4B5563' },
-  actionText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
+  actionButton: { flex: 1 },
+  actionGradient: { width: '100%', height: 44, borderRadius: 10 },
+  actionText: { fontWeight: '700', fontSize: 12 },
 });

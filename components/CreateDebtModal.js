@@ -1,5 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useState } from 'react';
+import DarkButton from './DarkButton';
 
 export default function CreateDebtModal({ visible, onClose, onSubmit, isDarkMode }) {
   const [name, setName] = useState('');
@@ -71,24 +72,33 @@ export default function CreateDebtModal({ visible, onClose, onSubmit, isDarkMode
             {['Semanal', 'Mensual'].map((option) => {
               const isActive = frequency === option;
               return (
-                <Pressable
+                <DarkButton
                   key={option}
                   onPress={() => setFrequency(option)}
-                  style={[styles.frequencyButton, isActive && styles.frequencyButtonActive]}
-                >
-                  <Text style={[styles.frequencyButtonText, isActive && styles.frequencyButtonTextActive]}>{option}</Text>
-                </Pressable>
+                  label={option}
+                  style={styles.frequencyButtonWrapper}
+                  gradientStyle={[styles.frequencyButton, isActive && styles.frequencyButtonActive]}
+                  textStyle={styles.frequencyButtonText}
+                />
               );
             })}
           </View>
 
           <View style={styles.actions}>
-            <Pressable style={styles.secondaryButton} onPress={onClose}>
-              <Text style={styles.secondaryButtonText}>Cancelar</Text>
-            </Pressable>
-            <Pressable style={styles.primaryButton} onPress={handleCreate}>
-              <Text style={styles.primaryButtonText}>Crear deuda</Text>
-            </Pressable>
+            <DarkButton
+              style={styles.actionButton}
+              gradientStyle={styles.modalActionButton}
+              textStyle={styles.modalActionText}
+              label="Cancelar"
+              onPress={onClose}
+            />
+            <DarkButton
+              style={styles.actionButton}
+              gradientStyle={styles.modalActionButton}
+              textStyle={styles.modalActionText}
+              label="Crear deuda"
+              onPress={handleCreate}
+            />
           </View>
         </View>
       </View>
@@ -129,36 +139,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   frequencyRow: { flexDirection: 'row', gap: 8 },
+  frequencyButtonWrapper: { flex: 1 },
   frequencyButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
+    width: '100%',
+    height: 42,
     borderRadius: 10,
-    paddingVertical: 8,
-    alignItems: 'center',
   },
-  frequencyButtonActive: { backgroundColor: '#111111', borderColor: '#111111' },
-  frequencyButtonText: { color: '#111111', fontWeight: '600' },
-  frequencyButtonTextActive: { color: '#FFFFFF' },
+  frequencyButtonActive: { borderColor: 'rgba(255,255,255,0.25)' },
+  frequencyButtonText: { fontWeight: '600', fontSize: 13 },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 10,
     marginTop: 6,
   },
-  primaryButton: {
-    backgroundColor: '#111111',
+  actionButton: { flex: 1 },
+  modalActionButton: {
+    width: '100%',
+    height: 44,
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
   },
-  primaryButtonText: { color: '#FFFFFF', fontWeight: '700' },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: '#111111',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  secondaryButtonText: { color: '#111111', fontWeight: '700' },
+  modalActionText: { fontWeight: '700', fontSize: 13 },
 });
