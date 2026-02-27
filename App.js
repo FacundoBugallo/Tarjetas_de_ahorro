@@ -12,6 +12,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CreateCardModal from "./components/CreateCardModal";
@@ -228,6 +229,34 @@ const getPeriodLabel = (value, granularity) => {
 
   return value.toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
 };
+
+const AppBackground = ({ children }) => (
+  <View style={styles.backgroundFrame}>
+    <LinearGradient
+      colors={["#050506", "#18191D", "#090A0C"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    />
+    <LinearGradient
+      colors={["rgba(255,255,255,0.12)", "rgba(255,255,255,0)"]}
+      start={{ x: 0.42, y: 0 }}
+      end={{ x: 0.55, y: 1 }}
+      style={styles.textureBand}
+      pointerEvents="none"
+    />
+    <LinearGradient
+      colors={["rgba(0,0,0,0.65)", "rgba(0,0,0,0)", "rgba(0,0,0,0.6)"]}
+      start={{ x: 0, y: 0.5 }}
+      end={{ x: 1, y: 0.5 }}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    />
+    <View style={styles.textureNoise} pointerEvents="none" />
+    {children}
+  </View>
+);
 
 const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
   const normalizedSegments = Array.isArray(segments)
@@ -1031,15 +1060,16 @@ export default function App() {
 
   if (!isOnboardingDone) {
     return (
-      <View
-        style={[
-          styles.safeArea,
-          styles.rootContainer,
-          { paddingTop: insets.top },
-          isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
-        ]}
-      >
-        <View style={styles.landingScrollContent}>
+      <AppBackground>
+        <View
+          style={[
+            styles.safeArea,
+            styles.rootContainer,
+            { paddingTop: insets.top },
+            isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
+          ]}
+        >
+          <View style={styles.landingScrollContent}>
           <View
             style={[
               styles.onboardingCard,
@@ -1355,28 +1385,30 @@ export default function App() {
               </Text>
             </Pressable>
           </View>
+          </View>
+          <StatusBar style={isDarkMode ? "light" : "dark"} />
         </View>
-        <StatusBar style={isDarkMode ? "light" : "dark"} />
-      </View>
+      </AppBackground>
     );
   }
 
   if (isPlanSetupPending) {
     return (
-      <View
-        style={[
-          styles.safeArea,
-          styles.rootContainer,
-          { paddingTop: insets.top },
-          isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
-        ]}
-      >
+      <AppBackground>
         <View
           style={[
-            styles.onboardingCard,
-            isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight,
+            styles.safeArea,
+            styles.rootContainer,
+            { paddingTop: insets.top },
+            isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
           ]}
         >
+          <View
+            style={[
+              styles.onboardingCard,
+              isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight,
+            ]}
+          >
           <Text
             style={[
               styles.onboardingTitle,
@@ -1425,8 +1457,9 @@ export default function App() {
           >
             <Text style={styles.primaryButtonText}>Guardar y entrar</Text>
           </Pressable>
+          </View>
         </View>
-      </View>
+      </AppBackground>
     );
   }
 
@@ -1435,15 +1468,16 @@ export default function App() {
   const currentPlan = isDebtTab ? "deudas" : "ahorro";
 
   return (
-    <View
-      style={[
-        styles.safeArea,
-        styles.rootContainer,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-        isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
-      ]}
-    >
-      <FlatList
+    <AppBackground>
+      <View
+        style={[
+          styles.safeArea,
+          styles.rootContainer,
+          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
+        ]}
+      >
+        <FlatList
         data={[{ key: activeTab }]}
         keyExtractor={(item) => item.key}
         contentContainerStyle={styles.scrollContent}
@@ -2298,7 +2332,7 @@ export default function App() {
         })}
       </View>
 
-      <UserSummaryModal
+        <UserSummaryModal
         visible={isSummaryVisible}
         onClose={() => setIsSummaryVisible(false)}
         userName={userName}
@@ -2322,16 +2356,29 @@ export default function App() {
         onSubmit={handleAddDebtCard}
         isDarkMode={isDarkMode}
       />
-      <StatusBar style={isDarkMode ? "light" : "dark"} />
-    </View>
+        <StatusBar style={isDarkMode ? "light" : "dark"} />
+      </View>
+    </AppBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   rootContainer: { paddingHorizontal: 0 },
-  safeAreaDark: { backgroundColor: palette.black },
-  safeAreaLight: { backgroundColor: palette.silverMist },
+  backgroundFrame: {
+    flex: 1,
+    backgroundColor: "#050506",
+  },
+  textureBand: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.55,
+  },
+  textureNoise: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.02)",
+  },
+  safeAreaDark: { backgroundColor: "rgba(0,0,0,0.15)" },
+  safeAreaLight: { backgroundColor: "rgba(0,0,0,0.08)" },
   scrollContent: { padding: 20, paddingBottom: 120 },
   cardList: { gap: 16, marginBottom: 24 },
   emptyText: {
