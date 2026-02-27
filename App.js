@@ -332,7 +332,7 @@ export default function App() {
   const [isCreateDebtVisible, setIsCreateDebtVisible] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = false;
   const [activeTab, setActiveTab] = useState("ahorro");
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1371,19 +1371,6 @@ export default function App() {
               </>
             )}
 
-            <Pressable
-              onPress={() => setIsDarkMode((prev) => !prev)}
-              style={styles.secondaryThemeButton}
-            >
-              <Text
-                style={[
-                  styles.secondaryThemeButtonText,
-                  isDarkMode && styles.secondaryThemeButtonTextDark,
-                ]}
-              >
-                {isDarkMode ? "Modo claro" : "Modo oscuro"}
-              </Text>
-            </Pressable>
           </View>
           </View>
           <StatusBar style={isDarkMode ? "light" : "dark"} />
@@ -1483,7 +1470,6 @@ export default function App() {
         contentContainerStyle={styles.scrollContent}
         ListHeaderComponent={
           <Header
-            onToggleTheme={() => setIsDarkMode((prev) => !prev)}
             isDarkMode={isDarkMode}
             userName={userName}
             levelLabel={levelLabel}
