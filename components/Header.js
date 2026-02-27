@@ -8,7 +8,6 @@ export default function Header({
   pointsLabel,
   profilePhoto,
   isDarkMode,
-  onToggleTheme,
   onTogglePlan,
   activePlan,
   showActionButtons,
@@ -93,25 +92,15 @@ export default function Header({
         </View>
       </View>
 
-      {showActionButtons && (
+      {showActionButtons && onTogglePlan && (
         <View style={styles.actionsRow}>
           <DarkButton
-            onPress={onToggleTheme}
-            label={isDarkMode ? "Modo claro" : "Modo oscuro"}
+            onPress={onTogglePlan}
+            label={debtButtonLabel}
             style={styles.themeButtonWrapper}
             gradientStyle={styles.themeButton}
             textStyle={styles.themeButtonText}
           />
-
-          {onTogglePlan && (
-            <DarkButton
-              onPress={onTogglePlan}
-              label={debtButtonLabel}
-              style={styles.themeButtonWrapper}
-              gradientStyle={styles.themeButton}
-              textStyle={styles.themeButtonText}
-            />
-          )}
         </View>
       )}
     </View>
