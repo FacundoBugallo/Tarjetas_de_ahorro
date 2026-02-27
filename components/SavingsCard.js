@@ -4,24 +4,6 @@ import DarkButton from './DarkButton';
 import { clampPercentage, formatCurrency } from '../utils/formatters';
 import { formatContributionSchedule, getDaysUntilNextContribution } from '../utils/schedule';
 
-const getContrastTextColor = (hexColor = '#FFFFFF') => {
-  const sanitized = hexColor.replace('#', '');
-  const normalized = sanitized.length === 3
-    ? sanitized.split('').map((char) => char + char).join('')
-    : sanitized;
-
-  if (normalized.length !== 6) {
-    return '#111111';
-  }
-
-  const red = parseInt(normalized.slice(0, 2), 16);
-  const green = parseInt(normalized.slice(2, 4), 16);
-  const blue = parseInt(normalized.slice(4, 6), 16);
-  const brightness = ((red * 299) + (green * 587) + (blue * 114)) / 1000;
-
-  return brightness > 150 ? '#111111' : '#F9FAFB';
-};
-
 const withOpacity = (hexColor, alpha) => {
   const sanitized = hexColor.replace('#', '');
   const normalized = sanitized.length === 3
@@ -51,9 +33,9 @@ export default function SavingsCard({
   const [draftContribution, setDraftContribution] = useState(String(card.nextContribution));
   const percentage = clampPercentage((card.savedAmount / card.targetAmount) * 100);
   const daysUntilNextContribution = getDaysUntilNextContribution(card);
-  const contentColor = getContrastTextColor(card.color);
+  const contentColor = '#F9FAFB';
   const subtleContentColor = withOpacity(contentColor, 0.82);
-  const buttonSurfaceColor = withOpacity(contentColor, 0.16);
+  const buttonSurfaceColor = withOpacity(contentColor, 0.24);
 
   const handleSaveContribution = () => {
     const parsedContribution = Number(draftContribution);
@@ -67,7 +49,7 @@ export default function SavingsCard({
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: card.color }]}> 
+    <View style={[styles.card, { backgroundColor: 'rgba(15,15,20,0.78)' }]}> 
       <View style={styles.cardHeader}>
         <View style={styles.titleRow}>
           <Text style={[styles.cardTitle, { color: contentColor }]}>{card.name}</Text>
@@ -154,12 +136,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#111111',
+    borderColor: 'rgba(255,255,255,0.16)',
     shadowColor: '#000000',
-    shadowOpacity: 0.42,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
+    shadowOpacity: 0.5,
+    shadowRadius: 25,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 20,
   },
   cardHeader: { marginBottom: 12 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
