@@ -1053,9 +1053,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.onboardingTitle,
-                    isDarkMode
-                      ? styles.onboardingTitleDark
-                      : styles.onboardingTitleLight,
+                    styles.glowTitle,
                   ]}
                 >
                   Bienvenido 👋
@@ -1260,9 +1258,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.onboardingTitle,
-                    isDarkMode
-                      ? styles.onboardingTitleDark
-                      : styles.onboardingTitleLight,
+                    styles.glowTitle,
                   ]}
                 >
                   Armá tu plan ideal en minutos ✨
@@ -2722,6 +2718,15 @@ const styles = StyleSheet.create({
   onboardingCardDark: { backgroundColor: "rgba(20,20,26,0.72)", borderColor: "rgba(255,255,255,0.15)" },
   onboardingCardLight: { backgroundColor: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.2)" },
   onboardingTitle: { fontSize: 24, fontWeight: "800" },
+  glowTitle: {
+    fontSize: 42,
+    fontWeight: "700",
+    color: "#EDEDED",
+    letterSpacing: 1,
+    textShadowColor: "rgba(255,255,255,0.25)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 25,
+  },
   onboardingTitleDark: { color: palette.white },
   onboardingTitleLight: { color: palette.black },
   onboardingSubtitle: { marginTop: 8, marginBottom: 18, fontSize: 14 },
