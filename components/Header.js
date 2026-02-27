@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   pointsPillLabelDark: { color: palette.silverMist },
   pointsPillLabelLight: { color: palette.silverMist },
   pointsPillValue: { marginTop: 2, fontSize: 14, fontWeight: "800" },
-  pointsPillValueDark: { color: palette.thunderLime },
+  pointsPillValueDark: { color: palette.white },
   pointsPillValueLight: { color: palette.white },
   actionsRow: {
     flexDirection: "row",
