@@ -5,6 +5,7 @@ from app.services.auth_service import get_onboarding_answers, login_user, regist
 
 router = APIRouter(prefix='/api/auth', tags=['auth'])
 
+# Endpoints de acceso y onboarding consumidos por el flujo inicial de la app.
 
 @router.post('/register', response_model=AuthResponse)
 def register(payload: RegisterRequest) -> dict:
@@ -18,6 +19,7 @@ def login(payload: LoginRequest) -> dict:
 
 @router.post('/onboarding', response_model=SaveOnboardingResponse)
 def save_onboarding(payload: SaveOnboardingRequest) -> dict:
+    # Guarda respuestas de bienvenida para personalizar metas y moneda base.
     return save_onboarding_answers(
         user_id=payload.user_id,
         meta=payload.meta,
@@ -30,4 +32,5 @@ def save_onboarding(payload: SaveOnboardingRequest) -> dict:
 
 @router.get('/onboarding/{user_id}')
 def get_onboarding(user_id: str) -> dict:
+    # Permite recuperar onboarding al volver a iniciar sesión.
     return get_onboarding_answers(user_id)
