@@ -37,6 +37,7 @@ const tabs = [
   { key: "config", label: "Perfil", icon: "account-circle-outline" },
 ];
 
+// Normaliza la URL del backend para evitar errores comunes (espacios, slash final, etc.).
 const normalizeBackendBaseUrl = (value) => {
   if (!value || typeof value !== "string") {
     return null;
@@ -54,6 +55,7 @@ const normalizeBackendBaseUrl = (value) => {
   return `http://${trimmed}`;
 };
 
+// Resuelve la URL del backend según entorno: variable manual > emulador > web > Expo Go.
 const getBackendBaseUrl = () => {
   const envBaseUrl = normalizeBackendBaseUrl(
     process.env.EXPO_PUBLIC_BACKEND_URL,
@@ -99,6 +101,7 @@ const getErrorMessageFromResponse = async (response) => {
   return "";
 };
 
+// Helper centralizado para llamadas POST JSON al backend.
 const postJson = async (path, payload) => {
   const response = await fetch(`${BACKEND_BASE_URL}${path}`, {
     method: "POST",
@@ -116,6 +119,7 @@ const postJson = async (path, payload) => {
   return response.json();
 };
 
+// Preguntas iniciales para personalizar el plan desde el primer uso.
 const landingQuestions = [
   {
     key: "meta",
@@ -164,6 +168,7 @@ const landingQuestions = [
   },
 ];
 
+// Helpers de fechas para construir gráficos/agrupaciones sin depender de librerías externas.
 const toDateKey = (date) => date.toISOString().slice(0, 10);
 const parseDateKey = (dateKey) => {
   const [year, month, day] = dateKey.split("-").map(Number);
@@ -230,6 +235,7 @@ const getPeriodLabel = (value, granularity) => {
   return value.toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
 };
 
+// Capa visual global para mantener la misma estética en onboarding y app principal.
 const AppBackground = ({ children }) => (
   <View style={styles.backgroundFrame}>
     <LinearGradient
@@ -258,6 +264,7 @@ const AppBackground = ({ children }) => (
   </View>
 );
 
+// Gráfico circular por segmentos (simulado con pequeñas barras rotadas para React Native puro).
 const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
   const normalizedSegments = Array.isArray(segments)
     ? segments.filter((segment) => Number(segment?.piePercent) > 0)
@@ -323,6 +330,7 @@ const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
 
 export default function App() {
   const insets = useSafeAreaInsets();
+  // Estado principal del dominio (ahorro, deudas, perfil y asistente).
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState("");
   const [userPhoto, setUserPhoto] = useState("");
@@ -382,10 +390,12 @@ export default function App() {
     },
   ]);
 
+  // Sistema de gamificación: puntos por bloques de ahorro invertido.
   const pointsPerBlock = 50;
   const currencyBlockValue = selectedCurrency === "USD" ? 100 : 100000;
   const currentMonthKey = new Date().toISOString().slice(0, 7);
 
+  // Filtra solo movimientos del mes actual para métricas del dashboard.
   const monthlyTransactions = useMemo(
     () => transactions.filter((tx) => tx.date.startsWith(currentMonthKey)),
     [transactions, currentMonthKey],
@@ -515,6 +525,7 @@ export default function App() {
     }));
   }, [cards, savedTotalAcrossCards]);
 
+  // Prepara barras históricas (día/semana/mes) mezclando ahorro y pagos de deuda.
   const flowBars = useMemo(() => {
     const ordered = [...transactions].sort((a, b) =>
       a.date.localeCompare(b.date),
@@ -650,6 +661,7 @@ export default function App() {
     }
   };
 
+  // Login/registro con validaciones de UI antes de enviar al backend.
   const handleSubmitAuth = async () => {
     if (!accountForm.email.trim() || !accountForm.password.trim()) {
       setAuthError("Completa email y contraseña para continuar.");
@@ -730,6 +742,7 @@ export default function App() {
     }
   };
 
+  // Persiste onboarding y habilita el siguiente paso: definir inversión planificada.
   const handleCompleteOnboarding = async () => {
     if (!authUserId) {
       setAuthError(
@@ -784,6 +797,7 @@ export default function App() {
     setIsPlanSetupPending(false);
   };
 
+  // Bitácora simple de movimientos para alimentar historial y gráficos.
   const registerTransaction = (delta, type = "savings") => {
     setTransactions((prev) => [
       {
@@ -924,6 +938,7 @@ export default function App() {
     );
   };
 
+  // Chat con IA: agrega mensaje local, consulta backend y maneja timeout/fallback.
   const handleSendAiMessage = async () => {
     const message = aiInput.trim();
     if (!message || isAiLoading) {
@@ -986,6 +1001,7 @@ export default function App() {
     }
   };
 
+  // Check-in semanal: crea recomendación personalizada con contexto financiero.
   const handleDailyRecommendation = async () => {
     const { spendingControl, savingsAction, debtAction } = dailyCheckInAnswers;
     if (

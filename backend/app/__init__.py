@@ -9,6 +9,7 @@ from app.services.auth_service import init_auth_db
 
 
 def create_app() -> FastAPI:
+    # Punto de entrada del backend: crea app, CORS, startup e inyección de rutas.
     app = FastAPI(title='Tarjetas de ahorro/deuda API', version='0.3.0')
 
     app.add_middleware(
@@ -21,6 +22,7 @@ def create_app() -> FastAPI:
 
     @app.on_event('startup')
     def startup() -> None:
+        # Inicializa cliente/variables de autenticación (Supabase) una sola vez.
         init_auth_db()
 
     app.include_router(health_router)
