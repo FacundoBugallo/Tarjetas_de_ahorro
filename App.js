@@ -44,9 +44,12 @@ const SECTION_HEADER_CONFIG = {
     title: "Plan de ahorro",
     description:
       "Define tus tarjetas, registra aportes y mantén el ritmo de tus metas.",
+    // Color principal para línea lateral y detalles.
     accentColor: "#22C55E",
-    backgroundColor: "#102819",
-    borderColor: "rgba(34, 197, 94, 0.35)",
+    // Color de brillo/tinte suave (integrado sobre fondo oscuro de la app).
+    glowColor: "rgba(34, 197, 94, 0.30)",
+    // Borde con color de sección (editable).
+    borderColor: "rgba(34, 197, 94, 0.30)",
     titleColor: "#F8FAFC",
     descriptionColor: "#CFE9DA",
   },
@@ -55,8 +58,8 @@ const SECTION_HEADER_CONFIG = {
     description:
       "Organiza tus deudas y avanza en cada pago para liberar flujo mensual.",
     accentColor: "#3B82F6",
-    backgroundColor: "#111D32",
-    borderColor: "rgba(59, 130, 246, 0.35)",
+    glowColor: "rgba(59, 130, 246, 0.28)",
+    borderColor: "rgba(59, 130, 246, 0.30)",
     titleColor: "#F8FAFC",
     descriptionColor: "#D6E5FF",
   },
@@ -65,8 +68,8 @@ const SECTION_HEADER_CONFIG = {
     description:
       "Visualiza tu avance mensual y detecta oportunidades de mejora.",
     accentColor: "#A855F7",
-    backgroundColor: "#211430",
-    borderColor: "rgba(168, 85, 247, 0.35)",
+    glowColor: "rgba(168, 85, 247, 0.26)",
+    borderColor: "rgba(168, 85, 247, 0.30)",
     titleColor: "#F8FAFC",
     descriptionColor: "#EAD9FF",
   },
@@ -75,8 +78,8 @@ const SECTION_HEADER_CONFIG = {
     description:
       "Personaliza tu experiencia, moneda y datos principales de la cuenta.",
     accentColor: "#F59E0B",
-    backgroundColor: "#32220B",
-    borderColor: "rgba(245, 158, 11, 0.35)",
+    glowColor: "rgba(245, 158, 11, 0.28)",
+    borderColor: "rgba(245, 158, 11, 0.30)",
     titleColor: "#F8FAFC",
     descriptionColor: "#FFE9BE",
   },
@@ -1537,7 +1540,7 @@ export default function App() {
             title={headerConfig.title}
             description={headerConfig.description}
             accentColor={headerConfig.accentColor}
-            backgroundColor={headerConfig.backgroundColor}
+            glowColor={headerConfig.glowColor}
             borderColor={headerConfig.borderColor}
             titleColor={headerConfig.titleColor}
             descriptionColor={headerConfig.descriptionColor}

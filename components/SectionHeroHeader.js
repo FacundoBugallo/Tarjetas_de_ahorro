@@ -1,10 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function SectionHeroHeader({
   title,
   description,
   accentColor,
-  backgroundColor,
+  glowColor,
   borderColor,
   titleColor,
   descriptionColor,
@@ -14,13 +15,25 @@ export default function SectionHeroHeader({
       style={[
         styles.container,
         {
-          // Fondo personalizable por sección (ahorro/deudas/gráficos/perfil).
-          backgroundColor,
+          // Base oscura translúcida para integrarse al fondo general de la app.
+          backgroundColor: "rgba(20,20,26,0.72)",
           // Borde personalizable por sección para dar identidad visual.
           borderColor,
         },
       ]}
     >
+      {/* Gradiente base igual al lenguaje visual oscuro de la app. */}
+      <LinearGradient
+        colors={["rgba(255,255,255,0.12)", "rgba(255,255,255,0.02)"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.baseGradient}
+        pointerEvents="none"
+      />
+
+      {/* Halo de color por sección para personalización sin romper el fondo global. */}
+      <View style={[styles.glowOrb, { backgroundColor: glowColor }]} pointerEvents="none" />
+
       {/* Barra lateral de acento: cambia el color para diferenciar cada sección. */}
       <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
 
@@ -46,6 +59,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     alignItems: "flex-start",
+    overflow: "hidden",
+  },
+  baseGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  glowOrb: {
+    position: "absolute",
+    width: 170,
+    height: 170,
+    borderRadius: 999,
+    right: -42,
+    top: -95,
+    opacity: 0.65,
   },
   accentBar: {
     width: 6,
