@@ -19,10 +19,10 @@ import CreateCardModal from "./components/CreateCardModal";
 import CreateDebtModal from "./components/CreateDebtModal";
 import DarkButton from "./components/DarkButton";
 import DebtCard from "./components/DebtCard";
-import Header from "./components/Header";
 import HistoryCard from "./components/HistoryCard";
 import SavingsCard from "./components/SavingsCard";
 import SectionHeader from "./components/SectionHeader";
+import SectionHeroHeader from "./components/SectionHeroHeader";
 import SummaryCard from "./components/SummaryCard";
 import UserSummaryModal from "./components/UserSummaryModal";
 import dailyTips from "./data/dailyTips";
@@ -36,6 +36,54 @@ const tabs = [
   { key: "graficos", label: "Gráficos", icon: "chart-line" },
   { key: "config", label: "Perfil", icon: "account-circle-outline" },
 ];
+
+// 🎨 Configuración central de headers por sección.
+// Puedes cambiar aquí títulos, descripciones y colores sin tocar componentes.
+const SECTION_HEADER_CONFIG = {
+  ahorro: {
+    title: "Plan de ahorro",
+    description:
+      "Define tus tarjetas, registra aportes y mantén el ritmo de tus metas.",
+    // Color principal para línea lateral y detalles.
+    accentColor: "#22C55E",
+    // Color de brillo/tinte suave (integrado sobre fondo oscuro de la app).
+    glowColor: "rgba(34, 197, 94, 0.30)",
+    // Borde con color de sección (editable).
+    borderColor: "rgba(34, 197, 94, 0.30)",
+    titleColor: "#F8FAFC",
+    descriptionColor: "#CFE9DA",
+  },
+  deudas: {
+    title: "Plan de deudas",
+    description:
+      "Organiza tus deudas y avanza en cada pago para liberar flujo mensual.",
+    accentColor: "#3B82F6",
+    glowColor: "rgba(59, 130, 246, 0.28)",
+    borderColor: "rgba(59, 130, 246, 0.30)",
+    titleColor: "#F8FAFC",
+    descriptionColor: "#D6E5FF",
+  },
+  graficos: {
+    title: "Análisis y gráficos",
+    description:
+      "Visualiza tu avance mensual y detecta oportunidades de mejora.",
+    accentColor: "#A855F7",
+    glowColor: "rgba(168, 85, 247, 0.26)",
+    borderColor: "rgba(168, 85, 247, 0.30)",
+    titleColor: "#F8FAFC",
+    descriptionColor: "#EAD9FF",
+  },
+  config: {
+    title: "Perfil y configuraciones",
+    description:
+      "Personaliza tu experiencia, moneda y datos principales de la cuenta.",
+    accentColor: "#F59E0B",
+    glowColor: "rgba(245, 158, 11, 0.28)",
+    borderColor: "rgba(245, 158, 11, 0.30)",
+    titleColor: "#F8FAFC",
+    descriptionColor: "#FFE9BE",
+  },
+};
 
 // Normaliza la URL del backend para evitar errores comunes (espacios, slash final, etc.).
 const normalizeBackendBaseUrl = (value) => {
@@ -1469,6 +1517,9 @@ export default function App() {
   const isSavingsTab = activeTab === "ahorro";
   const isDebtTab = activeTab === "deudas";
   const currentPlan = isDebtTab ? "deudas" : "ahorro";
+  const headerConfig = isSavingsTab || isDebtTab
+    ? SECTION_HEADER_CONFIG[currentPlan]
+    : SECTION_HEADER_CONFIG[activeTab];
 
   return (
     <AppBackground>
@@ -1485,15 +1536,14 @@ export default function App() {
         keyExtractor={(item) => item.key}
         contentContainerStyle={styles.scrollContent}
         ListHeaderComponent={
-          <Header
-            isDarkMode={isDarkMode}
-            userName={userName}
-            levelLabel={levelLabel}
-            pointsLabel={pointsLabel}
-            profilePhoto={userPhoto}
-            activePlan={currentPlan}
-            onOpenProfile={() => setActiveTab("config")}
-            showActionButtons={isSavingsTab || isDebtTab}
+          <SectionHeroHeader
+            title={headerConfig.title}
+            description={headerConfig.description}
+            accentColor={headerConfig.accentColor}
+            glowColor={headerConfig.glowColor}
+            borderColor={headerConfig.borderColor}
+            titleColor={headerConfig.titleColor}
+            descriptionColor={headerConfig.descriptionColor}
           />
         }
         renderItem={() => (
