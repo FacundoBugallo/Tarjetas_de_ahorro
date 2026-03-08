@@ -2,23 +2,23 @@ import { StyleSheet, Text, View } from 'react-native';
 import DarkButton from './DarkButton';
 import { formatCurrency } from '../utils/formatters';
 
-export default function DebtCard({ debt, onAddPayment, onRemovePayment, isDarkMode, currencyCode }) {
+export default function DebtCard({ debt, onAddPayment, onRemovePayment,  currencyCode }) {
   const remaining = Math.max(debt.totalToPay - debt.paidAmount, 0);
 
   return (
-    <View style={[styles.card, isDarkMode ? styles.cardDark : styles.cardLight]}>
+    <View style={[styles.card, styles.cardDark]}>
       <View style={styles.headerRow}>
-        <Text style={[styles.title, isDarkMode ? styles.titleDark : styles.titleLight]}>{debt.name}</Text>
-        <Text style={[styles.tag, isDarkMode ? styles.tagDark : styles.tagLight]}>{debt.cadence}</Text>
+        <Text style={[styles.title, styles.titleDark]}>{debt.name}</Text>
+        <Text style={[styles.tag, styles.tagDark]}>{debt.cadence}</Text>
       </View>
 
-      <Text style={[styles.summary, isDarkMode ? styles.textDark : styles.textLight]}>
+      <Text style={[styles.summary, styles.textDark]}>
         A pagar para cancelar: {formatCurrency(debt.totalToPay, currencyCode)}
       </Text>
-      <Text style={[styles.summary, isDarkMode ? styles.textDark : styles.textLight]}>
+      <Text style={[styles.summary, styles.textDark]}>
         Cuota por periodo: {formatCurrency(debt.paymentAmount, currencyCode)}
       </Text>
-      <Text style={[styles.summary, isDarkMode ? styles.textDark : styles.textLight]}>
+      <Text style={[styles.summary, styles.textDark]}>
         Pagado: {formatCurrency(debt.paidAmount, currencyCode)} • Resta: {formatCurrency(remaining, currencyCode)}
       </Text>
 

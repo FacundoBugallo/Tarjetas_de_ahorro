@@ -2,25 +2,25 @@ import { StyleSheet, Text, View } from 'react-native';
 import palette from '../theme/colors';
 import { formatCurrency } from '../utils/formatters';
 
-export default function SummaryCard({ plannedInvestment, actualInvestment, isDarkMode, currencyCode }) {
+export default function SummaryCard({ plannedInvestment, actualInvestment,  currencyCode }) {
   const remaining = Math.max(plannedInvestment - actualInvestment, 0);
 
   return (
-    <View style={[styles.summaryCard, isDarkMode ? styles.summaryCardDark : styles.summaryCardLight]}>
+    <View style={[styles.summaryCard, styles.summaryCardDark]}>
       <View>
-        <Text style={[styles.summaryLabel, isDarkMode ? styles.summaryLabelDark : styles.summaryLabelLight]}>
+        <Text style={[styles.summaryLabel, styles.summaryLabelDark]}>
           Destinado a ahorrar 🎯
         </Text>
-        <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
+        <Text style={[styles.summaryValue, styles.summaryValueDark]}>
           {formatCurrency(plannedInvestment, currencyCode)}
         </Text>
       </View>
-      <View style={[styles.summaryDivider, isDarkMode ? styles.summaryDividerDark : styles.summaryDividerLight]} />
+      <View style={[styles.summaryDivider, styles.summaryDividerDark]} />
       <View>
-        <Text style={[styles.summaryLabel, isDarkMode ? styles.summaryLabelDark : styles.summaryLabelLight]}>
+        <Text style={[styles.summaryLabel, styles.summaryLabelDark]}>
           Ahorrado real 💰
         </Text>
-        <Text style={[styles.summaryValue, isDarkMode ? styles.summaryValueDark : styles.summaryValueLight]}>
+        <Text style={[styles.summaryValue, styles.summaryValueDark]}>
           {formatCurrency(actualInvestment, currencyCode)}
         </Text>
         <Text style={styles.remainingText}>Restante: {formatCurrency(remaining, currencyCode)}</Text>

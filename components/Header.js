@@ -7,7 +7,6 @@ export default function Header({
   levelLabel,
   pointsLabel,
   profilePhoto,
-  isDarkMode,
   onTogglePlan,
   activePlan,
   showActionButtons,
@@ -22,7 +21,7 @@ export default function Header({
       <View
         style={[
           styles.header,
-          isDarkMode ? styles.headerDark : styles.headerLight,
+          styles.headerDark,
         ]}
       >
         <View style={styles.marbleOrbLarge} />
@@ -46,7 +45,7 @@ export default function Header({
               <Text
                 style={[
                   styles.greeting,
-                  isDarkMode ? styles.greetingDark : styles.greetingLight,
+                  styles.greetingDark,
                 ]}
               >
                 Hola, {userName} 👋
@@ -54,7 +53,7 @@ export default function Header({
               <Text
                 style={[
                   styles.level,
-                  isDarkMode ? styles.levelDark : styles.levelLight,
+                  styles.levelDark,
                 ]}
               >
                 {levelLabel}
@@ -65,15 +64,13 @@ export default function Header({
           <View
             style={[
               styles.pointsPill,
-              isDarkMode ? styles.pointsPillDark : styles.pointsPillLight,
+              styles.pointsPillDark,
             ]}
           >
             <Text
               style={[
                 styles.pointsPillLabel,
-                isDarkMode
-                  ? styles.pointsPillLabelDark
-                  : styles.pointsPillLabelLight,
+                styles.pointsPillLabelDark,
               ]}
             >
               Puntos
@@ -81,9 +78,7 @@ export default function Header({
             <Text
               style={[
                 styles.pointsPillValue,
-                isDarkMode
-                  ? styles.pointsPillValueDark
-                  : styles.pointsPillValueLight,
+                styles.pointsPillValueDark,
               ]}
             >
               {pointsLabel}

@@ -26,7 +26,6 @@ export default function SavingsCard({
   onRemoveContribution,
   onUpdateContribution,
   onDeleteCard,
-  isDarkMode,
   currencyCode,
 }) {
   const [isEditingContribution, setIsEditingContribution] = useState(false);
@@ -66,7 +65,7 @@ export default function SavingsCard({
       </View>
 
       <View style={styles.progressRow}>
-        <View style={[styles.progressTrack, isDarkMode && styles.progressTrackDark]}>
+        <View style={[styles.progressTrack, styles.progressTrackDark]}>
           <View style={[styles.progressFill, { width: `${percentage}%` }]} />
         </View>
         <Text style={[styles.progressText, { color: contentColor }]}>{percentage.toFixed(0)}%</Text>

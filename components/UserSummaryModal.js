@@ -18,7 +18,6 @@ export default function UserSummaryModal({
   plannedInvestment,
   actualInvestment,
   onSave,
-  isDarkMode,
   currencyCode,
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -52,15 +51,15 @@ export default function UserSummaryModal({
   return (
     <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} style={styles.backdrop}>
-        <View style={[styles.sheet, isDarkMode ? styles.sheetDark : styles.sheetLight]} onStartShouldSetResponder={() => true}>
+        <View style={[styles.sheet, styles.sheetDark]} onStartShouldSetResponder={() => true}>
           <View style={styles.headerRow}>
-            <Text style={[styles.title, isDarkMode ? styles.titleDark : styles.titleLight]}>Resumen del usuario</Text>
+            <Text style={[styles.title, styles.titleDark]}>Resumen del usuario</Text>
             <View style={styles.headerActions}>
               <Pressable
                 onPress={() => setIsEditing((prev) => !prev)}
-                style={[styles.secondaryButton, isDarkMode ? styles.secondaryButtonDark : styles.secondaryButtonLight]}
+                style={[styles.secondaryButton, styles.secondaryButtonDark]}
               >
-                <Text style={[styles.secondaryButtonText, isDarkMode ? styles.secondaryButtonTextDark : styles.secondaryButtonTextLight]}>
+                <Text style={[styles.secondaryButtonText, styles.secondaryButtonTextDark]}>
                   {isEditing ? 'Cancelar' : 'Editar'}
                 </Text>
               </Pressable>
@@ -70,42 +69,42 @@ export default function UserSummaryModal({
             </View>
           </View>
 
-          <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Usuario</Text>
+          <View style={[styles.row, styles.rowDark]}>
+            <Text style={[styles.label, styles.labelDark]}>Usuario</Text>
             {isEditing ? (
               <TextInput
                 value={draftName}
                 onChangeText={setDraftName}
-                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                style={[styles.input, styles.inputDark]}
               />
             ) : (
-              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{userName}</Text>
+              <Text style={[styles.value, styles.valueDark]}>{userName}</Text>
             )}
           </View>
-          <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Nivel</Text>
-            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{levelLabel}</Text>
+          <View style={[styles.row, styles.rowDark]}>
+            <Text style={[styles.label, styles.labelDark]}>Nivel</Text>
+            <Text style={[styles.value, styles.valueDark]}>{levelLabel}</Text>
           </View>
-          <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Puntos</Text>
-            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{pointsLabel}</Text>
+          <View style={[styles.row, styles.rowDark]}>
+            <Text style={[styles.label, styles.labelDark]}>Puntos</Text>
+            <Text style={[styles.value, styles.valueDark]}>{pointsLabel}</Text>
           </View>
-          <View style={[styles.row, isDarkMode ? styles.rowDark : styles.rowLight]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Destinado a ahorrar</Text>
+          <View style={[styles.row, styles.rowDark]}>
+            <Text style={[styles.label, styles.labelDark]}>Destinado a ahorrar</Text>
             {isEditing ? (
               <TextInput
                 value={draftPlannedInvestment}
                 onChangeText={setDraftPlannedInvestment}
                 keyboardType="numeric"
-                style={[styles.input, isDarkMode ? styles.inputDark : styles.inputLight]}
+                style={[styles.input, styles.inputDark]}
               />
             ) : (
-              <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(plannedInvestment, currencyCode)}</Text>
+              <Text style={[styles.value, styles.valueDark]}>{formatCurrency(plannedInvestment, currencyCode)}</Text>
             )}
           </View>
           <View style={[styles.row, styles.rowNoDivider]}>
-            <Text style={[styles.label, isDarkMode ? styles.labelDark : styles.labelLight]}>Ahorrado real</Text>
-            <Text style={[styles.value, isDarkMode ? styles.valueDark : styles.valueLight]}>{formatCurrency(actualInvestment, currencyCode)}</Text>
+            <Text style={[styles.label, styles.labelDark]}>Ahorrado real</Text>
+            <Text style={[styles.value, styles.valueDark]}>{formatCurrency(actualInvestment, currencyCode)}</Text>
           </View>
           {isEditing && (
             <Pressable onPress={handleSave} style={styles.saveButton}>
