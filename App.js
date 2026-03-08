@@ -388,7 +388,6 @@ export default function App() {
   const [isCreateDebtVisible, setIsCreateDebtVisible] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
-  const isDarkMode = false;
   const [activeTab, setActiveTab] = useState("ahorro");
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1130,16 +1129,14 @@ export default function App() {
             styles.safeArea,
             styles.rootContainer,
             { paddingTop: insets.top },
-            isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
+            styles.safeAreaDark,
           ]}
         >
           <View style={styles.landingScrollContent}>
           <View
             style={[
               styles.onboardingCard,
-              isDarkMode
-                ? styles.onboardingCardDark
-                : styles.onboardingCardLight,
+              styles.onboardingCardDark,
             ]}
           >
             {!isAuthenticated ? (
@@ -1155,9 +1152,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.onboardingSubtitle,
-                    isDarkMode
-                      ? styles.onboardingSubtitleDark
-                      : styles.onboardingSubtitleLight,
+                    styles.onboardingSubtitleDark,
                   ]}
                 >
                   Primero iniciá sesión o creá tu cuenta para guardar tus datos.
@@ -1203,9 +1198,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.inputLabel,
-                        isDarkMode
-                          ? styles.inputLabelDark
-                          : styles.inputLabelLight,
+                        styles.inputLabelDark,
                       ]}
                     >
                       Nombre
@@ -1217,17 +1210,15 @@ export default function App() {
                       }
                       style={[
                         styles.input,
-                        isDarkMode ? styles.inputDark : styles.inputLight,
+                        styles.inputDark,
                       ]}
                       placeholder="Tu nombre"
-                      placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
+                      placeholderTextColor={"#525252"}
                     />
                     <Text
                       style={[
                         styles.inputLabel,
-                        isDarkMode
-                          ? styles.inputLabelDark
-                          : styles.inputLabelLight,
+                        styles.inputLabelDark,
                       ]}
                     >
                       Foto de perfil
@@ -1238,17 +1229,13 @@ export default function App() {
                           onPress={handlePickProfilePhoto}
                           style={[
                             styles.galleryButton,
-                            isDarkMode
-                              ? styles.galleryButtonDark
-                              : styles.galleryButtonLight,
+                            styles.galleryButtonDark,
                           ]}
                         >
                           <Text
                             style={[
                               styles.galleryButtonText,
-                              isDarkMode
-                                ? styles.galleryButtonTextDark
-                                : styles.galleryButtonTextLight,
+                              styles.galleryButtonTextDark,
                             ]}
                           >
                             Abrir galería
@@ -1258,9 +1245,7 @@ export default function App() {
                           <Text
                             style={[
                               styles.helperText,
-                              isDarkMode
-                                ? styles.helperTextDark
-                                : styles.helperTextLight,
+                              styles.helperTextDark,
                             ]}
                           >
                             Foto cargada ✅
@@ -1275,10 +1260,10 @@ export default function App() {
                         }
                         style={[
                           styles.input,
-                          isDarkMode ? styles.inputDark : styles.inputLight,
+                          styles.inputDark,
                         ]}
                         placeholder="https://..."
-                        placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
+                        placeholderTextColor={"#525252"}
                         autoCapitalize="none"
                       />
                     )}
@@ -1288,7 +1273,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.inputLabel,
-                    isDarkMode ? styles.inputLabelDark : styles.inputLabelLight,
+                    styles.inputLabelDark,
                   ]}
                 >
                   Email
@@ -1300,17 +1285,17 @@ export default function App() {
                   }
                   style={[
                     styles.input,
-                    isDarkMode ? styles.inputDark : styles.inputLight,
+                    styles.inputDark,
                   ]}
                   placeholder="tu@email.com"
-                  placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
+                  placeholderTextColor={"#525252"}
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
                 <Text
                   style={[
                     styles.inputLabel,
-                    isDarkMode ? styles.inputLabelDark : styles.inputLabelLight,
+                    styles.inputLabelDark,
                   ]}
                 >
                   Contraseña
@@ -1322,10 +1307,10 @@ export default function App() {
                   }
                   style={[
                     styles.input,
-                    isDarkMode ? styles.inputDark : styles.inputLight,
+                    styles.inputDark,
                   ]}
                   placeholder="Mínimo 6 caracteres"
-                  placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
+                  placeholderTextColor={"#525252"}
                   secureTextEntry
                 />
 
@@ -1360,9 +1345,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.onboardingSubtitle,
-                    isDarkMode
-                      ? styles.onboardingSubtitleDark
-                      : styles.onboardingSubtitleLight,
+                    styles.onboardingSubtitleDark,
                   ]}
                 >
                   Ahora respondé estas preguntas para personalizar tu plan.
@@ -1373,9 +1356,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.inputLabel,
-                        isDarkMode
-                          ? styles.inputLabelDark
-                          : styles.inputLabelLight,
+                        styles.inputLabelDark,
                       ]}
                     >
                       {question.title}
@@ -1395,16 +1376,14 @@ export default function App() {
                             }
                             style={[
                               styles.moodOption,
-                              isDarkMode
-                                ? styles.moodOptionDark
-                                : styles.moodOptionLight,
+                              styles.moodOptionDark,
                               isActive && styles.moodOptionActive,
                             ]}
                           >
                             <Text
                               style={[
                                 styles.moodOptionText,
-                                isDarkMode && styles.moodOptionTextDark,
+                                styles.moodOptionTextDark,
                                 isActive && styles.moodOptionTextActive,
                               ]}
                             >
@@ -1437,7 +1416,7 @@ export default function App() {
 
           </View>
           </View>
-          <StatusBar style={isDarkMode ? "light" : "dark"} />
+          <StatusBar style={"light"} />
         </View>
       </AppBackground>
     );
@@ -1451,21 +1430,19 @@ export default function App() {
             styles.safeArea,
             styles.rootContainer,
             { paddingTop: insets.top },
-            isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
+            styles.safeAreaDark,
           ]}
         >
           <View
             style={[
               styles.onboardingCard,
-              isDarkMode ? styles.onboardingCardDark : styles.onboardingCardLight,
+              styles.onboardingCardDark,
             ]}
           >
           <Text
             style={[
               styles.onboardingTitle,
-              isDarkMode
-                ? styles.onboardingTitleDark
-                : styles.onboardingTitleLight,
+              styles.onboardingTitleDark,
             ]}
           >
             Último paso 🚀
@@ -1473,9 +1450,7 @@ export default function App() {
           <Text
             style={[
               styles.onboardingSubtitle,
-              isDarkMode
-                ? styles.onboardingSubtitleDark
-                : styles.onboardingSubtitleLight,
+              styles.onboardingSubtitleDark,
             ]}
           >
             ¿Cuánto vas a destinar a ahorrar este mes?
@@ -1487,15 +1462,15 @@ export default function App() {
             keyboardType="numeric"
             style={[
               styles.input,
-              isDarkMode ? styles.inputDark : styles.inputLight,
+              styles.inputDark,
             ]}
             placeholder="0"
-            placeholderTextColor={isDarkMode ? "#525252" : "#737373"}
+            placeholderTextColor={"#525252"}
           />
           <Text
             style={[
               styles.helperText,
-              isDarkMode ? styles.helperTextDark : styles.helperTextLight,
+              styles.helperTextDark,
             ]}
           >
             Este valor se muestra en "Destinado a ahorrar" y lo usaremos como tu
@@ -1528,7 +1503,7 @@ export default function App() {
           styles.safeArea,
           styles.rootContainer,
           { paddingTop: insets.top, paddingBottom: insets.bottom },
-          isDarkMode ? styles.safeAreaDark : styles.safeAreaLight,
+          styles.safeAreaDark,
         ]}
       >
         <FlatList
@@ -1553,24 +1528,19 @@ export default function App() {
                 <SummaryCard
                   plannedInvestment={plannedInvestment}
                   actualInvestment={totalInvestedThisMonth}
-                  isDarkMode={isDarkMode}
                   currencyCode={selectedCurrency}
                 />
                 {bonusAvailable > 0 && (
                   <View
                     style={[
                       styles.overflowNotice,
-                      isDarkMode
-                        ? styles.overflowNoticeDark
-                        : styles.overflowNoticeLight,
+                      styles.overflowNoticeDark,
                     ]}
                   >
                     <Text
                       style={[
                         styles.overflowNoticeText,
-                        isDarkMode
-                          ? styles.overflowNoticeTextDark
-                          : styles.overflowNoticeTextLight,
+                        styles.overflowNoticeTextDark,
                       ]}
                     >
                       Tienes un sobrante disponible de{" "}
@@ -1580,17 +1550,13 @@ export default function App() {
                       onPress={handleWithdrawBonus}
                       style={[
                         styles.withdrawBonusButton,
-                        isDarkMode
-                          ? styles.withdrawBonusButtonDark
-                          : styles.withdrawBonusButtonLight,
+                        styles.withdrawBonusButtonDark,
                       ]}
                     >
                       <Text
                         style={[
                           styles.withdrawBonusButtonText,
-                          isDarkMode
-                            ? styles.withdrawBonusButtonTextDark
-                            : styles.withdrawBonusButtonTextLight,
+                          styles.withdrawBonusButtonTextDark,
                         ]}
                       >
                         Retirar sobrante
@@ -1602,17 +1568,13 @@ export default function App() {
                   <View
                     style={[
                       styles.overflowNotice,
-                      isDarkMode
-                        ? styles.overflowNoticeDark
-                        : styles.overflowNoticeLight,
+                      styles.overflowNoticeDark,
                     ]}
                   >
                     <Text
                       style={[
                         styles.overflowNoticeText,
-                        isDarkMode
-                          ? styles.overflowNoticeTextDark
-                          : styles.overflowNoticeTextLight,
+                        styles.overflowNoticeTextDark,
                       ]}
                     >
                       {bonusWithdrawnMessage}
@@ -1635,7 +1597,6 @@ export default function App() {
                       ? setIsCreateDebtVisible(true)
                       : setIsCreateCardVisible(true)
                   }
-                  isDarkMode={isDarkMode}
                   showCreateButton={false}
                 />
 
@@ -1645,9 +1606,7 @@ export default function App() {
                       <Text
                         style={[
                           styles.emptyText,
-                          isDarkMode
-                            ? styles.emptyTextDark
-                            : styles.emptyTextLight,
+                          styles.emptyTextDark,
                         ]}
                       >
                         No hay deudas cargadas. Crea tu primera tarjeta de deuda
@@ -1660,8 +1619,7 @@ export default function App() {
                           debt={debt}
                           onAddPayment={handleAddDebtPayment}
                           onRemovePayment={handleRemoveDebtPayment}
-                          isDarkMode={isDarkMode}
-                          currencyCode={selectedCurrency}
+                                  currencyCode={selectedCurrency}
                         />
                       ))
                     )
@@ -1669,9 +1627,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.emptyText,
-                        isDarkMode
-                          ? styles.emptyTextDark
-                          : styles.emptyTextLight,
+                        styles.emptyTextDark,
                       ]}
                     >
                       No hay tarjetas creadas. Crea la primera para empezar.
@@ -1685,8 +1641,7 @@ export default function App() {
                         onRemoveContribution={handleRemoveContribution}
                         onUpdateContribution={handleUpdateContribution}
                         onDeleteCard={handleDeleteCard}
-                        isDarkMode={isDarkMode}
-                        currencyCode={selectedCurrency}
+                              currencyCode={selectedCurrency}
                       />
                     ))
                   )}
@@ -1695,8 +1650,7 @@ export default function App() {
                 {currentPlan === "ahorro" && (
                   <HistoryCard
                     items={historyItems}
-                    isDarkMode={isDarkMode}
-                    currencyCode={selectedCurrency}
+                      currencyCode={selectedCurrency}
                   />
                 )}
               </>
@@ -1706,13 +1660,13 @@ export default function App() {
               <View
                 style={[
                   styles.panel,
-                  isDarkMode ? styles.panelDark : styles.panelLight,
+                  styles.panelDark,
                 ]}
               >
                 <Text
                   style={[
                     styles.panelTitle,
-                    isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
+                    styles.panelTitleDark,
                   ]}
                 >
                   Comparativo mensual
@@ -1720,9 +1674,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.panelSubTitle,
-                    isDarkMode
-                      ? styles.panelSubTitleDark
-                      : styles.panelSubTitleLight,
+                    styles.panelSubTitleDark,
                   ]}
                 >
                   Destinado a ahorrar vs ahorrado real (reinicio mensual).
@@ -1733,9 +1685,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.chartName,
-                        isDarkMode
-                          ? styles.chartNameDark
-                          : styles.chartNameLight,
+                        styles.chartNameDark,
                       ]}
                     >
                       Destinado
@@ -1760,9 +1710,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.chartName,
-                        isDarkMode
-                          ? styles.chartNameDark
-                          : styles.chartNameLight,
+                        styles.chartNameDark,
                       ]}
                     >
                       Ahorrado real
@@ -1785,7 +1733,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.chartPercent,
-                    isDarkMode && styles.chartPercentDark,
+                    styles.chartPercentDark,
                   ]}
                 >
                   {plannedVsActualPercent.toFixed(0)}% del objetivo mensual
@@ -1797,9 +1745,7 @@ export default function App() {
                       style={[
                         styles.panelTitle,
                         styles.innerTitle,
-                        isDarkMode
-                          ? styles.panelTitleDark
-                          : styles.panelTitleLight,
+                        styles.panelTitleDark,
                       ]}
                     >
                       Avance por tarjeta
@@ -1810,9 +1756,7 @@ export default function App() {
                           <Text
                             style={[
                               styles.chartName,
-                              isDarkMode
-                                ? styles.chartNameDark
-                                : styles.chartNameLight,
+                              styles.chartNameDark,
                             ]}
                           >
                             {item.name}
@@ -1820,7 +1764,7 @@ export default function App() {
                           <Text
                             style={[
                               styles.chartPercent,
-                              isDarkMode && styles.chartPercentDark,
+                              styles.chartPercentDark,
                             ]}
                           >
                             {item.percent.toFixed(0)}%
@@ -1848,9 +1792,7 @@ export default function App() {
                       style={[
                         styles.panelTitle,
                         styles.innerTitle,
-                        isDarkMode
-                          ? styles.panelTitleDark
-                          : styles.panelTitleLight,
+                        styles.panelTitleDark,
                       ]}
                     >
                       Torta: participación de todas las tarjetas
@@ -1869,7 +1811,7 @@ export default function App() {
                             style={[
                               styles.pieLabel,
                               styles.multiPieLegendText,
-                              isDarkMode ? styles.chartNameDark : styles.chartNameLight,
+                              styles.chartNameDark,
                             ]}
                           >
                             {item.name}: {item.piePercentRounded}% ({formatCurrency(item.savedAmount, selectedCurrency)})
@@ -1886,9 +1828,7 @@ export default function App() {
                       style={[
                         styles.panelTitle,
                         styles.innerTitle,
-                        isDarkMode
-                          ? styles.panelTitleDark
-                          : styles.panelTitleLight,
+                        styles.panelTitleDark,
                       ]}
                     >
                       Torta individual por tarjeta
@@ -1920,9 +1860,7 @@ export default function App() {
                           <Text
                             style={[
                               styles.pieLabel,
-                              isDarkMode
-                                ? styles.chartNameDark
-                                : styles.chartNameLight,
+                              styles.chartNameDark,
                             ]}
                           >
                             {card.name}: {percentSaved.toFixed(0)}% ahorrado /{" "}
@@ -1940,9 +1878,7 @@ export default function App() {
                       style={[
                         styles.panelTitle,
                         styles.innerTitle,
-                        isDarkMode
-                          ? styles.panelTitleDark
-                          : styles.panelTitleLight,
+                        styles.panelTitleDark,
                       ]}
                     >
                       Torta individual por deuda
@@ -1974,9 +1910,7 @@ export default function App() {
                           <Text
                             style={[
                               styles.pieLabel,
-                              isDarkMode
-                                ? styles.chartNameDark
-                                : styles.chartNameLight,
+                              styles.chartNameDark,
                             ]}
                           >
                             {debt.name}: {percentPaid.toFixed(0)}% pagado /{" "}
@@ -1992,9 +1926,7 @@ export default function App() {
                   <Text
                     style={[
                       styles.snapshotMessage,
-                      isDarkMode
-                        ? styles.panelSubTitleDark
-                        : styles.panelSubTitleLight,
+                      styles.panelSubTitleDark,
                     ]}
                   >
                     {snapshotMessage}
@@ -2005,7 +1937,7 @@ export default function App() {
                   style={[
                     styles.panelTitle,
                     styles.innerTitle,
-                    isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
+                    styles.panelTitleDark,
                   ]}
                 >
                   Balance mensual de movimientos
@@ -2015,9 +1947,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.chartName,
-                        isDarkMode
-                          ? styles.chartNameDark
-                          : styles.chartNameLight,
+                        styles.chartNameDark,
                       ]}
                     >
                       Aporte neto
@@ -2043,9 +1973,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.chartName,
-                        isDarkMode
-                          ? styles.chartNameDark
-                          : styles.chartNameLight,
+                        styles.chartNameDark,
                       ]}
                     >
                       Retiro neto
@@ -2070,9 +1998,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.panelSubTitle,
-                    isDarkMode
-                      ? styles.panelSubTitleDark
-                      : styles.panelSubTitleLight,
+                    styles.panelSubTitleDark,
                   ]}
                 >
                   Este indicador muestra el balance neto del mes para evitar
@@ -2082,17 +2008,13 @@ export default function App() {
                 <View
                   style={[
                     styles.coachingCard,
-                    isDarkMode
-                      ? styles.coachingCardDark
-                      : styles.coachingCardLight,
+                    styles.coachingCardDark,
                   ]}
                 >
                   <Text
                     style={[
                       styles.coachingTitle,
-                      isDarkMode
-                        ? styles.emotionalTitleDark
-                        : styles.emotionalTitleLight,
+                      styles.emotionalTitleDark,
                     ]}
                   >
                     Micro coaching diario
@@ -2100,9 +2022,7 @@ export default function App() {
                   <Text
                     style={[
                       styles.coachingTip,
-                      isDarkMode
-                        ? styles.panelSubTitleDark
-                        : styles.panelSubTitleLight,
+                      styles.panelSubTitleDark,
                     ]}
                   >
                     {dailyTip}
@@ -2115,13 +2035,13 @@ export default function App() {
               <View
                 style={[
                   styles.panel,
-                  isDarkMode ? styles.panelDark : styles.panelLight,
+                  styles.panelDark,
                 ]}
               >
                 <Text
                   style={[
                     styles.panelTitle,
-                    isDarkMode ? styles.panelTitleDark : styles.panelTitleLight,
+                    styles.panelTitleDark,
                   ]}
                 >
                   Configuraciones ⚙️
@@ -2129,9 +2049,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.panelSubTitle,
-                    isDarkMode
-                      ? styles.panelSubTitleDark
-                      : styles.panelSubTitleLight,
+                    styles.panelSubTitleDark,
                   ]}
                 >
                   Gestiona tema, moneda, foto y datos de tu perfil desde un solo
@@ -2161,7 +2079,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.inputLabel,
-                    isDarkMode ? styles.inputLabelDark : styles.inputLabelLight,
+                    styles.inputLabelDark,
                   ]}
                 >
                   Moneda de cotización
@@ -2194,7 +2112,7 @@ export default function App() {
                 <Text
                   style={[
                     styles.inputLabel,
-                    isDarkMode ? styles.inputLabelDark : styles.inputLabelLight,
+                    styles.inputLabelDark,
                   ]}
                 >
                   Foto de usuario
@@ -2204,15 +2122,13 @@ export default function App() {
                     onPress={handlePickProfilePhoto}
                     style={[
                       styles.galleryButton,
-                      isDarkMode ? styles.galleryButtonDark : styles.galleryButtonLight,
+                      styles.galleryButtonDark,
                     ]}
                   >
                     <Text
                       style={[
                         styles.galleryButtonText,
-                        isDarkMode
-                          ? styles.galleryButtonTextDark
-                          : styles.galleryButtonTextLight,
+                        styles.galleryButtonTextDark,
                       ]}
                     >
                       Cambiar desde galería
@@ -2224,10 +2140,10 @@ export default function App() {
                     onChangeText={setUserPhoto}
                     style={[
                       styles.input,
-                      isDarkMode ? styles.inputDark : styles.inputLight,
+                      styles.inputDark,
                     ]}
                     placeholder="https://..."
-                    placeholderTextColor={isDarkMode ? "#737373" : "#6B7280"}
+                    placeholderTextColor={"#737373"}
                     autoCapitalize="none"
                   />
                 )}
@@ -2252,17 +2168,13 @@ export default function App() {
                 <View
                   style={[
                     styles.coachingCard,
-                    isDarkMode
-                      ? styles.coachingCardDark
-                      : styles.coachingCardLight,
+                    styles.coachingCardDark,
                   ]}
                 >
                   <Text
                     style={[
                       styles.coachingTitle,
-                      isDarkMode
-                        ? styles.emotionalTitleDark
-                        : styles.emotionalTitleLight,
+                      styles.emotionalTitleDark,
                     ]}
                   >
                     Políticas y copyright
@@ -2270,9 +2182,7 @@ export default function App() {
                   <Text
                     style={[
                       styles.panelSubTitle,
-                      isDarkMode
-                        ? styles.panelSubTitleDark
-                        : styles.panelSubTitleLight,
+                      styles.panelSubTitleDark,
                     ]}
                   >
                     © {new Date().getFullYear()} Tarjetas de Ahorro. Todos los
@@ -2281,9 +2191,7 @@ export default function App() {
                   <Text
                     style={[
                       styles.panelSubTitle,
-                      isDarkMode
-                        ? styles.panelSubTitleDark
-                        : styles.panelSubTitleLight,
+                      styles.panelSubTitleDark,
                     ]}
                   >
                     Al usar la app aceptas las políticas de privacidad y uso
@@ -2300,7 +2208,7 @@ export default function App() {
         style={[
           styles.bottomNav,
           { bottom: Math.max(insets.bottom, 12) },
-          isDarkMode ? styles.bottomNavDark : styles.bottomNavLight,
+          styles.bottomNavDark,
         ]}
       >
         <Pressable
@@ -2393,7 +2301,6 @@ export default function App() {
         plannedInvestment={plannedInvestment}
         actualInvestment={totalInvestedThisMonth}
         onSave={handleSaveUser}
-        isDarkMode={isDarkMode}
         currencyCode={selectedCurrency}
       />
       <CreateCardModal
@@ -2406,7 +2313,7 @@ export default function App() {
         onClose={() => setIsCreateDebtVisible(false)}
         onSubmit={handleAddDebtCard}
       />
-        <StatusBar style={isDarkMode ? "light" : "dark"} />
+        <StatusBar style={"light"} />
       </View>
     </AppBackground>
   );
