@@ -13,14 +13,13 @@ import { monthDayOptions, weekdayOptions } from '../utils/schedule';
 
 const colorPalette = [
   '#FFFFFF',
-  '#FEF3C7',
-  '#DBEAFE',
-  '#DCFCE7',
-  '#FCE7F3',
-  '#E9D5FF',
-  '#D1FAE5',
-  '#FEE2E2',
-  '#262626',
+  '#F59E0B',
+  '#3B82F6',
+  '#22C55E',
+  '#EC4899',
+  '#A855F7',
+  '#14B8A6',
+  '#EF4444',
   '#000000',
 ];
 const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
