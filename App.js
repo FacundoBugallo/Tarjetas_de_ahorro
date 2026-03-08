@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -135,6 +135,35 @@ const getBackendBaseUrl = () => {
 
 const BACKEND_BASE_URL = getBackendBaseUrl();
 const AI_REQUEST_TIMEOUT_MS = 15000;
+const SESSION_STORAGE_KEY = "tarjetas_ahorro_session";
+let runtimeSession = "";
+
+const getStoredSession = async () => {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return window.localStorage.getItem(SESSION_STORAGE_KEY) || "";
+  }
+
+  return runtimeSession;
+};
+
+const saveStoredSession = async (payload) => {
+  const serialized = JSON.stringify(payload);
+
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, serialized);
+    return;
+  }
+
+  runtimeSession = serialized;
+};
+
+const clearStoredSession = async () => {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  }
+
+  runtimeSession = "";
+};
 
 const getErrorMessageFromResponse = async (response) => {
   try {
@@ -210,7 +239,7 @@ const landingQuestions = [
     key: "monedaBase",
     title: "5. ¿Qué moneda vas a usar?",
     options: [
-      { key: "COP", label: "Pesos (COP)" },
+      { key: "ARS", label: "Pesos argentinos (ARS)" },
       { key: "USD", label: "Dólares (USD)" },
     ],
   },
@@ -322,7 +351,7 @@ const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
     return null;
   }
 
-  const totalSlices = 180;
+  const totalSlices = 140;
   const radius = (size - strokeWidth) / 2;
   const slices = normalizedSegments.flatMap((segment) => {
     const count = Math.max(1, Math.round((segment.piePercent / 100) * totalSlices));
@@ -350,12 +379,12 @@ const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
             style={[
               styles.multiPieSlice,
               {
-                width: 2,
-                height: strokeWidth + 2,
+                width: 3,
+                height: strokeWidth + 4,
                 backgroundColor: slice.color,
                 borderRadius: 999,
-                top: size / 2 - (strokeWidth + 2) / 2,
-                left: size / 2 - 1,
+                top: size / 2 - (strokeWidth + 4) / 2,
+                left: size / 2 - 1.5,
                 transform: [{ rotate: `${angle}deg` }, { translateY: -radius }],
               },
             ]}
@@ -390,6 +419,8 @@ export default function App() {
   const [bonusAvailable, setBonusAvailable] = useState(0);
   const [activeTab, setActiveTab] = useState("ahorro");
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [isAppBootstrapping, setIsAppBootstrapping] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authUserId, setAuthUserId] = useState(null);
@@ -409,9 +440,9 @@ export default function App() {
     ritmo: "semanal",
     prioridad: "equilibrio",
     acompanamiento: "ligero",
-    monedaBase: "COP",
+    monedaBase: "ARS",
   });
-  const [selectedCurrency, setSelectedCurrency] = useState("COP");
+  const [selectedCurrency, setSelectedCurrency] = useState("ARS");
   const [transactions, setTransactions] = useState([]);
   const chartGranularity = "month";
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState("");
@@ -664,6 +695,96 @@ export default function App() {
     : false;
   const isNativeMobile = Platform.OS === "ios" || Platform.OS === "android";
 
+  useEffect(() => {
+    const hydrateSession = async () => {
+      try {
+        const rawSession = await getStoredSession();
+        if (!rawSession) {
+          return;
+        }
+
+        const savedSession = JSON.parse(rawSession);
+        if (!savedSession?.userId || !savedSession?.name) {
+          return;
+        }
+
+        setAuthUserId(savedSession.userId);
+        setUserName(savedSession.name);
+        setUserPhoto(savedSession.photo || "");
+        setAccountForm((prev) => ({
+          ...prev,
+          name: savedSession.name,
+          email: savedSession.email || prev.email,
+          photo: savedSession.photo || prev.photo,
+        }));
+        setSelectedCurrency(savedSession.currency || "ARS");
+        setIsAuthenticated(true);
+        setHasSeenWelcome(true);
+
+        if (savedSession.onboardingDone) {
+          setIsOnboardingDone(true);
+          setIsPlanSetupPending(false);
+        }
+      } catch {
+        await clearStoredSession();
+      } finally {
+        setIsAppBootstrapping(false);
+      }
+    };
+
+    hydrateSession();
+  }, []);
+
+  const persistSession = async (overrides = {}) => {
+    if (!authUserId && !overrides.userId) {
+      return;
+    }
+
+    await saveStoredSession({
+      userId: overrides.userId || authUserId,
+      name: overrides.name || userName,
+      email: overrides.email || accountForm.email.trim(),
+      photo: overrides.photo ?? userPhoto,
+      onboardingDone:
+        typeof overrides.onboardingDone === "boolean"
+          ? overrides.onboardingDone
+          : isOnboardingDone,
+      currency: overrides.currency || selectedCurrency,
+    });
+  };
+
+  const handleLogout = async () => {
+    await clearStoredSession();
+    setIsAuthenticated(false);
+    setIsOnboardingDone(false);
+    setIsPlanSetupPending(false);
+    setHasSeenWelcome(true);
+    setAuthUserId(null);
+    setAuthMode("login");
+    setAuthError("");
+    setAccountForm({ name: "", email: "", password: "", photo: "" });
+    setUserName("");
+    setUserPhoto("");
+    setSelectedCurrency("ARS");
+    setLandingAnswers((prev) => ({ ...prev, monedaBase: "ARS" }));
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated || !authUserId) {
+      return;
+    }
+
+    persistSession();
+  }, [
+    isAuthenticated,
+    authUserId,
+    userName,
+    userPhoto,
+    accountForm.email,
+    isOnboardingDone,
+    selectedCurrency,
+  ]);
+
   const dailyTip = useMemo(() => {
     if (!dailyTips.length) {
       return "Cada día cuenta: una pequeña acción hoy vale más que esperar al momento perfecto.";
@@ -754,6 +875,7 @@ export default function App() {
         setUserPhoto(accountForm.photo.trim());
       }
       setAccountForm((prev) => ({ ...prev, name: user.name }));
+      setHasSeenWelcome(true);
       setIsAuthenticated(true);
 
       try {
@@ -774,7 +896,7 @@ export default function App() {
             acompanamiento: onboardingData.acompanamiento,
             monedaBase: onboardingData.moneda_base,
           });
-          setSelectedCurrency(onboardingData.moneda_base || "COP");
+          setSelectedCurrency(onboardingData.moneda_base || "ARS");
           setOnboardingCompletedAt(new Date().toISOString());
           setIsOnboardingDone(true);
           setIsPlanSetupPending(false);
@@ -1120,6 +1242,53 @@ export default function App() {
       `Retiraste el sobrante de ${formatCurrency(amountWithdrawn, selectedCurrency)}.`,
     );
   };
+
+  if (isAppBootstrapping) {
+    return (
+      <AppBackground>
+        <View
+          style={[
+            styles.safeArea,
+            styles.rootContainer,
+            { paddingTop: insets.top },
+            styles.safeAreaDark,
+          ]}
+        >
+          <View style={[styles.onboardingCard, styles.onboardingCardDark]}>
+            <Text style={[styles.onboardingTitle, styles.glowTitle]}>Cargando…</Text>
+            <Text style={[styles.onboardingSubtitle, styles.onboardingSubtitleDark]}>
+              Recuperando tu sesión y configuración.
+            </Text>
+          </View>
+        </View>
+      </AppBackground>
+    );
+  }
+
+  if (!hasSeenWelcome && !isAuthenticated) {
+    return (
+      <AppBackground>
+        <View
+          style={[
+            styles.safeArea,
+            styles.rootContainer,
+            { paddingTop: insets.top },
+            styles.safeAreaDark,
+          ]}
+        >
+          <View style={[styles.onboardingCard, styles.onboardingCardDark]}>
+            <Text style={[styles.onboardingTitle, styles.glowTitle]}>Tarjetas de Ahorro</Text>
+            <Text style={[styles.onboardingSubtitle, styles.onboardingSubtitleDark]}>
+              Te damos la bienvenida. En segundos podrás organizar ahorros, deudas y ver tu avance con gráficos claros.
+            </Text>
+            <Pressable onPress={() => setHasSeenWelcome(true)} style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Comenzar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </AppBackground>
+    );
+  }
 
   if (!isOnboardingDone) {
     return (
@@ -1690,7 +1859,7 @@ export default function App() {
                     >
                       Destinado
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#F59E0B", textShadowColor: "rgba(245,158,11,0.7)" }]}>
                       {formatCurrency(plannedInvestment, selectedCurrency)}
                     </Text>
                   </View>
@@ -1715,7 +1884,7 @@ export default function App() {
                     >
                       Ahorrado real
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#22C55E", textShadowColor: "rgba(34,197,94,0.7)" }]}>
                       {formatCurrency(totalInvestedThisMonth, selectedCurrency)}
                     </Text>
                   </View>
@@ -1952,7 +2121,7 @@ export default function App() {
                     >
                       Aporte neto
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#8B5CF6", textShadowColor: "rgba(139,92,246,0.7)" }]}>
                       {formatCurrency(flowTotals.invested, selectedCurrency)}
                     </Text>
                   </View>
@@ -1962,7 +2131,7 @@ export default function App() {
                         styles.chartFill,
                         {
                           width: `${flowTotals.invested > 0 ? 100 : 0}%`,
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "#8B5CF6",
                         },
                       ]}
                     />
@@ -1978,7 +2147,7 @@ export default function App() {
                     >
                       Retiro neto
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#F43F5E", textShadowColor: "rgba(244,63,94,0.7)" }]}>
                       {formatCurrency(flowTotals.withdrawn, selectedCurrency)}
                     </Text>
                   </View>
@@ -1988,7 +2157,7 @@ export default function App() {
                         styles.chartFill,
                         {
                           width: `${flowTotals.withdrawn > 0 ? 100 : 0}%`,
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "#F43F5E",
                         },
                       ]}
                     />
@@ -2085,7 +2254,7 @@ export default function App() {
                   Moneda de cotización
                 </Text>
                 <View style={styles.currencyRow}>
-                  {["COP", "USD"].map((currency) => {
+                  {["ARS", "USD"].map((currency) => {
                     const isActive = selectedCurrency === currency;
                     return (
                       <Pressable
@@ -2163,6 +2332,12 @@ export default function App() {
                   <Text style={styles.profileButtonText}>
                     Editar datos del usuario
                   </Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleLogout}
+                  style={[styles.profileButton, styles.logoutButton]}
+                >
+                  <Text style={styles.profileButtonText}>Cerrar sesión</Text>
                 </Pressable>
 
                 <View
@@ -2412,15 +2587,15 @@ const styles = StyleSheet.create({
   chartPercentDark: { color: "#FFFFFF" },
   chartTrack: {
     height: 16,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#1F2937",
     borderRadius: 999,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: "#374151",
   },
   chartFill: { height: "100%", borderRadius: 999 },
-  plannedFill: { backgroundColor: "#FFFFFF" },
-  actualFill: { backgroundColor: "#FFFFFF" },
+  plannedFill: { backgroundColor: "#F59E0B" },
+  actualFill: { backgroundColor: "#22C55E" },
   chartAmount: { color: "#019006",
     fontSize: 16,
     fontWeight: "700",
@@ -2439,7 +2614,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   pieFill: { height: "100%" },
-  pieFillSecondary: { height: "100%", backgroundColor: "#D4D4D4" },
+  pieFillSecondary: { height: "100%", backgroundColor: "#4B5563" },
   pieLabel: { marginTop: 6, fontSize: 12, fontWeight: "700" },
   pieTitle: { marginBottom: 10, fontSize: 14, fontWeight: "800", textAlign: "center" },
   pieCircle: {
@@ -2478,9 +2653,13 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   multiPieHole: {
-    backgroundColor: "#101010",
+    backgroundColor: "#07070B",
     borderWidth: 1,
-    borderColor: "#1F2937",
+    borderColor: "#312E81",
+    shadowColor: "#8B5CF6",
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
   },
   multiPieLegend: {
     marginTop: 10,
@@ -2638,6 +2817,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   profileButtonText: { color: "#FFFFFF", fontWeight: "800" },
+  logoutButton: {
+    backgroundColor: "#7F1D1D",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+  },
   overflowNotice: {
     marginBottom: 16,
     borderRadius: 10,

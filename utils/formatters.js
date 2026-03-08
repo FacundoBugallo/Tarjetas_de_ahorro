@@ -1,5 +1,9 @@
-export const formatCurrency = (value, currencyCode = 'COP') => {
-  const locale = currencyCode === 'USD' ? 'en-US' : 'es-CO';
+export const formatCurrency = (value, currencyCode = 'ARS') => {
+  const localeByCurrency = {
+    USD: 'en-US',
+    ARS: 'es-AR',
+  };
+  const locale = localeByCurrency[currencyCode] || 'es-AR';
 
   return new Intl.NumberFormat(locale, {
     style: 'currency',
