@@ -1,5 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import DarkButton from './DarkButton';
 
 export default function CreateDebtModal({ visible, onClose, onSubmit }) {
@@ -19,7 +20,13 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
     const installment = Number(paymentAmount);
     const monthsCount = Number(months);
 
-    if (!name.trim() || Number.isNaN(installment) || Number.isNaN(monthsCount) || installment <= 0 || monthsCount <= 0) {
+    if (
+      !name.trim() ||
+      Number.isNaN(installment) ||
+      Number.isNaN(monthsCount) ||
+      installment <= 0 ||
+      monthsCount <= 0
+    ) {
       return;
     }
 
@@ -39,16 +46,22 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={[styles.card, styles.cardDark]}>
-          <Text style={[styles.title, styles.titleDark]}>Nueva tarjeta de deuda</Text>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable onPress={onClose} style={styles.overlay}>
+        <LinearGradient
+          colors={['rgba(8,9,12,0.98)', 'rgba(24,26,35,0.96)', 'rgba(10,10,14,0.98)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.card}
+          onStartShouldSetResponder={() => true}
+        >
+          <Text style={styles.title}>Nueva tarjeta de deuda</Text>
 
           <TextInput
             value={name}
             onChangeText={setName}
             placeholder="Ej: Tarjeta visa"
-            style={[styles.input, styles.inputDark]}
+            style={styles.input}
             placeholderTextColor="#A3A3A3"
           />
           <TextInput
@@ -56,7 +69,7 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
             onChangeText={setPaymentAmount}
             placeholder="Pago por periodo (ej: 150)"
             keyboardType="numeric"
-            style={[styles.input, styles.inputDark]}
+            style={styles.input}
             placeholderTextColor="#A3A3A3"
           />
           <TextInput
@@ -64,7 +77,7 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
             onChangeText={setMonths}
             placeholder="Meses (ej: 3)"
             keyboardType="numeric"
-            style={[styles.input, styles.inputDark]}
+            style={styles.input}
             placeholderTextColor="#A3A3A3"
           />
 
@@ -100,8 +113,8 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
               onPress={handleCreate}
             />
           </View>
-        </View>
-      </View>
+        </LinearGradient>
+      </Pressable>
     </Modal>
   );
 }
@@ -109,33 +122,33 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.62)',
     justifyContent: 'center',
-    padding: 20,
+    padding: 16,
   },
   card: {
-    borderRadius: 16,
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+    borderRadius: 22,
     borderWidth: 1,
-    padding: 16,
+    borderColor: 'rgba(255,255,255,0.18)',
+    padding: 18,
     gap: 12,
+    shadowColor: '#000000',
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 18,
   },
-  cardDark: { backgroundColor: '#090909', borderColor: '#303030' },
-  cardLight: { backgroundColor: '#FFFFFF', borderColor: '#D1D1D1' },
-  title: { fontSize: 18, fontWeight: '800' },
-  titleDark: { color: '#FFFFFF' },
-  titleLight: { color: '#111111' },
+  title: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: 'rgba(255,255,255,0.2)',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
-    color: '#111111',
-  },
-  inputDark: {
-    borderColor: '#404040',
-    backgroundColor: '#141414',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     color: '#FFFFFF',
   },
   frequencyRow: { flexDirection: 'row', gap: 8 },

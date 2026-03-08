@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -135,6 +135,35 @@ const getBackendBaseUrl = () => {
 
 const BACKEND_BASE_URL = getBackendBaseUrl();
 const AI_REQUEST_TIMEOUT_MS = 15000;
+const SESSION_STORAGE_KEY = "tarjetas_ahorro_session";
+let runtimeSession = "";
+
+const getStoredSession = async () => {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return window.localStorage.getItem(SESSION_STORAGE_KEY) || "";
+  }
+
+  return runtimeSession;
+};
+
+const saveStoredSession = async (payload) => {
+  const serialized = JSON.stringify(payload);
+
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, serialized);
+    return;
+  }
+
+  runtimeSession = serialized;
+};
+
+const clearStoredSession = async () => {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  }
+
+  runtimeSession = "";
+};
 
 const getErrorMessageFromResponse = async (response) => {
   try {
@@ -210,7 +239,7 @@ const landingQuestions = [
     key: "monedaBase",
     title: "5. ¿Qué moneda vas a usar?",
     options: [
-      { key: "COP", label: "Pesos (COP)" },
+      { key: "ARS", label: "Pesos argentinos (ARS)" },
       { key: "USD", label: "Dólares (USD)" },
     ],
   },
@@ -322,7 +351,7 @@ const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
     return null;
   }
 
-  const totalSlices = 180;
+  const totalSlices = 140;
   const radius = (size - strokeWidth) / 2;
   const slices = normalizedSegments.flatMap((segment) => {
     const count = Math.max(1, Math.round((segment.piePercent / 100) * totalSlices));
@@ -350,12 +379,12 @@ const MultiSegmentPieChart = ({ segments, size = 180, strokeWidth = 38 }) => {
             style={[
               styles.multiPieSlice,
               {
-                width: 2,
-                height: strokeWidth + 2,
+                width: 3,
+                height: strokeWidth + 4,
                 backgroundColor: slice.color,
                 borderRadius: 999,
-                top: size / 2 - (strokeWidth + 2) / 2,
-                left: size / 2 - 1,
+                top: size / 2 - (strokeWidth + 4) / 2,
+                left: size / 2 - 1.5,
                 transform: [{ rotate: `${angle}deg` }, { translateY: -radius }],
               },
             ]}
@@ -381,7 +410,6 @@ export default function App() {
   // Estado principal del dominio (ahorro, deudas, perfil y asistente).
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState("");
-  const [userPhoto, setUserPhoto] = useState("");
   const [plannedInvestment, setPlannedInvestment] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
@@ -390,6 +418,8 @@ export default function App() {
   const [bonusAvailable, setBonusAvailable] = useState(0);
   const [activeTab, setActiveTab] = useState("ahorro");
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [isAppBootstrapping, setIsAppBootstrapping] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authUserId, setAuthUserId] = useState(null);
@@ -401,7 +431,6 @@ export default function App() {
     name: "",
     email: "",
     password: "",
-    photo: "",
   });
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState("");
   const [landingAnswers, setLandingAnswers] = useState({
@@ -409,9 +438,9 @@ export default function App() {
     ritmo: "semanal",
     prioridad: "equilibrio",
     acompanamiento: "ligero",
-    monedaBase: "COP",
+    monedaBase: "ARS",
   });
-  const [selectedCurrency, setSelectedCurrency] = useState("COP");
+  const [selectedCurrency, setSelectedCurrency] = useState("ARS");
   const [transactions, setTransactions] = useState([]);
   const chartGranularity = "month";
   const [bonusWithdrawnMessage, setBonusWithdrawnMessage] = useState("");
@@ -662,7 +691,90 @@ export default function App() {
     ? startOfWeek(new Date(lastWeeklyCheckInDate)).getTime() ===
       currentWeekStartDate.getTime()
     : false;
-  const isNativeMobile = Platform.OS === "ios" || Platform.OS === "android";
+  useEffect(() => {
+    const hydrateSession = async () => {
+      try {
+        const rawSession = await getStoredSession();
+        if (!rawSession) {
+          return;
+        }
+
+        const savedSession = JSON.parse(rawSession);
+        if (!savedSession?.userId || !savedSession?.name) {
+          return;
+        }
+
+        setAuthUserId(savedSession.userId);
+        setUserName(savedSession.name);
+        setAccountForm((prev) => ({
+          ...prev,
+          name: savedSession.name,
+          email: savedSession.email || prev.email,
+        }));
+        setSelectedCurrency(savedSession.currency || "ARS");
+        setIsAuthenticated(true);
+        setHasSeenWelcome(true);
+
+        if (savedSession.onboardingDone) {
+          setIsOnboardingDone(true);
+          setIsPlanSetupPending(false);
+        }
+      } catch {
+        await clearStoredSession();
+      } finally {
+        setIsAppBootstrapping(false);
+      }
+    };
+
+    hydrateSession();
+  }, []);
+
+  const persistSession = async (overrides = {}) => {
+    if (!authUserId && !overrides.userId) {
+      return;
+    }
+
+    await saveStoredSession({
+      userId: overrides.userId || authUserId,
+      name: overrides.name || userName,
+      email: overrides.email || accountForm.email.trim(),
+      onboardingDone:
+        typeof overrides.onboardingDone === "boolean"
+          ? overrides.onboardingDone
+          : isOnboardingDone,
+      currency: overrides.currency || selectedCurrency,
+    });
+  };
+
+  const handleLogout = async () => {
+    await clearStoredSession();
+    setIsAuthenticated(false);
+    setIsOnboardingDone(false);
+    setIsPlanSetupPending(false);
+    setHasSeenWelcome(true);
+    setAuthUserId(null);
+    setAuthMode("login");
+    setAuthError("");
+    setAccountForm({ name: "", email: "", password: "" });
+    setUserName("");
+    setSelectedCurrency("ARS");
+    setLandingAnswers((prev) => ({ ...prev, monedaBase: "ARS" }));
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated || !authUserId) {
+      return;
+    }
+
+    persistSession();
+  }, [
+    isAuthenticated,
+    authUserId,
+    userName,
+    accountForm.email,
+    isOnboardingDone,
+    selectedCurrency,
+  ]);
 
   const dailyTip = useMemo(() => {
     if (!dailyTips.length) {
@@ -678,36 +790,6 @@ export default function App() {
     return dailyTips[dayOfYear % dailyTips.length];
   }, [toDateKey(new Date())]);
 
-  const handlePickProfilePhoto = async () => {
-    try {
-      const picker = await import("expo-image-picker");
-      const permission = await picker.requestMediaLibraryPermissionsAsync();
-
-      if (!permission.granted) {
-        setAuthError("Necesitamos permiso para abrir la galería.");
-        return;
-      }
-
-      const result = await picker.launchImageLibraryAsync({
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (result.canceled || !result.assets?.length) {
-        return;
-      }
-
-      const selectedUri = result.assets[0].uri || "";
-      setAccountForm((prev) => ({ ...prev, photo: selectedUri }));
-      setUserPhoto(selectedUri);
-      setAuthError("");
-    } catch {
-      setAuthError(
-        "No pudimos abrir la galería. Instala expo-image-picker para habilitar esta función.",
-      );
-    }
-  };
-
   // Login/registro con validaciones de UI antes de enviar al backend.
   const handleSubmitAuth = async () => {
     if (!accountForm.email.trim() || !accountForm.password.trim()) {
@@ -717,15 +799,6 @@ export default function App() {
 
     if (authMode === "register" && !accountForm.name.trim()) {
       setAuthError("Para crear la cuenta necesitamos tu nombre.");
-      return;
-    }
-
-    if (authMode === "register" && !accountForm.photo.trim()) {
-      setAuthError(
-        isNativeMobile
-          ? "Selecciona una foto desde la galería para crear la cuenta."
-          : "Agrega la foto de perfil (URL) para crear la cuenta.",
-      );
       return;
     }
 
@@ -750,10 +823,8 @@ export default function App() {
       const user = await postJson(endpoint, payload);
       setAuthUserId(user.id);
       setUserName(user.name);
-      if (authMode === "register") {
-        setUserPhoto(accountForm.photo.trim());
-      }
       setAccountForm((prev) => ({ ...prev, name: user.name }));
+      setHasSeenWelcome(true);
       setIsAuthenticated(true);
 
       try {
@@ -774,7 +845,7 @@ export default function App() {
             acompanamiento: onboardingData.acompanamiento,
             monedaBase: onboardingData.moneda_base,
           });
-          setSelectedCurrency(onboardingData.moneda_base || "COP");
+          setSelectedCurrency(onboardingData.moneda_base || "ARS");
           setOnboardingCompletedAt(new Date().toISOString());
           setIsOnboardingDone(true);
           setIsPlanSetupPending(false);
@@ -827,7 +898,6 @@ export default function App() {
 
     setSelectedCurrency(landingAnswers.monedaBase);
     setUserName(accountForm.name.trim() || nameByGoal[landingAnswers.meta]);
-    setUserPhoto(accountForm.photo.trim());
     setOnboardingCompletedAt(new Date().toISOString());
     setIsOnboardingDone(true);
     setIsPlanSetupPending(true);
@@ -1121,6 +1191,53 @@ export default function App() {
     );
   };
 
+  if (isAppBootstrapping) {
+    return (
+      <AppBackground>
+        <View
+          style={[
+            styles.safeArea,
+            styles.rootContainer,
+            { paddingTop: insets.top },
+            styles.safeAreaDark,
+          ]}
+        >
+          <View style={[styles.onboardingCard, styles.onboardingCardDark]}>
+            <Text style={[styles.onboardingTitle, styles.glowTitle]}>Cargando…</Text>
+            <Text style={[styles.onboardingSubtitle, styles.onboardingSubtitleDark]}>
+              Recuperando tu sesión y configuración.
+            </Text>
+          </View>
+        </View>
+      </AppBackground>
+    );
+  }
+
+  if (!hasSeenWelcome && !isAuthenticated) {
+    return (
+      <AppBackground>
+        <View
+          style={[
+            styles.safeArea,
+            styles.rootContainer,
+            { paddingTop: insets.top },
+            styles.safeAreaDark,
+          ]}
+        >
+          <View style={[styles.onboardingCard, styles.onboardingCardDark]}>
+            <Text style={[styles.onboardingTitle, styles.glowTitle]}>Tarjetas de Ahorro</Text>
+            <Text style={[styles.onboardingSubtitle, styles.onboardingSubtitleDark]}>
+              Te damos la bienvenida. En segundos podrás organizar ahorros, deudas y ver tu avance con gráficos claros.
+            </Text>
+            <Pressable onPress={() => setHasSeenWelcome(true)} style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Comenzar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </AppBackground>
+    );
+  }
+
   if (!isOnboardingDone) {
     return (
       <AppBackground>
@@ -1215,58 +1332,6 @@ export default function App() {
                       placeholder="Tu nombre"
                       placeholderTextColor={"#525252"}
                     />
-                    <Text
-                      style={[
-                        styles.inputLabel,
-                        styles.inputLabelDark,
-                      ]}
-                    >
-                      Foto de perfil
-                    </Text>
-                    {isNativeMobile ? (
-                      <>
-                        <Pressable
-                          onPress={handlePickProfilePhoto}
-                          style={[
-                            styles.galleryButton,
-                            styles.galleryButtonDark,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.galleryButtonText,
-                              styles.galleryButtonTextDark,
-                            ]}
-                          >
-                            Abrir galería
-                          </Text>
-                        </Pressable>
-                        {!!accountForm.photo && (
-                          <Text
-                            style={[
-                              styles.helperText,
-                              styles.helperTextDark,
-                            ]}
-                          >
-                            Foto cargada ✅
-                          </Text>
-                        )}
-                      </>
-                    ) : (
-                      <TextInput
-                        value={accountForm.photo}
-                        onChangeText={(value) =>
-                          setAccountForm((prev) => ({ ...prev, photo: value }))
-                        }
-                        style={[
-                          styles.input,
-                          styles.inputDark,
-                        ]}
-                        placeholder="https://..."
-                        placeholderTextColor={"#525252"}
-                        autoCapitalize="none"
-                      />
-                    )}
                   </>
                 )}
 
@@ -1690,7 +1755,7 @@ export default function App() {
                     >
                       Destinado
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#F59E0B", textShadowColor: "rgba(245,158,11,0.7)" }]}>
                       {formatCurrency(plannedInvestment, selectedCurrency)}
                     </Text>
                   </View>
@@ -1715,7 +1780,7 @@ export default function App() {
                     >
                       Ahorrado real
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#22C55E", textShadowColor: "rgba(34,197,94,0.7)" }]}>
                       {formatCurrency(totalInvestedThisMonth, selectedCurrency)}
                     </Text>
                   </View>
@@ -1952,7 +2017,7 @@ export default function App() {
                     >
                       Aporte neto
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#8B5CF6", textShadowColor: "rgba(139,92,246,0.7)" }]}>
                       {formatCurrency(flowTotals.invested, selectedCurrency)}
                     </Text>
                   </View>
@@ -1962,7 +2027,7 @@ export default function App() {
                         styles.chartFill,
                         {
                           width: `${flowTotals.invested > 0 ? 100 : 0}%`,
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "#8B5CF6",
                         },
                       ]}
                     />
@@ -1978,7 +2043,7 @@ export default function App() {
                     >
                       Retiro neto
                     </Text>
-                    <Text style={styles.chartAmount}>
+                    <Text style={[styles.chartAmount, { color: "#F43F5E", textShadowColor: "rgba(244,63,94,0.7)" }]}>
                       {formatCurrency(flowTotals.withdrawn, selectedCurrency)}
                     </Text>
                   </View>
@@ -1988,7 +2053,7 @@ export default function App() {
                         styles.chartFill,
                         {
                           width: `${flowTotals.withdrawn > 0 ? 100 : 0}%`,
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "#F43F5E",
                         },
                       ]}
                     />
@@ -2085,7 +2150,7 @@ export default function App() {
                   Moneda de cotización
                 </Text>
                 <View style={styles.currencyRow}>
-                  {["COP", "USD"].map((currency) => {
+                  {["ARS", "USD"].map((currency) => {
                     const isActive = selectedCurrency === currency;
                     return (
                       <Pressable
@@ -2109,45 +2174,6 @@ export default function App() {
                   })}
                 </View>
 
-                <Text
-                  style={[
-                    styles.inputLabel,
-                    styles.inputLabelDark,
-                  ]}
-                >
-                  Foto de usuario
-                </Text>
-                {isNativeMobile ? (
-                  <Pressable
-                    onPress={handlePickProfilePhoto}
-                    style={[
-                      styles.galleryButton,
-                      styles.galleryButtonDark,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.galleryButtonText,
-                        styles.galleryButtonTextDark,
-                      ]}
-                    >
-                      Cambiar desde galería
-                    </Text>
-                  </Pressable>
-                ) : (
-                  <TextInput
-                    value={userPhoto}
-                    onChangeText={setUserPhoto}
-                    style={[
-                      styles.input,
-                      styles.inputDark,
-                    ]}
-                    placeholder="https://..."
-                    placeholderTextColor={"#737373"}
-                    autoCapitalize="none"
-                  />
-                )}
-
                 <Pressable
                   onPress={handleContactPress}
                   style={styles.profileButton}
@@ -2163,6 +2189,12 @@ export default function App() {
                   <Text style={styles.profileButtonText}>
                     Editar datos del usuario
                   </Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleLogout}
+                  style={[styles.profileButton, styles.logoutButton]}
+                >
+                  <Text style={styles.profileButtonText}>Cerrar sesión</Text>
                 </Pressable>
 
                 <View
@@ -2412,15 +2444,15 @@ const styles = StyleSheet.create({
   chartPercentDark: { color: "#FFFFFF" },
   chartTrack: {
     height: 16,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#1F2937",
     borderRadius: 999,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: "#374151",
   },
   chartFill: { height: "100%", borderRadius: 999 },
-  plannedFill: { backgroundColor: "#FFFFFF" },
-  actualFill: { backgroundColor: "#FFFFFF" },
+  plannedFill: { backgroundColor: "#F59E0B" },
+  actualFill: { backgroundColor: "#22C55E" },
   chartAmount: { color: "#019006",
     fontSize: 16,
     fontWeight: "700",
@@ -2439,7 +2471,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   pieFill: { height: "100%" },
-  pieFillSecondary: { height: "100%", backgroundColor: "#D4D4D4" },
+  pieFillSecondary: { height: "100%", backgroundColor: "#4B5563" },
   pieLabel: { marginTop: 6, fontSize: 12, fontWeight: "700" },
   pieTitle: { marginBottom: 10, fontSize: 14, fontWeight: "800", textAlign: "center" },
   pieCircle: {
@@ -2478,9 +2510,13 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   multiPieHole: {
-    backgroundColor: "#101010",
+    backgroundColor: "#07070B",
     borderWidth: 1,
-    borderColor: "#1F2937",
+    borderColor: "#312E81",
+    shadowColor: "#8B5CF6",
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
   },
   multiPieLegend: {
     marginTop: 10,
@@ -2638,6 +2674,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   profileButtonText: { color: "#FFFFFF", fontWeight: "800" },
+  logoutButton: {
+    backgroundColor: "#7F1D1D",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+  },
   overflowNotice: {
     marginBottom: 16,
     borderRadius: 10,
