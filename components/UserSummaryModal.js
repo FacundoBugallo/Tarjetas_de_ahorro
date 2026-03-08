@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { formatCurrency } from '../utils/formatters';
 
 export default function UserSummaryModal({
@@ -49,19 +51,20 @@ export default function UserSummaryModal({
   };
 
   return (
-    <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} style={styles.backdrop}>
-        <View style={[styles.sheet, styles.sheetDark]} onStartShouldSetResponder={() => true}>
+        <LinearGradient
+          colors={['rgba(8,9,12,0.98)', 'rgba(24,26,35,0.96)', 'rgba(10,10,14,0.98)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.window}
+          onStartShouldSetResponder={() => true}
+        >
           <View style={styles.headerRow}>
-            <Text style={[styles.title, styles.titleDark]}>Resumen del usuario</Text>
+            <Text style={styles.title}>Resumen del usuario</Text>
             <View style={styles.headerActions}>
-              <Pressable
-                onPress={() => setIsEditing((prev) => !prev)}
-                style={[styles.secondaryButton, styles.secondaryButtonDark]}
-              >
-                <Text style={[styles.secondaryButtonText, styles.secondaryButtonTextDark]}>
-                  {isEditing ? 'Cancelar' : 'Editar'}
-                </Text>
+              <Pressable onPress={() => setIsEditing((prev) => !prev)} style={styles.secondaryButton}>
+                <Text style={styles.secondaryButtonText}>{isEditing ? 'Cancelar' : 'Editar'}</Text>
               </Pressable>
               <Pressable onPress={onClose} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>Cerrar</Text>
@@ -69,49 +72,50 @@ export default function UserSummaryModal({
             </View>
           </View>
 
-          <View style={[styles.row, styles.rowDark]}>
-            <Text style={[styles.label, styles.labelDark]}>Usuario</Text>
-            {isEditing ? (
-              <TextInput
-                value={draftName}
-                onChangeText={setDraftName}
-                style={[styles.input, styles.inputDark]}
-              />
-            ) : (
-              <Text style={[styles.value, styles.valueDark]}>{userName}</Text>
-            )}
-          </View>
-          <View style={[styles.row, styles.rowDark]}>
-            <Text style={[styles.label, styles.labelDark]}>Nivel</Text>
-            <Text style={[styles.value, styles.valueDark]}>{levelLabel}</Text>
-          </View>
-          <View style={[styles.row, styles.rowDark]}>
-            <Text style={[styles.label, styles.labelDark]}>Puntos</Text>
-            <Text style={[styles.value, styles.valueDark]}>{pointsLabel}</Text>
-          </View>
-          <View style={[styles.row, styles.rowDark]}>
-            <Text style={[styles.label, styles.labelDark]}>Destinado a ahorrar</Text>
-            {isEditing ? (
-              <TextInput
-                value={draftPlannedInvestment}
-                onChangeText={setDraftPlannedInvestment}
-                keyboardType="numeric"
-                style={[styles.input, styles.inputDark]}
-              />
-            ) : (
-              <Text style={[styles.value, styles.valueDark]}>{formatCurrency(plannedInvestment, currencyCode)}</Text>
-            )}
-          </View>
-          <View style={[styles.row, styles.rowNoDivider]}>
-            <Text style={[styles.label, styles.labelDark]}>Ahorrado real</Text>
-            <Text style={[styles.value, styles.valueDark]}>{formatCurrency(actualInvestment, currencyCode)}</Text>
-          </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.body}>
+              <View style={styles.row}>
+                <Text style={styles.label}>Usuario</Text>
+                {isEditing ? (
+                  <TextInput value={draftName} onChangeText={setDraftName} style={styles.input} />
+                ) : (
+                  <Text style={styles.value}>{userName}</Text>
+                )}
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Nivel</Text>
+                <Text style={styles.value}>{levelLabel}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Puntos</Text>
+                <Text style={styles.value}>{pointsLabel}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Destinado a ahorrar</Text>
+                {isEditing ? (
+                  <TextInput
+                    value={draftPlannedInvestment}
+                    onChangeText={setDraftPlannedInvestment}
+                    keyboardType="numeric"
+                    style={styles.input}
+                  />
+                ) : (
+                  <Text style={styles.value}>{formatCurrency(plannedInvestment, currencyCode)}</Text>
+                )}
+              </View>
+              <View style={[styles.row, styles.rowNoDivider]}>
+                <Text style={styles.label}>Ahorrado real</Text>
+                <Text style={styles.value}>{formatCurrency(actualInvestment, currencyCode)}</Text>
+              </View>
+            </View>
+          </ScrollView>
+
           {isEditing && (
             <Pressable onPress={handleSave} style={styles.saveButton}>
               <Text style={styles.saveButtonText}>Guardar cambios</Text>
             </Pressable>
           )}
-        </View>
+        </LinearGradient>
       </Pressable>
     </Modal>
   );
@@ -120,33 +124,41 @@ export default function UserSummaryModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(2, 6, 23, 0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.62)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
   },
-  sheet: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    gap: 12,
+  window: {
+    width: '100%',
+    maxWidth: 520,
+    maxHeight: '86%',
+    borderRadius: 22,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    shadowColor: '#000000',
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 18,
   },
-  sheetDark: { backgroundColor: '#000000' },
-  sheetLight: { backgroundColor: '#FFFFFF' },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 10,
+    gap: 8,
   },
   headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  title: { fontSize: 18, fontWeight: '700' },
-  titleDark: { color: '#F9FAFB' },
-  titleLight: { color: '#000000' },
-  secondaryButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999 },
-  secondaryButtonDark: { backgroundColor: '#FFFFFF' },
-  secondaryButtonLight: { backgroundColor: '#000000' },
-  secondaryButtonText: { fontSize: 12, fontWeight: '600' },
-  secondaryButtonTextDark: { color: '#000000' },
-  secondaryButtonTextLight: { color: '#FFFFFF' },
+  title: { fontSize: 18, fontWeight: '700', color: '#F9FAFB' },
+  secondaryButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+  },
+  secondaryButtonText: { fontSize: 12, fontWeight: '600', color: '#000000' },
   closeButton: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 6,
@@ -154,9 +166,12 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   closeButtonText: { color: '#000000', fontSize: 12, fontWeight: '600' },
-  row: { paddingVertical: 10, borderBottomWidth: 1 },
-  rowDark: { borderBottomColor: '#FFFFFF' },
-  rowLight: { borderBottomColor: '#E5E7EB' },
+  body: { gap: 2 },
+  row: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.2)',
+  },
   rowNoDivider: { borderBottomWidth: 0 },
   input: {
     marginTop: 6,
@@ -165,17 +180,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
+    borderColor: 'rgba(255,255,255,0.2)',
+    color: '#F9FAFB',
+    backgroundColor: 'rgba(255,255,255,0.07)',
   },
-  inputDark: { borderColor: '#FFFFFF', color: '#F9FAFB', backgroundColor: '#111111' },
-  inputLight: { borderColor: '#000000', color: '#000000', backgroundColor: '#FFFFFF' },
-  label: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
-  labelDark: { color: '#FFFFFF' },
-  labelLight: { color: '#000000' },
-  value: { marginTop: 6, fontSize: 16, fontWeight: '600' },
-  valueDark: { color: '#F9FAFB' },
-  valueLight: { color: '#000000' },
+  label: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.4, color: '#E5E7EB' },
+  value: { marginTop: 6, fontSize: 16, fontWeight: '600', color: '#F9FAFB' },
   saveButton: {
-    marginTop: 4,
+    marginTop: 10,
     backgroundColor: '#FFFFFF',
     paddingVertical: 10,
     borderRadius: 14,

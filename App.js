@@ -410,7 +410,6 @@ export default function App() {
   // Estado principal del dominio (ahorro, deudas, perfil y asistente).
   const [cards, setCards] = useState(savingsCards);
   const [userName, setUserName] = useState("");
-  const [userPhoto, setUserPhoto] = useState("");
   const [plannedInvestment, setPlannedInvestment] = useState(0);
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [isCreateCardVisible, setIsCreateCardVisible] = useState(false);
@@ -432,7 +431,6 @@ export default function App() {
     name: "",
     email: "",
     password: "",
-    photo: "",
   });
   const [draftPlannedInvestment, setDraftPlannedInvestment] = useState("");
   const [landingAnswers, setLandingAnswers] = useState({
@@ -693,7 +691,90 @@ export default function App() {
     ? startOfWeek(new Date(lastWeeklyCheckInDate)).getTime() ===
       currentWeekStartDate.getTime()
     : false;
-  const isNativeMobile = Platform.OS === "ios" || Platform.OS === "android";
+  useEffect(() => {
+    const hydrateSession = async () => {
+      try {
+        const rawSession = await getStoredSession();
+        if (!rawSession) {
+          return;
+        }
+
+        const savedSession = JSON.parse(rawSession);
+        if (!savedSession?.userId || !savedSession?.name) {
+          return;
+        }
+
+        setAuthUserId(savedSession.userId);
+        setUserName(savedSession.name);
+        setAccountForm((prev) => ({
+          ...prev,
+          name: savedSession.name,
+          email: savedSession.email || prev.email,
+        }));
+        setSelectedCurrency(savedSession.currency || "ARS");
+        setIsAuthenticated(true);
+        setHasSeenWelcome(true);
+
+        if (savedSession.onboardingDone) {
+          setIsOnboardingDone(true);
+          setIsPlanSetupPending(false);
+        }
+      } catch {
+        await clearStoredSession();
+      } finally {
+        setIsAppBootstrapping(false);
+      }
+    };
+
+    hydrateSession();
+  }, []);
+
+  const persistSession = async (overrides = {}) => {
+    if (!authUserId && !overrides.userId) {
+      return;
+    }
+
+    await saveStoredSession({
+      userId: overrides.userId || authUserId,
+      name: overrides.name || userName,
+      email: overrides.email || accountForm.email.trim(),
+      onboardingDone:
+        typeof overrides.onboardingDone === "boolean"
+          ? overrides.onboardingDone
+          : isOnboardingDone,
+      currency: overrides.currency || selectedCurrency,
+    });
+  };
+
+  const handleLogout = async () => {
+    await clearStoredSession();
+    setIsAuthenticated(false);
+    setIsOnboardingDone(false);
+    setIsPlanSetupPending(false);
+    setHasSeenWelcome(true);
+    setAuthUserId(null);
+    setAuthMode("login");
+    setAuthError("");
+    setAccountForm({ name: "", email: "", password: "" });
+    setUserName("");
+    setSelectedCurrency("ARS");
+    setLandingAnswers((prev) => ({ ...prev, monedaBase: "ARS" }));
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated || !authUserId) {
+      return;
+    }
+
+    persistSession();
+  }, [
+    isAuthenticated,
+    authUserId,
+    userName,
+    accountForm.email,
+    isOnboardingDone,
+    selectedCurrency,
+  ]);
 
   useEffect(() => {
     const hydrateSession = async () => {
@@ -799,36 +880,6 @@ export default function App() {
     return dailyTips[dayOfYear % dailyTips.length];
   }, [toDateKey(new Date())]);
 
-  const handlePickProfilePhoto = async () => {
-    try {
-      const picker = await import("expo-image-picker");
-      const permission = await picker.requestMediaLibraryPermissionsAsync();
-
-      if (!permission.granted) {
-        setAuthError("Necesitamos permiso para abrir la galería.");
-        return;
-      }
-
-      const result = await picker.launchImageLibraryAsync({
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (result.canceled || !result.assets?.length) {
-        return;
-      }
-
-      const selectedUri = result.assets[0].uri || "";
-      setAccountForm((prev) => ({ ...prev, photo: selectedUri }));
-      setUserPhoto(selectedUri);
-      setAuthError("");
-    } catch {
-      setAuthError(
-        "No pudimos abrir la galería. Instala expo-image-picker para habilitar esta función.",
-      );
-    }
-  };
-
   // Login/registro con validaciones de UI antes de enviar al backend.
   const handleSubmitAuth = async () => {
     if (!accountForm.email.trim() || !accountForm.password.trim()) {
@@ -838,15 +889,6 @@ export default function App() {
 
     if (authMode === "register" && !accountForm.name.trim()) {
       setAuthError("Para crear la cuenta necesitamos tu nombre.");
-      return;
-    }
-
-    if (authMode === "register" && !accountForm.photo.trim()) {
-      setAuthError(
-        isNativeMobile
-          ? "Selecciona una foto desde la galería para crear la cuenta."
-          : "Agrega la foto de perfil (URL) para crear la cuenta.",
-      );
       return;
     }
 
@@ -871,9 +913,6 @@ export default function App() {
       const user = await postJson(endpoint, payload);
       setAuthUserId(user.id);
       setUserName(user.name);
-      if (authMode === "register") {
-        setUserPhoto(accountForm.photo.trim());
-      }
       setAccountForm((prev) => ({ ...prev, name: user.name }));
       setHasSeenWelcome(true);
       setIsAuthenticated(true);
@@ -949,7 +988,6 @@ export default function App() {
 
     setSelectedCurrency(landingAnswers.monedaBase);
     setUserName(accountForm.name.trim() || nameByGoal[landingAnswers.meta]);
-    setUserPhoto(accountForm.photo.trim());
     setOnboardingCompletedAt(new Date().toISOString());
     setIsOnboardingDone(true);
     setIsPlanSetupPending(true);
@@ -1384,58 +1422,6 @@ export default function App() {
                       placeholder="Tu nombre"
                       placeholderTextColor={"#525252"}
                     />
-                    <Text
-                      style={[
-                        styles.inputLabel,
-                        styles.inputLabelDark,
-                      ]}
-                    >
-                      Foto de perfil
-                    </Text>
-                    {isNativeMobile ? (
-                      <>
-                        <Pressable
-                          onPress={handlePickProfilePhoto}
-                          style={[
-                            styles.galleryButton,
-                            styles.galleryButtonDark,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.galleryButtonText,
-                              styles.galleryButtonTextDark,
-                            ]}
-                          >
-                            Abrir galería
-                          </Text>
-                        </Pressable>
-                        {!!accountForm.photo && (
-                          <Text
-                            style={[
-                              styles.helperText,
-                              styles.helperTextDark,
-                            ]}
-                          >
-                            Foto cargada ✅
-                          </Text>
-                        )}
-                      </>
-                    ) : (
-                      <TextInput
-                        value={accountForm.photo}
-                        onChangeText={(value) =>
-                          setAccountForm((prev) => ({ ...prev, photo: value }))
-                        }
-                        style={[
-                          styles.input,
-                          styles.inputDark,
-                        ]}
-                        placeholder="https://..."
-                        placeholderTextColor={"#525252"}
-                        autoCapitalize="none"
-                      />
-                    )}
                   </>
                 )}
 
@@ -2277,45 +2263,6 @@ export default function App() {
                     );
                   })}
                 </View>
-
-                <Text
-                  style={[
-                    styles.inputLabel,
-                    styles.inputLabelDark,
-                  ]}
-                >
-                  Foto de usuario
-                </Text>
-                {isNativeMobile ? (
-                  <Pressable
-                    onPress={handlePickProfilePhoto}
-                    style={[
-                      styles.galleryButton,
-                      styles.galleryButtonDark,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.galleryButtonText,
-                        styles.galleryButtonTextDark,
-                      ]}
-                    >
-                      Cambiar desde galería
-                    </Text>
-                  </Pressable>
-                ) : (
-                  <TextInput
-                    value={userPhoto}
-                    onChangeText={setUserPhoto}
-                    style={[
-                      styles.input,
-                      styles.inputDark,
-                    ]}
-                    placeholder="https://..."
-                    placeholderTextColor={"#737373"}
-                    autoCapitalize="none"
-                  />
-                )}
 
                 <Pressable
                   onPress={handleContactPress}
