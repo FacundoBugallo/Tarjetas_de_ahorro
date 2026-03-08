@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatCurrency } from '../utils/formatters';
 
-export default function HistoryCard({ items = [], isDarkMode, currencyCode }) {
+export default function HistoryCard({ items = [],  currencyCode }) {
   const [expandedItems, setExpandedItems] = useState({});
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -11,14 +11,14 @@ export default function HistoryCard({ items = [], isDarkMode, currencyCode }) {
   };
 
   return (
-    <View style={[styles.historyCard, isDarkMode ? styles.historyCardDark : styles.historyCardLight]}>
+    <View style={[styles.historyCard, styles.historyCardDark]}>
       <Pressable style={styles.headerRow} onPress={() => setIsCollapsed((prev) => !prev)}>
-        <Text style={[styles.historyTitle, isDarkMode ? styles.historyTitleDark : styles.historyTitleLight]}>Historial</Text>
-        <Text style={[styles.collapseText, isDarkMode ? styles.collapseTextDark : styles.collapseTextLight]}>{isCollapsed ? 'Mostrar' : 'Minimizar'}</Text>
+        <Text style={[styles.historyTitle, styles.historyTitleDark]}>Historial</Text>
+        <Text style={[styles.collapseText, styles.collapseTextDark]}>{isCollapsed ? 'Mostrar' : 'Minimizar'}</Text>
       </Pressable>
 
       {isCollapsed ? null : items.length === 0 ? (
-        <Text style={[styles.historyEmpty, isDarkMode && styles.historyEmptyDark]}>
+        <Text style={[styles.historyEmpty, styles.historyEmptyDark]}>
           Aún no hay metas completadas.
         </Text>
       ) : (
@@ -27,28 +27,28 @@ export default function HistoryCard({ items = [], isDarkMode, currencyCode }) {
           return (
             <Pressable
               key={item.id}
-              style={[styles.historyItem, isDarkMode && styles.historyItemDark]}
+              style={[styles.historyItem, styles.historyItemDark]}
               onPress={() => toggleItem(item.id)}
             >
               <View style={styles.historyMainRow}>
                 <View style={styles.historyTextWrap}>
-                  <Text style={[styles.historyLabel, isDarkMode && styles.historyLabelDark]}>{item.name}</Text>
+                  <Text style={[styles.historyLabel, styles.historyLabelDark]}>{item.name}</Text>
                   <Text style={styles.historyMeta}>Meta: {formatCurrency(item.targetAmount, currencyCode)}</Text>
                 </View>
-                <Text style={[styles.historyValue, isDarkMode && styles.historyValueDark]}>+{item.points} pts</Text>
+                <Text style={[styles.historyValue, styles.historyValueDark]}>+{item.points} pts</Text>
               </View>
 
               {!!item.description && (
                 <Text
                   numberOfLines={isExpanded ? undefined : 1}
-                  style={[styles.historyDescription, isDarkMode && styles.historyDescriptionDark]}
+                  style={[styles.historyDescription, styles.historyDescriptionDark]}
                 >
                   {item.description}
                 </Text>
               )}
 
               {!!item.description && (
-                <Text style={[styles.expandText, isDarkMode ? styles.expandTextDark : styles.expandTextLight]}>{isExpanded ? 'Ver menos' : 'Ver más'}</Text>
+                <Text style={[styles.expandText, styles.expandTextDark]}>{isExpanded ? 'Ver menos' : 'Ver más'}</Text>
               )}
             </Pressable>
           );

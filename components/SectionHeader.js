@@ -2,10 +2,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import DarkButton from './DarkButton';
 import palette from '../theme/colors';
 
-export default function SectionHeader({ title, actionLabel, onActionPress, isDarkMode }) {
+export default function SectionHeader({ title, actionLabel, onActionPress }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, isDarkMode ? styles.sectionTitleDark : styles.sectionTitleLight]}>{title}</Text>
+      <Text style={[styles.sectionTitle, styles.sectionTitleDark]}>{title}</Text>
       {onActionPress ? (
         <DarkButton
           onPress={onActionPress}
