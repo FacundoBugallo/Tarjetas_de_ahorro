@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import DarkButton from './DarkButton';
 import { clampPercentage, formatCurrency } from '../utils/formatters';
 import { formatContributionSchedule, getDaysUntilNextContribution } from '../utils/schedule';
@@ -20,6 +21,29 @@ const withOpacity = (hexColor, alpha) => {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 };
 
+const mixColor = (hexColor, targetHexColor, amount) => {
+  const sanitize = (value) => {
+    const cleaned = value.replace('#', '');
+    return cleaned.length === 3
+      ? cleaned.split('').map((char) => char + char).join('')
+      : cleaned;
+  };
+
+  const from = sanitize(hexColor);
+  const to = sanitize(targetHexColor);
+
+  if (from.length !== 6 || to.length !== 6) {
+    return hexColor;
+  }
+
+  const blend = (start, end) => Math.round(start + (end - start) * amount);
+  const red = blend(parseInt(from.slice(0, 2), 16), parseInt(to.slice(0, 2), 16));
+  const green = blend(parseInt(from.slice(2, 4), 16), parseInt(to.slice(2, 4), 16));
+  const blue = blend(parseInt(from.slice(4, 6), 16), parseInt(to.slice(4, 6), 16));
+
+  return `#${[red, green, blue].map((value) => value.toString(16).padStart(2, '0')).join('')}`;
+};
+
 export default function SavingsCard({
   card,
   onAddContribution,
@@ -32,6 +56,11 @@ export default function SavingsCard({
   const [draftContribution, setDraftContribution] = useState(String(card.nextContribution));
   const percentage = clampPercentage((card.savedAmount / card.targetAmount) * 100);
   const daysUntilNextContribution = getDaysUntilNextContribution(card);
+  const cardColor = card.color || '#22C55E';
+  const cardTopTone = mixColor(cardColor, '#FFFFFF', 0.25);
+  const cardBottomTone = mixColor(cardColor, '#000000', 0.35);
+  const barStart = mixColor(cardColor, '#FFFFFF', 0.35);
+  const barEnd = mixColor(cardColor, '#000000', 0.1);
   const contentColor = '#F9FAFB';
   const subtleContentColor = withOpacity(contentColor, 0.82);
   const buttonSurfaceColor = withOpacity(contentColor, 0.24);
@@ -48,7 +77,7 @@ export default function SavingsCard({
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: 'rgba(15,15,20,0.78)' }]}> 
+    <LinearGradient colors={[cardTopTone, cardBottomTone]} style={[styles.card, { borderColor: withOpacity(cardColor, 0.65) }]}> 
       <View style={styles.cardHeader}>
         <View style={styles.titleRow}>
           <Text style={[styles.cardTitle, { color: contentColor }]}>{card.name}</Text>
@@ -65,10 +94,18 @@ export default function SavingsCard({
       </View>
 
       <View style={styles.progressRow}>
-        <View style={[styles.progressTrack, styles.progressTrackDark]}>
-          <View style={[styles.progressFill, { width: `${percentage}%` }]} />
+        <View style={styles.progressTrack}>
+          <View style={styles.trackGloss} />
+          <LinearGradient
+            colors={[barStart, barEnd]}
+            start={{ x: 0, y: 0.2 }}
+            end={{ x: 1, y: 0.8 }}
+            style={[styles.progressFill, { width: `${percentage}%` }]}
+          />
         </View>
-        <Text style={[styles.progressText, { color: contentColor }]}>{percentage.toFixed(0)}%</Text>
+        <View style={styles.percentageBadge}>
+          <Text style={[styles.progressText, { color: contentColor }]}>{percentage.toFixed(0)}%</Text>
+        </View>
       </View>
 
       <View style={styles.cardFooter}>
@@ -126,7 +163,7 @@ export default function SavingsCard({
           />
         </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -135,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
+    borderColor: 'rgba(255,255,255,0.3)',
     shadowColor: '#000000',
     shadowOpacity: 0.5,
     shadowRadius: 25,
@@ -153,14 +190,35 @@ const styles = StyleSheet.create({
   progressRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   progressTrack: {
     flex: 1,
-    height: 8,
-    backgroundColor: '#FFFFFF',
+    height: 18,
+    backgroundColor: '#101318',
     borderRadius: 999,
     overflow: 'hidden',
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    justifyContent: 'center',
   },
-  progressTrackDark: { backgroundColor: '#E5E7EB' },
-  progressFill: { height: '100%', backgroundColor: '#000000', borderRadius: 999 },
+  trackGloss: {
+    position: 'absolute',
+    top: 1,
+    left: 10,
+    right: 10,
+    height: 5,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 999,
+  },
+  progressFill: { height: '100%', borderRadius: 999 },
+  percentageBadge: {
+    minWidth: 54,
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(7,10,15,0.95)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
   progressText: { fontSize: 12, fontWeight: '700', color: '#000000' },
   cardFooter: {
     flexDirection: 'row',
