@@ -294,7 +294,7 @@ const AppBackground = ({ children }) => (
       pointerEvents="none"
     />
     <LinearGradient
-      colors={["rgba(255, 255, 255, 0.44)", "rgba(255,255,255,0)"]}
+      colors={["rgb(3, 3, 3)", "rgb(65, 64, 64)"]}
       start={{ x: 0.42, y: 0 }}
       end={{ x: 0.55, y: 1 }}
       style={styles.textureBand}
@@ -2820,7 +2820,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#EDEDED",
     letterSpacing: 1,
-    textShadowColor: "rgba(255,255,255,0.25)",
+    textShadowColor: "rgb(255, 255, 255)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 25,
   },
