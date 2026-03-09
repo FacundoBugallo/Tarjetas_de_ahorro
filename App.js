@@ -20,6 +20,7 @@ import CreateDebtModal from "./components/CreateDebtModal";
 import DarkButton from "./components/DarkButton";
 import DebtCard from "./components/DebtCard";
 import HistoryCard from "./components/HistoryCard";
+import AdYieldCard from "./components/AdYieldCard";
 import SavingsCard from "./components/SavingsCard";
 import SectionHeader from "./components/SectionHeader";
 import SectionHeroHeader from "./components/SectionHeroHeader";
@@ -496,6 +497,25 @@ export default function App() {
       ? clampPercentage((totalInvestedThisMonth / plannedInvestment) * 100)
       : 0;
 
+  const savingsTypes = useMemo(() => {
+    const orderedTypes = [];
+
+    cards.forEach((card) => {
+      const nextType = (card.savingType || "General").trim();
+      if (!orderedTypes.includes(nextType)) {
+        orderedTypes.push(nextType);
+      }
+    });
+
+    return orderedTypes;
+  }, [cards]);
+
+  const projectedAdYield = useMemo(() => {
+    const baseRate = selectedCurrency === "USD" ? 0.015 : 12;
+    const estimated = totalInvestedThisMonth * baseRate;
+    return Math.max(estimated, selectedCurrency === "USD" ? 5 : 4500);
+  }, [selectedCurrency, totalInvestedThisMonth]);
+
   const chartData = useMemo(
     () =>
       cards.map((card) => ({
@@ -951,6 +971,9 @@ export default function App() {
               description: card.description,
               targetAmount: card.targetAmount,
               points: earnedPoints,
+              savingType: card.savingType || "General",
+              lastContribution: card.nextContribution,
+              completedAt: new Date().toISOString(),
             },
             ...prevHistory,
           ]);
@@ -1646,7 +1669,20 @@ export default function App() {
                     </Text>
                   </View>
                 )}
-                <SectionHeader
+                {currentPlan === "ahorro" && (
+                  <View style={styles.typesSection}>
+                    <Text style={styles.typesSectionTitle}>Tipos de ahorro</Text>
+                    <View style={styles.typesBadgesRow}>
+                      {(savingsTypes.length ? savingsTypes : ["General"]).map((type) => (
+                        <View key={type} style={styles.typeBadge}>
+                          <Text style={styles.typeBadgeText}>{type}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                                <SectionHeader
                   title={
                     currentPlan === "deudas"
                       ? "Plan de deudas 💳"
@@ -1713,10 +1749,16 @@ export default function App() {
                 </View>
 
                 {currentPlan === "ahorro" && (
-                  <HistoryCard
-                    items={historyItems}
+                  <>
+                    <HistoryCard
+                      items={historyItems}
                       currencyCode={selectedCurrency}
-                  />
+                    />
+                    <AdYieldCard
+                      currencyCode={selectedCurrency}
+                      projectedYield={projectedAdYield}
+                    />
+                  </>
                 )}
               </>
             )}
@@ -2370,6 +2412,40 @@ const styles = StyleSheet.create({
   safeAreaLight: { backgroundColor: "rgba(0,0,0,0.08)" },
   scrollContent: { padding: 20, paddingBottom: 120 },
   cardList: { gap: 16, marginBottom: 24 },
+  typesSection: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: "rgba(15,23,42,0.40)",
+    gap: 8,
+  },
+  typesSectionTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#E2E8F0",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  typesBadgesRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  typeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(167,243,208,0.45)",
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
+  },
+  typeBadgeText: {
+    color: "#D1FAE5",
+    fontWeight: "700",
+    fontSize: 12,
+  },
   emptyText: {
     borderRadius: 10,
     borderWidth: 1,

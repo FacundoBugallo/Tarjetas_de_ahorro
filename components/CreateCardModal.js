@@ -24,6 +24,7 @@ const colorPalette = [
   '#000000',
 ];
 const cadenceOptions = ['Diaria', 'Semanal', 'Mensual'];
+const savingsTypeOptions = ['Emergencia', 'Viaje', 'Hogar', 'Educación', 'Inversión'];
 
 export default function CreateCardModal({ visible, onClose, onSubmit }) {
   const [name, setName] = useState('');
@@ -35,6 +36,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
   const [selectedWeekday, setSelectedWeekday] = useState(5);
   const [selectedMonthDay, setSelectedMonthDay] = useState(26);
   const [selectedColor, setSelectedColor] = useState(colorPalette[0]);
+  const [savingType, setSavingType] = useState(savingsTypeOptions[0]);
 
   useEffect(() => {
     if (visible) {
@@ -47,6 +49,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
       setSelectedWeekday(5);
       setSelectedMonthDay(26);
       setSelectedColor(colorPalette[0]);
+      setSavingType(savingsTypeOptions[0]);
     }
   }, [visible]);
 
@@ -81,6 +84,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
       contributionMonthDay: cadence === 'Mensual' ? selectedMonthDay : undefined,
       nextContribution: parsedContribution,
       color: selectedColor,
+      savingType,
     });
   };
 
@@ -215,6 +219,24 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
                 />
               </View>
               <View style={styles.field}>
+                <Text style={styles.label}>Tipo de ahorro</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typesRow}>
+                  {savingsTypeOptions.map((option) => {
+                    const isActive = savingType === option;
+                    return (
+                      <Pressable
+                        key={option}
+                        onPress={() => setSavingType(option)}
+                        style={[styles.optionButton, isActive && styles.optionButtonActive]}
+                      >
+                        <Text style={[styles.optionText, isActive && styles.optionTextActive]}>{option}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+
+              <View style={styles.field}>
                 <Text style={styles.label}>Color</Text>
                 <View style={styles.colorRow}>
                   {colorPalette.map((color) => {
@@ -304,6 +326,7 @@ const styles = StyleSheet.create({
   multilineInput: { minHeight: 64, textAlignVertical: 'top' },
   optionRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   monthDaysRow: { gap: 8, paddingRight: 8 },
+  typesRow: { gap: 8, paddingRight: 8 },
   optionButton: {
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
