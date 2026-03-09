@@ -729,7 +729,7 @@ export default function App() {
     hydrateSession();
   }, []);
 
-  const persistSession = async (overrides = {}) => {
+  const syncSessionToStorage = async (overrides = {}) => {
     if (!authUserId && !overrides.userId) {
       return;
     }
@@ -766,101 +766,11 @@ export default function App() {
       return;
     }
 
-    persistSession();
+    syncSessionToStorage();
   }, [
     isAuthenticated,
     authUserId,
     userName,
-    accountForm.email,
-    isOnboardingDone,
-    selectedCurrency,
-  ]);
-
-  useEffect(() => {
-    const hydrateSession = async () => {
-      try {
-        const rawSession = await getStoredSession();
-        if (!rawSession) {
-          return;
-        }
-
-        const savedSession = JSON.parse(rawSession);
-        if (!savedSession?.userId || !savedSession?.name) {
-          return;
-        }
-
-        setAuthUserId(savedSession.userId);
-        setUserName(savedSession.name);
-        setUserPhoto(savedSession.photo || "");
-        setAccountForm((prev) => ({
-          ...prev,
-          name: savedSession.name,
-          email: savedSession.email || prev.email,
-          photo: savedSession.photo || prev.photo,
-        }));
-        setSelectedCurrency(savedSession.currency || "ARS");
-        setIsAuthenticated(true);
-        setHasSeenWelcome(true);
-
-        if (savedSession.onboardingDone) {
-          setIsOnboardingDone(true);
-          setIsPlanSetupPending(false);
-        }
-      } catch {
-        await clearStoredSession();
-      } finally {
-        setIsAppBootstrapping(false);
-      }
-    };
-
-    hydrateSession();
-  }, []);
-
-  const persistSession = async (overrides = {}) => {
-    if (!authUserId && !overrides.userId) {
-      return;
-    }
-
-    await saveStoredSession({
-      userId: overrides.userId || authUserId,
-      name: overrides.name || userName,
-      email: overrides.email || accountForm.email.trim(),
-      photo: overrides.photo ?? userPhoto,
-      onboardingDone:
-        typeof overrides.onboardingDone === "boolean"
-          ? overrides.onboardingDone
-          : isOnboardingDone,
-      currency: overrides.currency || selectedCurrency,
-    });
-  };
-
-  const handleLogout = async () => {
-    await clearStoredSession();
-    setIsAuthenticated(false);
-    setIsOnboardingDone(false);
-    setIsPlanSetupPending(false);
-    setHasSeenWelcome(true);
-    setAuthUserId(null);
-    setAuthMode("login");
-    setAuthError("");
-    setAccountForm({ name: "", email: "", password: "", photo: "" });
-    setUserName("");
-    setUserPhoto("");
-    setSelectedCurrency("ARS");
-    setLandingAnswers((prev) => ({ ...prev, monedaBase: "ARS" }));
-  };
-
-  useEffect(() => {
-    if (!isAuthenticated || !authUserId) {
-      return;
-    }
-
-    persistSession();
-  }, [
-    isAuthenticated,
-    authUserId,
-    userName,
-    userPhoto,
     accountForm.email,
     isOnboardingDone,
     selectedCurrency,
