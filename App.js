@@ -19,6 +19,7 @@ import CreateCardModal from "./components/CreateCardModal";
 import CreateDebtModal from "./components/CreateDebtModal";
 import DarkButton from "./components/DarkButton";
 import DebtCard from "./components/DebtCard";
+import GameSection from "./components/GameSection";
 import HistoryCard from "./components/HistoryCard";
 import AdYieldCard from "./components/AdYieldCard";
 import SavingsCard from "./components/SavingsCard";
@@ -34,6 +35,7 @@ import { clampPercentage, formatCurrency } from "./utils/formatters";
 const tabs = [
   { key: "ahorro", label: "Ahorro", icon: "piggy-bank-outline" },
   { key: "deudas", label: "Deudas", icon: "credit-card-outline" },
+  { key: "juego", label: "Juego", icon: "gamepad-variant-outline" },
   { key: "graficos", label: "Gráficos", icon: "chart-line" },
   { key: "config", label: "Perfil", icon: "account-circle-outline" },
 ];
@@ -73,6 +75,16 @@ const SECTION_HEADER_CONFIG = {
     borderColor: "rgba(168, 85, 247, 0.30)",
     titleColor: "#F8FAFC",
     descriptionColor: "#EAD9FF",
+  },
+  juego: {
+    title: "Modo juego financiero",
+    description:
+      "Supera niveles con preguntas sobre ahorro, inversión, mercado e historia económica.",
+    accentColor: "#06B6D4",
+    glowColor: "rgba(6, 182, 212, 0.28)",
+    borderColor: "rgba(6, 182, 212, 0.30)",
+    titleColor: "#F8FAFC",
+    descriptionColor: "#CFFAFE",
   },
   config: {
     title: "Perfil y configuraciones",
@@ -2274,6 +2286,8 @@ export default function App() {
                 </View>
               </View>
             )}
+
+            {activeTab === "juego" && <GameSection />}
           </>
         )}
       />
