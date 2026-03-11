@@ -21,6 +21,7 @@ export default function UserSummaryModal({
   actualInvestment,
   onSave,
   currencyCode,
+  onCurrencyChange,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(userName);
@@ -89,6 +90,29 @@ export default function UserSummaryModal({
               <View style={styles.row}>
                 <Text style={styles.label}>Puntos</Text>
                 <Text style={styles.value}>{pointsLabel}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Moneda de cotización</Text>
+                {isEditing ? (
+                  <View style={styles.currencyRow}>
+                    {["ARS", "USD"].map((currency) => {
+                      const isActive = currencyCode === currency;
+                      return (
+                        <Pressable
+                          key={currency}
+                          onPress={() => onCurrencyChange(currency)}
+                          style={[styles.currencyButton, isActive && styles.currencyButtonActive]}
+                        >
+                          <Text style={[styles.currencyButtonText, isActive && styles.currencyButtonTextActive]}>
+                            {currency}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={styles.value}>{currencyCode}</Text>
+                )}
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Destinado a ahorrar</Text>
@@ -193,5 +217,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
   },
+  currencyRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  currencyButton: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  currencyButtonActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' },
+  currencyButtonText: { color: '#F9FAFB', fontWeight: '700' },
+  currencyButtonTextActive: { color: '#000000' },
   saveButtonText: { color: '#000000', fontWeight: '700' },
 });

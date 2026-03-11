@@ -164,7 +164,10 @@ const getInitialGameProgress = () => ({
     intermedio: [],
     amateur: [],
   },
-  lostLivesAt: [],
+  dailyEnergy: {
+    date: new Date().toISOString().slice(0, 10),
+    spent: 0,
+  },
   quizState: null,
   celebration: null,
 });
@@ -502,9 +505,6 @@ export default function App() {
     },
   ]);
 
-  // Sistema de gamificación: puntos por bloques de ahorro invertido.
-  const pointsPerBlock = 50;
-  const currencyBlockValue = selectedCurrency === "USD" ? 100 : 100000;
   const currentMonthKey = new Date().toISOString().slice(0, 7);
 
   // Filtra solo movimientos del mes actual para métricas del dashboard.
@@ -521,9 +521,7 @@ export default function App() {
     return Math.max(monthlyNet, 0);
   }, [monthlyTransactions]);
 
-  const savingsPoints =
-    Math.floor(totalInvestedThisMonth / currencyBlockValue) * pointsPerBlock;
-  const points = savingsPoints + gamePoints;
+  const points = gamePoints;
   const level = Math.floor(points / 100) + 1;
   const levelLabel = `Nivel ${level}`;
   const pointsLabel = `${points} pts`;
@@ -1077,6 +1075,9 @@ export default function App() {
   const handleSaveUser = (updatedUser) => {
     setUserName(updatedUser.userName);
     setPlannedInvestment(updatedUser.plannedInvestment);
+    if (updatedUser.currencyCode) {
+      setSelectedCurrency(updatedUser.currencyCode);
+    }
   };
 
   const handleAddDebtCard = (debtCard) => {
@@ -2249,39 +2250,6 @@ export default function App() {
                   </View>
                 </View>
 
-                <Text
-                  style={[
-                    styles.inputLabel,
-                    styles.inputLabelDark,
-                  ]}
-                >
-                  Moneda de cotización
-                </Text>
-                <View style={styles.currencyRow}>
-                  {["ARS", "USD"].map((currency) => {
-                    const isActive = selectedCurrency === currency;
-                    return (
-                      <Pressable
-                        key={currency}
-                        onPress={() => setSelectedCurrency(currency)}
-                        style={[
-                          styles.currencyButton,
-                          isActive && styles.currencyButtonActive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.currencyButtonText,
-                            isActive && styles.currencyButtonTextActive,
-                          ]}
-                        >
-                          {currency}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
                 <HistoryCard
                   items={historyItems}
                   currencyCode={selectedCurrency}
@@ -2456,6 +2424,7 @@ export default function App() {
         actualInvestment={totalInvestedThisMonth}
         onSave={handleSaveUser}
         currencyCode={selectedCurrency}
+        onCurrencyChange={setSelectedCurrency}
       />
       <CreateCardModal
         visible={isCreateCardVisible}
@@ -3021,7 +2990,6 @@ const styles = StyleSheet.create({
   },
   secondaryThemeButtonText: { color: "#FFFFFF", fontWeight: "700" },
   secondaryThemeButtonTextDark: { color: "#FFFFFF" },
-  currencyRow: { flexDirection: "row", gap: 10, marginBottom: 4 },
   granularityRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
   currencyButton: {
     flex: 1,
@@ -3032,9 +3000,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
   },
-  currencyButtonActive: { backgroundColor: palette.midnightSlate, borderColor: palette.midnightSlate },
-  currencyButtonText: { color: "#000000", fontWeight: "700" },
-  currencyButtonTextActive: { color: palette.white },
   emotionalTitle: { fontSize: 18, fontWeight: "800" },
   emotionalTitleDark: { color: "#FFFFFF" },
   emotionalTitleLight: { color: "#111111" },
