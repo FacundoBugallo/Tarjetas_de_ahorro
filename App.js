@@ -1239,6 +1239,14 @@ export default function App() {
     }
   };
 
+  const sectionAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
+
   const handleContactPress = () => {
     Linking.openURL("https://wa.me/573000000000").catch(() => {
       setSnapshotMessage("No se pudo abrir el contacto en este dispositivo.");
@@ -1627,14 +1635,6 @@ export default function App() {
   const headerConfig = isSavingsTab || isDebtTab
     ? SECTION_HEADER_CONFIG[currentPlan]
     : SECTION_HEADER_CONFIG[activeTab];
-
-  const sectionAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-      UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-  }, []);
 
   const switchTab = (nextTab) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
