@@ -4,29 +4,17 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import questionBank from "../data/gameQuestions";
 
 const LEVEL_GROUPS = [
-  { key: "principiante", label: "Principiante", accent: "#22C55E", pointsPerQuestion: 5 },
-  { key: "intermedio", label: "Intermedio", accent: "#3B82F6", pointsPerQuestion: 10 },
-  { key: "amateur", label: "Amateur", accent: "#A855F7", pointsPerQuestion: 15 },
+  { key: "principiante", label: "Principiante", accent: "#22C55E", pointsPerLevel: 10 },
+  { key: "intermedio", label: "Intermedio", accent: "#3B82F6", pointsPerLevel: 15 },
+  { key: "amateur", label: "Amateur", accent: "#A855F7", pointsPerLevel: 20 },
 ];
 
-const QUESTIONS_TO_PASS = 5;
-const MAX_LIVES = 3;
-const LIFE_RECOVERY_MS = 24 * 60 * 60 * 1000;
+const TOTAL_LEVELS_PER_BLOCK = 15;
+const MAX_DAILY_ENERGY = 3;
 
 const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
 
-const getRecoveryLabel = (lostLives) => {
-  if (!lostLives.length) {
-    return "Vidas completas";
-  }
-
-  const oldestLoss = lostLives[0];
-  const nextRecoveryInMs = LIFE_RECOVERY_MS - (Date.now() - oldestLoss);
-  const safeMs = Math.max(nextRecoveryInMs, 0);
-  const hours = Math.floor(safeMs / (60 * 60 * 1000));
-  const minutes = Math.floor((safeMs % (60 * 60 * 1000)) / (60 * 1000));
-  return `Próxima vida en ${hours}h ${minutes}m`;
-};
+const getDateKey = () => new Date().toISOString().slice(0, 10);
 
 const getEmptyProgress = () => ({
   selectedGroup: null,
@@ -40,7 +28,10 @@ const getEmptyProgress = () => ({
     intermedio: [],
     amateur: [],
   },
-  lostLivesAt: [],
+  dailyEnergy: {
+    date: getDateKey(),
+    spent: 0,
+  },
   quizState: null,
   celebration: null,
 });
@@ -51,16 +42,26 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
     selectedGroup,
     completedLevelsByGroup,
     usedQuestionIdsByGroup,
-    lostLivesAt,
+    dailyEnergy,
     quizState,
     celebration,
   } = progress;
 
+  const normalizedEnergy = {
+    date: dailyEnergy?.date || getDateKey(),
+    spent: Number.isFinite(dailyEnergy?.spent) ? dailyEnergy.spent : 0,
+  };
+  const isCurrentDay = normalizedEnergy.date === getDateKey();
+  const spentEnergyToday = isCurrentDay ? normalizedEnergy.spent : 0;
+  const availableEnergy = Math.max(MAX_DAILY_ENERGY - spentEnergyToday, 0);
+
   const pulseAnim = useRef(new Animated.Value(0)).current;
+  const [animatedPoints, setAnimatedPoints] = useState(0);
 
   useEffect(() => {
-    if (!celebration) {
+    if (!celebration?.earnedPoints) {
       pulseAnim.setValue(0);
+      setAnimatedPoints(0);
       return;
     }
 
@@ -70,26 +71,38 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
         Animated.timing(pulseAnim, { toValue: 0, duration: 650, useNativeDriver: true }),
       ]),
     ).start();
+
+    setAnimatedPoints(0);
+    let counter = 0;
+    const interval = setInterval(() => {
+      counter += 1;
+      setAnimatedPoints(counter);
+      if (counter >= celebration.earnedPoints) {
+        clearInterval(interval);
+      }
+    }, 40);
+
+    return () => clearInterval(interval);
   }, [celebration, pulseAnim]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      onGameProgressChange((prev) => ({
-        ...prev,
-        lostLivesAt: prev.lostLivesAt.filter((lostAt) => Date.now() - lostAt < LIFE_RECOVERY_MS),
-      }));
-    }, 60 * 1000);
+    if (isCurrentDay || !dailyEnergy) {
+      return;
+    }
 
-    return () => clearInterval(interval);
-  }, [onGameProgressChange]);
-
-  const availableLives = MAX_LIVES - lostLivesAt.length;
+    onGameProgressChange((prev) => ({
+      ...prev,
+      dailyEnergy: {
+        date: getDateKey(),
+        spent: 0,
+      },
+    }));
+  }, [dailyEnergy, isCurrentDay, onGameProgressChange]);
 
   const levelCaps = useMemo(
     () =>
       LEVEL_GROUPS.reduce((acc, group) => {
-        const groupQuestions = questionBank[group.key] || [];
-        acc[group.key] = Math.max(1, Math.floor(groupQuestions.length / QUESTIONS_TO_PASS));
+        acc[group.key] = TOTAL_LEVELS_PER_BLOCK;
         return acc;
       }, {}),
     [],
@@ -125,15 +138,19 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
   };
 
   const handleStartLevel = (levelNumber) => {
-    if (!selectedGroup || quizState || levelNumber !== unlockedLevel || availableLives <= 0) {
+    if (!selectedGroup || quizState || levelNumber !== unlockedLevel || availableEnergy <= 0) {
       return;
     }
 
     const groupQuestions = questionBank[selectedGroup] || [];
     const usedIds = new Set(usedQuestionIdsByGroup[selectedGroup] || []);
-    const availableQuestions = groupQuestions.filter((question) => !usedIds.has(question.id));
+    let availableQuestions = groupQuestions.filter((question) => !usedIds.has(question.id));
 
-    if (availableQuestions.length < QUESTIONS_TO_PASS) {
+    if (!availableQuestions.length) {
+      availableQuestions = shuffle(groupQuestions);
+    }
+
+    if (!availableQuestions.length) {
       onGameProgressChange((prev) => ({
         ...prev,
         quizState: {
@@ -143,15 +160,19 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
           selectedOption: null,
           status: "failed",
           correctAnswers: 0,
-          message: "Sin preguntas nuevas suficientes para este nivel. Agrega más para seguir avanzando sin repetir.",
+          message: "No hay preguntas disponibles para este bloque.",
         },
       }));
       return;
     }
 
-    const selectedQuestions = shuffle(availableQuestions).slice(0, QUESTIONS_TO_PASS);
+    const selectedQuestions = shuffle(availableQuestions).slice(0, 1);
     onGameProgressChange((prev) => ({
       ...prev,
+      dailyEnergy: {
+        date: getDateKey(),
+        spent: Math.min((prev.dailyEnergy?.date === getDateKey() ? prev.dailyEnergy?.spent || 0 : 0) + 1, MAX_DAILY_ENERGY),
+      },
       quizState: {
         levelNumber,
         currentQuestionIndex: 0,
@@ -175,56 +196,39 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
     if (!isCorrect) {
       onGameProgressChange((prev) => ({
         ...prev,
-        lostLivesAt: [...prev.lostLivesAt, Date.now()].slice(-MAX_LIVES),
         quizState: {
           ...prev.quizState,
           selectedOption: optionIndex,
           status: "failed",
-          message: "Respuesta incorrecta. Perdiste una vida, intenta de nuevo.",
+          message: "Respuesta incorrecta. Ese bloque ya consumió 1 de energía diaria.",
         },
       }));
       return;
     }
 
-    const nextIndex = quizState.currentQuestionIndex + 1;
-    const nextCorrectAnswers = quizState.correctAnswers + 1;
-
-    if (nextCorrectAnswers >= QUESTIONS_TO_PASS) {
-      const earnedPoints = QUESTIONS_TO_PASS * activeGroupMeta.pointsPerQuestion;
-      onEarnPoints(earnedPoints);
-
-      onGameProgressChange((prev) => ({
-        ...prev,
-        completedLevelsByGroup: {
-          ...prev.completedLevelsByGroup,
-          [selectedGroup]: Math.max(prev.completedLevelsByGroup[selectedGroup], quizState.levelNumber),
-        },
-        usedQuestionIdsByGroup: {
-          ...prev.usedQuestionIdsByGroup,
-          [selectedGroup]: [
-            ...new Set([
-              ...prev.usedQuestionIdsByGroup[selectedGroup],
-              ...quizState.questions.map((question) => question.id),
-            ]),
-          ],
-        },
-        quizState: null,
-        celebration: {
-          group: selectedGroup,
-          levelNumber: quizState.levelNumber,
-          earnedPoints,
-        },
-      }));
-      return;
-    }
+    const earnedPoints = activeGroupMeta.pointsPerLevel;
+    onEarnPoints(earnedPoints);
 
     onGameProgressChange((prev) => ({
       ...prev,
-      quizState: {
-        ...prev.quizState,
-        currentQuestionIndex: nextIndex,
-        correctAnswers: nextCorrectAnswers,
-        selectedOption: null,
+      completedLevelsByGroup: {
+        ...prev.completedLevelsByGroup,
+        [selectedGroup]: Math.max(prev.completedLevelsByGroup[selectedGroup], quizState.levelNumber),
+      },
+      usedQuestionIdsByGroup: {
+        ...prev.usedQuestionIdsByGroup,
+        [selectedGroup]: [
+          ...new Set([
+            ...prev.usedQuestionIdsByGroup[selectedGroup],
+            ...quizState.questions.map((question) => question.id),
+          ]),
+        ],
+      },
+      quizState: null,
+      celebration: {
+        group: selectedGroup,
+        levelNumber: quizState.levelNumber,
+        earnedPoints,
       },
     }));
   };
@@ -234,7 +238,7 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Juego financiero</Text>
-      <Text style={styles.subtitle}>Elige un bloque y avanza sin repetir preguntas ya superadas.</Text>
+      <Text style={styles.subtitle}>Cada bloque tiene 15 niveles y cada intento consume 1 de energía diaria.</Text>
 
       {!selectedGroup ? (
         <View style={styles.blockSelector}>
@@ -254,7 +258,7 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
                 <Text style={styles.bigBlockMeta}>
                   {isBlocked
                     ? "Bloqueado hasta completar bloques anteriores"
-                    : `${levelCaps[group.key]} niveles · ${group.pointsPerQuestion} pts por pregunta`}
+                    : `${TOTAL_LEVELS_PER_BLOCK} niveles · ${group.pointsPerLevel} pts por nivel`}
                 </Text>
               </Pressable>
             );
@@ -268,8 +272,9 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
           ]}
         >
           <Text style={styles.celebrationTitle}>🎉 ¡Nivel completado!</Text>
-          <Text style={styles.celebrationText}>Nivel {celebration.levelNumber} superado en {activeGroupMeta.label}.</Text>
-          <Text style={styles.celebrationPoints}>+{celebration.earnedPoints} puntos</Text>
+          <Text style={styles.celebrationText}>Vida: {availableEnergy}/3</Text>
+          <Text style={styles.celebrationText}>Nivel superado: {celebration.levelNumber}</Text>
+          <Text style={styles.celebrationPoints}>Puntos ganados: {animatedPoints}</Text>
           <Pressable
             style={styles.retryButton}
             onPress={() => onGameProgressChange((prev) => ({ ...prev, celebration: null, quizState: null }))}
@@ -280,7 +285,7 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
       ) : quizState ? (
         <View style={styles.quizCard}>
           <Text style={styles.quizBadge}>{activeGroupMeta.label} · Nivel {quizState.levelNumber}</Text>
-          <Text style={styles.quizProgress}>Pregunta {quizState.currentQuestionIndex + 1}/{QUESTIONS_TO_PASS}</Text>
+          <Text style={styles.quizProgress}>Pregunta 1/1</Text>
           <Text style={styles.questionText}>{currentQuestion?.question}</Text>
 
           <View style={styles.optionsContainer}>
@@ -318,8 +323,8 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
           </View>
 
           <View style={styles.livesRow}>
-            <Text style={styles.livesText}>{"❤️".repeat(availableLives) || "💔"}</Text>
-            <Text style={styles.recoveryText}>{getRecoveryLabel(lostLivesAt)}</Text>
+            <Text style={styles.livesText}>⚡ {availableEnergy}/{MAX_DAILY_ENERGY}</Text>
+            <Text style={styles.recoveryText}>Máximo 3 bloques por día</Text>
           </View>
 
           <View style={styles.mapContainer}>
@@ -332,7 +337,7 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
                 <Pressable
                   key={`${selectedGroup}-${levelNumber}`}
                   onPress={() => handleStartLevel(levelNumber)}
-                  disabled={!isCurrent || availableLives <= 0}
+                  disabled={!isCurrent || availableEnergy <= 0}
                   style={[
                     styles.levelCard,
                     alignRight ? styles.alignRight : styles.alignLeft,
@@ -349,7 +354,7 @@ export default function GameSection({ gameProgress, onGameProgressChange, onEarn
                       {isCompleted ? "✅ Completado" : isCurrent ? "Siguiente nivel" : "Bloqueado"}
                     </Text>
                   </View>
-                  <Text style={styles.levelGoal}>5 preguntas</Text>
+                  <Text style={styles.levelGoal}>1 pregunta</Text>
                 </Pressable>
               );
             })}
@@ -386,7 +391,7 @@ const styles = StyleSheet.create({
   backButtonText: { color: "#E2E8F0", fontWeight: "700" },
   groupBadge: { color: "#A7F3D0", fontWeight: "700" },
   livesRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  livesText: { color: "#FCA5A5", fontSize: 18, letterSpacing: 1 },
+  livesText: { color: "#FCA5A5", fontSize: 18, letterSpacing: 1, fontWeight: "700" },
   recoveryText: { color: "#94A3B8", fontSize: 12 },
   mapContainer: { gap: 10, marginTop: 8 },
   levelCard: {
