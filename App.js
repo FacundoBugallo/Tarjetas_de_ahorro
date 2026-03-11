@@ -1,16 +1,19 @@
 import { StatusBar } from "expo-status-bar";
 import {
+  Animated,
   FlatList,
+  LayoutAnimation,
   Linking,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  UIManager,
   View,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -148,6 +151,24 @@ const getBackendBaseUrl = () => {
 
 const BACKEND_BASE_URL = getBackendBaseUrl();
 const AI_REQUEST_TIMEOUT_MS = 15000;
+
+const getInitialGameProgress = () => ({
+  selectedGroup: null,
+  completedLevelsByGroup: {
+    principiante: 0,
+    intermedio: 0,
+    amateur: 0,
+  },
+  usedQuestionIdsByGroup: {
+    principiante: [],
+    intermedio: [],
+    amateur: [],
+  },
+  lostLivesAt: [],
+  quizState: null,
+  celebration: null,
+});
+
 const SESSION_STORAGE_KEY = "tarjetas_ahorro_session";
 let runtimeSession = "";
 
@@ -430,6 +451,8 @@ export default function App() {
   const [historyItems, setHistoryItems] = useState([]);
   const [bonusAvailable, setBonusAvailable] = useState(0);
   const [activeTab, setActiveTab] = useState("ahorro");
+  const [gameProgress, setGameProgress] = useState(getInitialGameProgress());
+  const [gamePoints, setGamePoints] = useState(0);
   const [isOnboardingDone, setIsOnboardingDone] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [isAppBootstrapping, setIsAppBootstrapping] = useState(true);
@@ -498,8 +521,9 @@ export default function App() {
     return Math.max(monthlyNet, 0);
   }, [monthlyTransactions]);
 
-  const points =
+  const savingsPoints =
     Math.floor(totalInvestedThisMonth / currencyBlockValue) * pointsPerBlock;
+  const points = savingsPoints + gamePoints;
   const level = Math.floor(points / 100) + 1;
   const levelLabel = `Nivel ${level}`;
   const pointsLabel = `${points} pts`;
@@ -744,6 +768,8 @@ export default function App() {
           email: savedSession.email || prev.email,
         }));
         setSelectedCurrency(savedSession.currency || "ARS");
+        setGamePoints(savedSession.gamePoints || 0);
+        setGameProgress(savedSession.gameProgress || getInitialGameProgress());
         setIsAuthenticated(true);
         setHasSeenWelcome(true);
 
@@ -775,6 +801,9 @@ export default function App() {
           ? overrides.onboardingDone
           : isOnboardingDone,
       currency: overrides.currency || selectedCurrency,
+      gamePoints:
+        typeof overrides.gamePoints === "number" ? overrides.gamePoints : gamePoints,
+      gameProgress: overrides.gameProgress || gameProgress,
     });
   };
 
@@ -791,6 +820,8 @@ export default function App() {
     setUserName("");
     setSelectedCurrency("ARS");
     setLandingAnswers((prev) => ({ ...prev, monedaBase: "ARS" }));
+    setGamePoints(0);
+    setGameProgress(getInitialGameProgress());
   };
 
   useEffect(() => {
@@ -806,6 +837,8 @@ export default function App() {
     accountForm.email,
     isOnboardingDone,
     selectedCurrency,
+    gamePoints,
+    gameProgress,
   ]);
 
   const dailyTip = useMemo(() => {
@@ -973,7 +1006,6 @@ export default function App() {
 
         if (updatedAmount >= card.targetAmount) {
           const overflow = updatedAmount - card.targetAmount;
-          const earnedPoints = Math.round(card.targetAmount / 10);
           setBonusWithdrawnMessage("");
           setBonusAvailable((prevBonus) => prevBonus + overflow);
           setHistoryItems((prevHistory) => [
@@ -982,7 +1014,7 @@ export default function App() {
               name: card.name,
               description: card.description,
               targetAmount: card.targetAmount,
-              points: earnedPoints,
+              points: 0,
               savingType: card.savingType || "General",
               lastContribution: card.nextContribution,
               completedAt: new Date().toISOString(),
@@ -1596,6 +1628,27 @@ export default function App() {
     ? SECTION_HEADER_CONFIG[currentPlan]
     : SECTION_HEADER_CONFIG[activeTab];
 
+  const sectionAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
+
+  const switchTab = (nextTab) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    Animated.sequence([
+      Animated.timing(sectionAnim, { toValue: 0.92, duration: 140, useNativeDriver: true }),
+      Animated.timing(sectionAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
+    ]).start();
+    setActiveTab(nextTab);
+  };
+
+  const handleEarnGamePoints = (earned) => {
+    setGamePoints((prev) => prev + earned);
+  };
+
   return (
     <AppBackground>
       <View
@@ -1606,6 +1659,7 @@ export default function App() {
           styles.safeAreaDark,
         ]}
       >
+        <Animated.View style={{ opacity: sectionAnim, transform: [{ scale: sectionAnim }] }}>
         <FlatList
         data={[{ key: activeTab }]}
         keyExtractor={(item) => item.key}
@@ -1762,14 +1816,14 @@ export default function App() {
 
                 {currentPlan === "ahorro" && (
                   <>
-                    <HistoryCard
-                      items={historyItems}
-                      currencyCode={selectedCurrency}
-                    />
                     <AdYieldCard
                       currencyCode={selectedCurrency}
                       projectedYield={projectedAdYield}
                     />
+                    <View style={[styles.panel, styles.panelDark]}>
+                      <Text style={[styles.panelTitle, styles.panelTitleDark]}>Recomendaciones y tip diario</Text>
+                      <Text style={[styles.panelSubTitle, styles.panelSubTitleDark]}>{dailyTip}</Text>
+                    </View>
                   </>
                 )}
               </>
@@ -2228,6 +2282,11 @@ export default function App() {
                   })}
                 </View>
 
+                <HistoryCard
+                  items={historyItems}
+                  currencyCode={selectedCurrency}
+                />
+
                 <Pressable
                   onPress={handleContactPress}
                   style={styles.profileButton}
@@ -2287,10 +2346,17 @@ export default function App() {
               </View>
             )}
 
-            {activeTab === "juego" && <GameSection />}
+            {activeTab === "juego" && (
+              <GameSection
+                gameProgress={gameProgress}
+                onGameProgressChange={setGameProgress}
+                onEarnPoints={handleEarnGamePoints}
+              />
+            )}
           </>
         )}
       />
+      </Animated.View>
 
       <View
         style={[
@@ -2300,7 +2366,7 @@ export default function App() {
         ]}
       >
         <Pressable
-          onPress={() => setActiveTab("ahorro")}
+          onPress={() => switchTab("ahorro")}
           style={[styles.navButton, activeTab === "ahorro" && styles.navButtonActive]}
         >
           <MaterialCommunityIcons
@@ -2319,7 +2385,7 @@ export default function App() {
         </Pressable>
 
         <Pressable
-          onPress={() => setActiveTab("deudas")}
+          onPress={() => switchTab("deudas")}
           style={[styles.navButton, activeTab === "deudas" && styles.navButtonActive]}
         >
           <MaterialCommunityIcons
@@ -2361,7 +2427,7 @@ export default function App() {
           return (
             <Pressable
               key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
+              onPress={() => switchTab(tab.key)}
               style={[
                 styles.navButton,
                 isActive && styles.navButtonActive,
