@@ -20,7 +20,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CreateCardModal from "./components/CreateCardModal";
 import CreateDebtModal from "./components/CreateDebtModal";
-import DarkButton from "./components/DarkButton";
 import DebtCard from "./components/DebtCard";
 import GameSection from "./components/GameSection";
 import HistoryCard from "./components/HistoryCard";
@@ -1749,23 +1748,22 @@ export default function App() {
                   </View>
                 )}
 
-                                <SectionHeader
+                <SectionHeader
                   title={
                     currentPlan === "deudas"
                       ? "Plan de deudas 💳"
                       : "Plan de Ahorro 💳"
                   }
-                  createLabel={
+                  actionLabel={
                     currentPlan === "deudas"
-                      ? "Crear deuda ➕"
-                      : "Crear tarjeta ➕"
+                      ? "Crear deuda"
+                      : "Crear tarjeta"
                   }
-                  onCreate={() =>
+                  onActionPress={() =>
                     currentPlan === "deudas"
                       ? setIsCreateDebtVisible(true)
                       : setIsCreateCardVisible(true)
                   }
-                  showCreateButton={false}
                 />
 
                 <View style={styles.cardList}>
@@ -2371,21 +2369,6 @@ export default function App() {
           </Text>
         </Pressable>
 
-        <DarkButton
-          onPress={() => {
-            if (activeTab === "deudas") {
-              setIsCreateDebtVisible(true);
-              return;
-            }
-
-            setIsCreateCardVisible(true);
-          }}
-          style={styles.navButtonCenterWrapper}
-          gradientStyle={styles.navButtonCenter}
-          textStyle={styles.navButtonCenterText}
-          label="+"
-        />
-
         {tabs.map((tab) => {
           if (tab.key === "ahorro" || tab.key === "deudas") {
             return null;
@@ -2859,22 +2842,6 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 8,
     borderRadius: 16,
-  },
-  navButtonCenterWrapper: {
-    marginTop: -28,
-    width: 76,
-    maxWidth: 76,
-    alignSelf: "center",
-  },
-  navButtonCenter: {
-    width: "100%",
-    height: 76,
-    borderRadius: 999,
-  },
-  navButtonCenterText: {
-    fontSize: 34,
-    lineHeight: 34,
-    fontWeight: "700",
   },
   navButtonActive: { backgroundColor: palette.black },
   navLabel: { color: palette.silverMist, fontSize: 11, fontWeight: "700" },
