@@ -2,6 +2,7 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import DarkButton from './DarkButton';
+import colors from '../theme/colors.ts';
 
 export default function CreateDebtModal({ visible, onClose, onSubmit }) {
   const [name, setName] = useState('');
@@ -45,6 +46,8 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
     clearForm();
   };
 
+  const canSubmit = name.trim() && Number(paymentAmount) > 0 && Number(months) > 0;
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable onPress={onClose} style={styles.overlay}>
@@ -62,7 +65,7 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
             onChangeText={setName}
             placeholder="Ej: Tarjeta visa"
             style={styles.input}
-            placeholderTextColor="#A3A3A3"
+            placeholderTextColor={colors.textSecondary}
           />
           <TextInput
             value={paymentAmount}
@@ -70,7 +73,7 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
             placeholder="Pago por periodo (ej: 150)"
             keyboardType="numeric"
             style={styles.input}
-            placeholderTextColor="#A3A3A3"
+            placeholderTextColor={colors.textSecondary}
           />
           <TextInput
             value={months}
@@ -78,7 +81,7 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
             placeholder="Meses (ej: 3)"
             keyboardType="numeric"
             style={styles.input}
-            placeholderTextColor="#A3A3A3"
+            placeholderTextColor={colors.textSecondary}
           />
 
           <View style={styles.frequencyRow}>
@@ -111,6 +114,7 @@ export default function CreateDebtModal({ visible, onClose, onSubmit }) {
               textStyle={styles.modalActionText}
               label="Crear deuda"
               onPress={handleCreate}
+              disabled={!canSubmit}
             />
           </View>
         </LinearGradient>

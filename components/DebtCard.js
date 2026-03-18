@@ -1,73 +1,55 @@
 import { StyleSheet, Text, View } from 'react-native';
-import DarkButton from './DarkButton';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import ProgressBar from './ui/ProgressBar';
+import Badge from './ui/Badge';
 import { formatCurrency } from '../utils/formatters';
+import colors from '../theme/colors.ts';
+import spacing from '../theme/spacing.ts';
+import typography from '../theme/typography.ts';
 
-export default function DebtCard({ debt, onAddPayment, onRemovePayment,  currencyCode }) {
+export default function DebtCard({ debt, onAddPayment, onRemovePayment, currencyCode }) {
   const remaining = Math.max(debt.totalToPay - debt.paidAmount, 0);
+  const progress = debt.totalToPay > 0 ? (debt.paidAmount / debt.totalToPay) * 100 : 0;
 
   return (
-    <View style={[styles.card, styles.cardDark]}>
-      <View style={styles.headerRow}>
-        <Text style={[styles.title, styles.titleDark]}>{debt.name}</Text>
-        <Text style={[styles.tag, styles.tagDark]}>{debt.cadence}</Text>
+    <Card style={styles.card}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{debt.name}</Text>
+        <Badge label={debt.cadence} color={colors.warning} />
       </View>
 
-      <Text style={[styles.summary, styles.textDark]}>
-        A pagar para cancelar: {formatCurrency(debt.totalToPay, currencyCode)}
-      </Text>
-      <Text style={[styles.summary, styles.textDark]}>
-        Cuota por periodo: {formatCurrency(debt.paymentAmount, currencyCode)}
-      </Text>
-      <Text style={[styles.summary, styles.textDark]}>
-        Pagado: {formatCurrency(debt.paidAmount, currencyCode)} • Resta: {formatCurrency(remaining, currencyCode)}
-      </Text>
+      <Text style={styles.body}>Total: {formatCurrency(debt.totalToPay, currencyCode)}</Text>
+      <Text style={styles.body}>Cuota por periodo: {formatCurrency(debt.paymentAmount, currencyCode)}</Text>
+      <Text style={styles.body}>Pagado: {formatCurrency(debt.paidAmount, currencyCode)}</Text>
+      <Text style={styles.body}>Pendiente: {formatCurrency(remaining, currencyCode)}</Text>
 
-      <View style={styles.actionsRow}>
-        <DarkButton
-          onPress={() => onRemovePayment(debt.id)}
+      <ProgressBar progress={progress} color={colors.warning} />
+
+      <View style={styles.actions}>
+        <Button
           label="Alejar monto"
+          variant="secondary"
+          onPress={() => onRemovePayment(debt.id)}
           style={styles.actionButton}
-          gradientStyle={styles.actionGradient}
-          textStyle={styles.actionText}
+          accessibilityLabel={`Reducir pago en ${debt.name}`}
         />
-        <DarkButton
-          onPress={() => onAddPayment(debt.id)}
+        <Button
           label="Pagar periodo"
+          onPress={() => onAddPayment(debt.id)}
           style={styles.actionButton}
-          gradientStyle={styles.actionGradient}
-          textStyle={styles.actionText}
+          accessibilityLabel={`Pagar periodo de ${debt.name}`}
         />
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    gap: 6,
-    shadowColor: '#000000',
-    shadowOpacity: 0.45,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 18,
-  },
-  cardDark: { backgroundColor: 'rgba(20,20,26,0.72)', borderColor: 'rgba(255,255,255,0.15)' },
-  cardLight: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.2)' },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 17, fontWeight: '800' },
-  titleDark: { color: '#FFFFFF' },
-  titleLight: { color: '#111111' },
-  tag: { fontSize: 12, fontWeight: '700', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
-  tagDark: { color: '#111111', backgroundColor: '#FFFFFF' },
-  tagLight: { color: '#FFFFFF', backgroundColor: '#111111' },
-  summary: { fontSize: 13, fontWeight: '600' },
-  textDark: { color: '#E5E7EB' },
-  textLight: { color: '#111111' },
-  actionsRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
+  card: { gap: spacing.xs },
+  header: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.xs },
+  title: { ...typography.subtitle, color: colors.textPrimary, flex: 1 },
+  body: { ...typography.body, color: colors.textSecondary },
+  actions: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xs },
   actionButton: { flex: 1 },
-  actionGradient: { width: '100%', height: 44, borderRadius: 10 },
-  actionText: { fontWeight: '700', fontSize: 12 },
 });
