@@ -10,6 +10,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import questionBank from "../data/gameQuestions";
+import AdYieldCard from "./AdYieldCard";
 
 const LEVEL_GROUPS = [
   {
@@ -60,6 +61,8 @@ export default function GameSection({
   gameProgress,
   onGameProgressChange,
   onEarnPoints,
+  currencyCode,
+  projectedAdYield,
 }) {
   const progress = gameProgress || getEmptyProgress();
   const {
@@ -503,6 +506,16 @@ export default function GameSection({
           <Pressable style={styles.backBottomButton} onPress={confirmExitToMap}>
             <Text style={styles.backBottomButtonText}>Atrás</Text>
           </Pressable>
+
+          <AdYieldCard
+            currencyCode={currencyCode}
+            projectedYield={projectedAdYield}
+            placement="Banner en preguntas"
+            title="Monetización estática dentro del nivel"
+            description="Al mostrar una pregunta, puedes ubicar un banner estático debajo de las opciones para sumar ingresos sin tapar el contenido."
+            staticUnitId="ca-app-pub-xxxxxxxxxxxxxxxx/juego-banner-estatico"
+            ctaLabel="Ver guía para banner estático"
+          />
         </View>
       ) : (
         <>
