@@ -1,6 +1,7 @@
-import { Platform, Vibration } from "react-native";
+import { Platform } from "react-native";
 
 let audioContext = null;
+let nativeSoundManager = null;
 
 const NOTE_FREQUENCIES = {
   C4: 261.63,
@@ -67,6 +68,20 @@ const getAudioContext = () => {
   return audioContext;
 };
 
+const getNativeSoundManager = () => {
+  if (Platform.OS === "web") {
+    return null;
+  }
+
+  if (nativeSoundManager) {
+    return nativeSoundManager;
+  }
+
+  const soundManagerModule = require("react-native/Libraries/Components/Sound/SoundManager");
+  nativeSoundManager = soundManagerModule?.default || soundManagerModule;
+  return nativeSoundManager;
+};
+
 const playOscillator = (ctx, frequency, duration, delay = 0) => {
   const oscillator = ctx.createOscillator();
   const gainNode = ctx.createGain();
@@ -95,7 +110,8 @@ export const playSoundEffect = async (key) => {
   }
 
   if (Platform.OS !== "web") {
-    Vibration.vibrate(16);
+    const soundManager = getNativeSoundManager();
+    soundManager?.playTouchSound?.();
     return;
   }
 
