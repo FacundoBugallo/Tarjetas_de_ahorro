@@ -1,43 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
-import DarkButton from './DarkButton';
-import palette from '../theme/colors';
+import UISectionHeader from './ui/SectionHeader';
 
-export default function SectionHeader({ title, actionLabel, onActionPress }) {
-  return (
-    <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, styles.sectionTitleDark]}>{title}</Text>
-      {onActionPress ? (
-        <DarkButton
-          onPress={onActionPress}
-          label={actionLabel}
-          style={styles.createButtonWrapper}
-          gradientStyle={styles.createButton}
-          textStyle={styles.createButtonText}
-        />
-      ) : null}
-    </View>
-  );
+export default function SectionHeader(props) {
+  return <UISectionHeader {...props} />;
 }
-
-const styles = StyleSheet.create({
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
-  },
-  sectionTitle: { fontSize: 22, fontWeight: '800' },
-  sectionTitleDark: { color: palette.white },
-  sectionTitleLight: { color: palette.black },
-  createButtonWrapper: { minWidth: 130 },
-  createButton: {
-    width: '100%',
-    height: 42,
-    borderRadius: 999,
-  },
-  createButtonText: {
-    fontWeight: '700',
-    fontSize: 12,
-  },
-});

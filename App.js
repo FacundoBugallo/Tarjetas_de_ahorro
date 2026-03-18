@@ -29,6 +29,7 @@ import SectionHeader from "./components/SectionHeader";
 import SectionHeroHeader from "./components/SectionHeroHeader";
 import SummaryCard from "./components/SummaryCard";
 import UserSummaryModal from "./components/UserSummaryModal";
+import EmptyState from "./components/ui/EmptyState";
 import dailyTips from "./data/dailyTips";
 import savingsCards from "./data/savingsCards";
 import palette from "./theme/colors";
@@ -1769,15 +1770,13 @@ export default function App() {
                 <View style={styles.cardList}>
                   {currentPlan === "deudas" ? (
                     debtCards.length === 0 ? (
-                      <Text
-                        style={[
-                          styles.emptyText,
-                          styles.emptyTextDark,
-                        ]}
-                      >
-                        No hay deudas cargadas. Crea tu primera tarjeta de deuda
-                        para empezar.
-                      </Text>
+                      <EmptyState
+                        title="No hay deudas cargadas"
+                        description="Crea tu primera tarjeta de deuda para empezar."
+                        ctaLabel="Crear deuda"
+                        onCtaPress={() => setIsCreateDebtVisible(true)}
+                        icon="credit-card-plus-outline"
+                      />
                     ) : (
                       debtCards.map((debt) => (
                         <DebtCard
@@ -1790,14 +1789,13 @@ export default function App() {
                       ))
                     )
                   ) : cards.length === 0 ? (
-                    <Text
-                      style={[
-                        styles.emptyText,
-                        styles.emptyTextDark,
-                      ]}
-                    >
-                      No hay tarjetas creadas. Crea la primera para empezar.
-                    </Text>
+                    <EmptyState
+                      title="No hay tarjetas creadas"
+                      description="Crea tu primera tarjeta de ahorro para empezar."
+                      ctaLabel="Crear tarjeta"
+                      onCtaPress={() => setIsCreateCardVisible(true)}
+                      icon="piggy-bank-outline"
+                    />
                   ) : (
                     cards.map((card) => (
                       <SavingsCard

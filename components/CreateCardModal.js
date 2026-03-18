@@ -88,6 +88,12 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
     });
   };
 
+  const canSubmit =
+    name.trim() &&
+    Number(targetAmount) > 0 &&
+    Number(nextContribution) > 0 &&
+    Number(savedAmount || 0) >= 0;
+
   return (
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} style={styles.backdrop}>
@@ -262,6 +268,7 @@ export default function CreateCardModal({ visible, onClose, onSubmit }) {
             label="Agregar tarjeta"
             gradientStyle={styles.saveButton}
             textStyle={styles.saveButtonText}
+            disabled={!canSubmit}
           />
         </LinearGradient>
       </Pressable>
