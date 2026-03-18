@@ -34,6 +34,7 @@ import dailyTips from "./data/dailyTips";
 import savingsCards from "./data/savingsCards";
 import palette from "./theme/colors";
 import { clampPercentage, formatCurrency } from "./utils/formatters";
+import { playSoundEffect } from "./utils/soundEffects";
 
 const tabs = [
   { key: "ahorro", label: "Ahorro", icon: "piggy-bank-outline" },
@@ -506,6 +507,7 @@ export default function App() {
   ]);
 
   const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const hasPlayedEntrySoundRef = useRef(false);
 
   // Filtra solo movimientos del mes actual para métricas del dashboard.
   const monthlyTransactions = useMemo(
@@ -785,6 +787,28 @@ export default function App() {
     hydrateSession();
   }, []);
 
+  useEffect(() => {
+    const shouldPlayEntrySound =
+      isAuthenticated &&
+      isOnboardingDone &&
+      !isPlanSetupPending &&
+      !isAppBootstrapping &&
+      hasSeenWelcome;
+
+    if (!shouldPlayEntrySound || hasPlayedEntrySoundRef.current) {
+      return;
+    }
+
+    hasPlayedEntrySoundRef.current = true;
+    playSoundEffect("appEnter");
+  }, [
+    isAuthenticated,
+    isOnboardingDone,
+    isPlanSetupPending,
+    isAppBootstrapping,
+    hasSeenWelcome,
+  ]);
+
   const syncSessionToStorage = async (overrides = {}) => {
     if (!authUserId && !overrides.userId) {
       return;
@@ -1057,6 +1081,7 @@ export default function App() {
 
   const handleDeleteCard = (cardId) => {
     setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+    playSoundEffect("deleteCard");
   };
 
   const handleUpdateContribution = (cardId, nextContribution) => {
@@ -1070,6 +1095,7 @@ export default function App() {
   const handleAddCard = (newCard) => {
     setCards((prevCards) => [...prevCards, newCard]);
     setIsCreateCardVisible(false);
+    playSoundEffect("createCard");
   };
 
   const handleSaveUser = (updatedUser) => {
@@ -1083,6 +1109,7 @@ export default function App() {
   const handleAddDebtCard = (debtCard) => {
     setDebtCards((prev) => [...prev, debtCard]);
     setIsCreateDebtVisible(false);
+    playSoundEffect("createCard");
   };
 
   const handleAddDebtPayment = (debtId) => {
@@ -1638,12 +1665,17 @@ export default function App() {
     : SECTION_HEADER_CONFIG[activeTab];
 
   const switchTab = (nextTab) => {
+    if (nextTab === activeTab) {
+      return;
+    }
+
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     Animated.sequence([
       Animated.timing(sectionAnim, { toValue: 0.92, duration: 140, useNativeDriver: true }),
       Animated.timing(sectionAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
     ]).start();
     setActiveTab(nextTab);
+    playSoundEffect("sectionSwitch");
   };
 
   const handleEarnGamePoints = (earned) => {
@@ -2349,6 +2381,7 @@ export default function App() {
                 gameProgress={gameProgress}
                 onGameProgressChange={setGameProgress}
                 onEarnPoints={handleEarnGamePoints}
+                onGameSound={playSoundEffect}
                 currencyCode={selectedCurrency}
                 projectedAdYield={projectedAdYield}
               />

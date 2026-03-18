@@ -61,6 +61,7 @@ export default function GameSection({
   gameProgress,
   onGameProgressChange,
   onEarnPoints,
+  onGameSound,
   currencyCode,
   projectedAdYield,
 }) {
@@ -215,6 +216,7 @@ export default function GameSection({
       quizState: null,
       celebration: null,
     }));
+    onGameSound?.("gameStart");
   };
 
   const handleStartLevel = (levelNumber) => {
@@ -267,6 +269,7 @@ export default function GameSection({
         message: "",
       },
     }));
+    onGameSound?.("gameStart");
   };
 
   const handleAnswer = (optionIndex) => {
@@ -294,6 +297,7 @@ export default function GameSection({
               "Te quedaste sin vidas en este nivel. Ese bloque ya consumió 1 de energía diaria.",
           },
         }));
+        onGameSound?.("gameFail");
         return;
       }
 
@@ -312,6 +316,7 @@ export default function GameSection({
       }));
 
       if (hasMoreQuestions) {
+        onGameSound?.("gameWrong");
         return;
       }
     }
@@ -327,6 +332,7 @@ export default function GameSection({
           message: "",
         },
       }));
+      onGameSound?.("gameCorrect");
       return;
     }
 
@@ -358,6 +364,7 @@ export default function GameSection({
           : Math.max((quizState.remainingLives || MAX_LEVEL_LIVES) - 1, 0),
       },
     }));
+    onGameSound?.(isCorrect ? "gameLevelComplete" : "gameWrong");
   };
 
   const currentQuestion = quizState?.questions[quizState.currentQuestionIndex];
