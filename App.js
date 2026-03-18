@@ -1813,17 +1813,41 @@ export default function App() {
                   )}
                 </View>
 
+                <AdYieldCard
+                  currencyCode={selectedCurrency}
+                  projectedYield={projectedAdYield}
+                  placement={
+                    currentPlan === "deudas"
+                      ? "Anuncio estático en deudas"
+                      : "Anuncios discretos"
+                  }
+                  title={
+                    currentPlan === "deudas"
+                      ? "Rendimiento extra en vista de deudas"
+                      : "Rendimientos extra sin romper la experiencia"
+                  }
+                  description={
+                    currentPlan === "deudas"
+                      ? "Coloca un banner fijo debajo de tus tarjetas de deuda para mantener visibilidad sin interrumpir la gestión de pagos."
+                      : "Usa banners pequeños en zonas de pausa (por ejemplo, debajo del historial o al cerrar una meta) para sumar ingresos de forma no intrusiva."
+                  }
+                  staticUnitId={
+                    currentPlan === "deudas"
+                      ? "ca-app-pub-xxxxxxxxxxxxxxxx/deudas-banner-estatico"
+                      : "ca-app-pub-xxxxxxxxxxxxxxxx/ahorro-banner-estatico"
+                  }
+                  ctaLabel="Ver guía de integración"
+                />
+
                 {currentPlan === "ahorro" && (
-                  <>
-                    <AdYieldCard
-                      currencyCode={selectedCurrency}
-                      projectedYield={projectedAdYield}
-                    />
-                    <View style={[styles.panel, styles.panelDark]}>
-                      <Text style={[styles.panelTitle, styles.panelTitleDark]}>Recomendaciones y tip diario</Text>
-                      <Text style={[styles.panelSubTitle, styles.panelSubTitleDark]}>{dailyTip}</Text>
-                    </View>
-                  </>
+                  <View style={[styles.panel, styles.panelDark]}>
+                    <Text style={[styles.panelTitle, styles.panelTitleDark]}>
+                      Recomendaciones y tip diario
+                    </Text>
+                    <Text style={[styles.panelSubTitle, styles.panelSubTitleDark]}>
+                      {dailyTip}
+                    </Text>
+                  </View>
                 )}
               </>
             )}
@@ -2200,6 +2224,16 @@ export default function App() {
                     {dailyTip}
                   </Text>
                 </View>
+
+                <AdYieldCard
+                  currencyCode={selectedCurrency}
+                  projectedYield={projectedAdYield}
+                  placement="Banner estático en gráficos"
+                  title="Monetización estática bajo métricas"
+                  description="Ubica el banner debajo de tus gráficos para mantener el foco en los datos y sumar un ingreso recurrente."
+                  staticUnitId="ca-app-pub-xxxxxxxxxxxxxxxx/graficos-banner-estatico"
+                  ctaLabel="Ver guía para gráficos"
+                />
               </View>
             )}
 
@@ -2317,6 +2351,8 @@ export default function App() {
                 gameProgress={gameProgress}
                 onGameProgressChange={setGameProgress}
                 onEarnPoints={handleEarnGamePoints}
+                currencyCode={selectedCurrency}
+                projectedAdYield={projectedAdYield}
               />
             )}
           </>
