@@ -41,6 +41,7 @@ const tabs = [
   { key: "deudas", label: "Deudas", icon: "credit-card-outline" },
   { key: "juego", label: "Juego", icon: "gamepad-variant-outline" },
   { key: "graficos", label: "Gráficos", icon: "chart-line" },
+  { key: "admin", label: "Admin", icon: "account-tie-outline" },
   { key: "config", label: "Perfil", icon: "account-circle-outline" },
 ];
 
@@ -57,8 +58,8 @@ const SECTION_HEADER_CONFIG = {
     glowColor: "rgba(34, 197, 94, 0.30)",
     // Borde con color de sección (editable).
     borderColor: "rgba(34, 197, 94, 0.30)",
-    titleColor: "#F8FAFC",
-    descriptionColor: "#CFE9DA",
+    titleColor: "#0F172A",
+    descriptionColor: "#334155",
   },
   deudas: {
     title: "Plan de deudas",
@@ -67,8 +68,8 @@ const SECTION_HEADER_CONFIG = {
     accentColor: "#3B82F6",
     glowColor: "rgba(59, 130, 246, 0.28)",
     borderColor: "rgba(59, 130, 246, 0.30)",
-    titleColor: "#F8FAFC",
-    descriptionColor: "#D6E5FF",
+    titleColor: "#0F172A",
+    descriptionColor: "#334155",
   },
   graficos: {
     title: "Análisis y gráficos",
@@ -77,8 +78,8 @@ const SECTION_HEADER_CONFIG = {
     accentColor: "#A855F7",
     glowColor: "rgba(168, 85, 247, 0.26)",
     borderColor: "rgba(168, 85, 247, 0.30)",
-    titleColor: "#F8FAFC",
-    descriptionColor: "#EAD9FF",
+    titleColor: "#0F172A",
+    descriptionColor: "#334155",
   },
   juego: {
     title: "Modo juego financiero",
@@ -87,8 +88,18 @@ const SECTION_HEADER_CONFIG = {
     accentColor: "#06B6D4",
     glowColor: "rgba(6, 182, 212, 0.28)",
     borderColor: "rgba(6, 182, 212, 0.30)",
-    titleColor: "#F8FAFC",
-    descriptionColor: "#CFFAFE",
+    titleColor: "#0F172A",
+    descriptionColor: "#334155",
+  },
+  admin: {
+    title: "Panel de administración",
+    description:
+      "Accede como barbero, edita servicios y revisa turnos de clientes.",
+    accentColor: "#0EA5E9",
+    glowColor: "rgba(14, 165, 233, 0.2)",
+    borderColor: "rgba(14, 165, 233, 0.25)",
+    titleColor: "#0F172A",
+    descriptionColor: "#334155",
   },
   config: {
     title: "Perfil y configuraciones",
@@ -97,8 +108,8 @@ const SECTION_HEADER_CONFIG = {
     accentColor: "#F59E0B",
     glowColor: "rgba(245, 158, 11, 0.28)",
     borderColor: "rgba(245, 158, 11, 0.30)",
-    titleColor: "#F8FAFC",
-    descriptionColor: "#FFE9BE",
+    titleColor: "#0F172A",
+    descriptionColor: "#334155",
   },
 };
 
@@ -172,6 +183,41 @@ const getInitialGameProgress = () => ({
   quizState: null,
   celebration: null,
 });
+
+const ADMIN_CREDENTIALS = {
+  username: "barbero",
+  password: "barbero123",
+};
+
+const INITIAL_ADMIN_SERVICES = [
+  { id: "srv-1", name: "Corte clásico", price: "18000", duration: "45" },
+  { id: "srv-2", name: "Barba premium", price: "14000", duration: "30" },
+  { id: "srv-3", name: "Corte + barba", price: "29000", duration: "60" },
+];
+
+const INITIAL_ADMIN_APPOINTMENTS = [
+  {
+    id: "trn-1",
+    client: "Carlos Gómez",
+    service: "Corte clásico",
+    time: "09:30",
+    status: "Pendiente",
+  },
+  {
+    id: "trn-2",
+    client: "Juan Pérez",
+    service: "Corte + barba",
+    time: "11:00",
+    status: "Confirmado",
+  },
+  {
+    id: "trn-3",
+    client: "Andrés Rojas",
+    service: "Barba premium",
+    time: "15:45",
+    status: "Pendiente",
+  },
+];
 
 const SESSION_STORAGE_KEY = "tarjetas_ahorro_session";
 let runtimeSession = "";
@@ -354,21 +400,21 @@ const getPeriodLabel = (value, granularity) => {
 const AppBackground = ({ children }) => (
   <View style={styles.backgroundFrame}>
     <LinearGradient
-      colors={["#050506", "#18191D", "#090A0C"]}
+      colors={["#FFFFFF", "#F8FAFC", "#EEF2FF"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={StyleSheet.absoluteFill}
       pointerEvents="none"
     />
     <LinearGradient
-      colors={["rgb(3, 3, 3)", "rgb(65, 64, 64)"]}
+      colors={["rgba(59,130,246,0.08)", "rgba(14,165,233,0.05)"]}
       start={{ x: 0.42, y: 0 }}
       end={{ x: 0.55, y: 1 }}
       style={styles.textureBand}
       pointerEvents="none"
     />
     <LinearGradient
-      colors={["rgba(0,0,0,0.65)", "rgba(0,0,0,0)", "rgba(0,0,0,0.6)"]}
+      colors={["rgba(148,163,184,0.16)", "rgba(255,255,255,0)", "rgba(148,163,184,0.14)"]}
       start={{ x: 0, y: 0.5 }}
       end={{ x: 1, y: 0.5 }}
       style={StyleSheet.absoluteFill}
@@ -498,6 +544,16 @@ export default function App() {
     useState(false);
   const [lastWeeklyCheckInDate, setLastWeeklyCheckInDate] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [adminAuth, setAdminAuth] = useState({
+    username: "",
+    password: "",
+    error: "",
+    isLogged: false,
+  });
+  const [adminServices, setAdminServices] = useState(INITIAL_ADMIN_SERVICES);
+  const [adminAppointments, setAdminAppointments] = useState(
+    INITIAL_ADMIN_APPOINTMENTS,
+  );
   const [aiMessages, setAiMessages] = useState([
     {
       id: "ia-welcome",
@@ -844,6 +900,9 @@ export default function App() {
     setLandingAnswers((prev) => ({ ...prev, monedaBase: "ARS" }));
     setGamePoints(0);
     setGameProgress(getInitialGameProgress());
+    setAdminAuth({ username: "", password: "", error: "", isLogged: false });
+    setAdminServices(INITIAL_ADMIN_SERVICES);
+    setAdminAppointments(INITIAL_ADMIN_APPOINTMENTS);
   };
 
   useEffect(() => {
@@ -1129,6 +1188,42 @@ export default function App() {
         }
         return { ...debt, paidAmount: nextPaid };
       }),
+    );
+  };
+
+  const handleAdminLogin = () => {
+    const username = adminAuth.username.trim().toLowerCase();
+    const password = adminAuth.password.trim();
+
+    if (
+      username === ADMIN_CREDENTIALS.username &&
+      password === ADMIN_CREDENTIALS.password
+    ) {
+      setAdminAuth((prev) => ({ ...prev, isLogged: true, error: "" }));
+      return;
+    }
+
+    setAdminAuth((prev) => ({
+      ...prev,
+      error: "Credenciales inválidas. Usa usuario barbero.",
+    }));
+  };
+
+  const handleAdminServiceChange = (serviceId, field, value) => {
+    setAdminServices((prev) =>
+      prev.map((service) =>
+        service.id === serviceId ? { ...service, [field]: value } : service,
+      ),
+    );
+  };
+
+  const handleAdminAppointmentStatus = (appointmentId, status) => {
+    setAdminAppointments((prev) =>
+      prev.map((appointment) =>
+        appointment.id === appointmentId
+          ? { ...appointment, status }
+          : appointment,
+      ),
     );
   };
 
@@ -2376,6 +2471,131 @@ export default function App() {
               </View>
             )}
 
+            {activeTab === "admin" && (
+              <View style={[styles.panel, styles.panelDark]}>
+                <Text style={[styles.panelTitle, styles.panelTitleDark]}>
+                  Panel admin barbero
+                </Text>
+                <Text style={[styles.panelSubTitle, styles.panelSubTitleDark]}>
+                  Inicia sesión como barbero para gestionar servicios y turnos.
+                </Text>
+
+                {!adminAuth.isLogged ? (
+                  <View style={styles.adminCard}>
+                    <Text style={[styles.inputLabel, styles.inputLabelDark]}>
+                      Usuario
+                    </Text>
+                    <TextInput
+                      value={adminAuth.username}
+                      onChangeText={(value) =>
+                        setAdminAuth((prev) => ({
+                          ...prev,
+                          username: value,
+                          error: "",
+                        }))
+                      }
+                      autoCapitalize="none"
+                      placeholder="barbero"
+                      placeholderTextColor="#64748B"
+                      style={[styles.input, styles.adminInput]}
+                    />
+                    <Text style={[styles.inputLabel, styles.inputLabelDark]}>
+                      Contraseña
+                    </Text>
+                    <TextInput
+                      value={adminAuth.password}
+                      onChangeText={(value) =>
+                        setAdminAuth((prev) => ({
+                          ...prev,
+                          password: value,
+                          error: "",
+                        }))
+                      }
+                      secureTextEntry
+                      placeholder="••••••••"
+                      placeholderTextColor="#64748B"
+                      style={[styles.input, styles.adminInput]}
+                    />
+                    {!!adminAuth.error && (
+                      <Text style={styles.authErrorText}>{adminAuth.error}</Text>
+                    )}
+                    <Pressable onPress={handleAdminLogin} style={styles.profileButton}>
+                      <Text style={styles.profileButtonText}>Ingresar como barbero</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View style={styles.adminCard}>
+                    <Text style={styles.adminSectionTitle}>Editar servicios</Text>
+                    {adminServices.map((service) => (
+                      <View key={service.id} style={styles.adminServiceRow}>
+                        <TextInput
+                          value={service.name}
+                          onChangeText={(value) =>
+                            handleAdminServiceChange(service.id, "name", value)
+                          }
+                          style={[styles.input, styles.adminInput, styles.adminServiceName]}
+                          placeholder="Servicio"
+                          placeholderTextColor="#64748B"
+                        />
+                        <TextInput
+                          value={service.price}
+                          onChangeText={(value) =>
+                            handleAdminServiceChange(service.id, "price", value)
+                          }
+                          keyboardType="numeric"
+                          style={[styles.input, styles.adminInput, styles.adminShortInput]}
+                          placeholder="Precio"
+                          placeholderTextColor="#64748B"
+                        />
+                        <TextInput
+                          value={service.duration}
+                          onChangeText={(value) =>
+                            handleAdminServiceChange(service.id, "duration", value)
+                          }
+                          keyboardType="numeric"
+                          style={[styles.input, styles.adminInput, styles.adminShortInput]}
+                          placeholder="Min"
+                          placeholderTextColor="#64748B"
+                        />
+                      </View>
+                    ))}
+
+                    <Text style={styles.adminSectionTitle}>Turnos de hoy</Text>
+                    {adminAppointments.map((appointment) => (
+                      <View key={appointment.id} style={styles.adminAppointmentRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.adminAppointmentClient}>
+                            {appointment.client}
+                          </Text>
+                          <Text style={styles.adminAppointmentMeta}>
+                            {appointment.time} · {appointment.service}
+                          </Text>
+                        </View>
+                        <Pressable
+                          onPress={() =>
+                            handleAdminAppointmentStatus(
+                              appointment.id,
+                              appointment.status === "Confirmado"
+                                ? "Pendiente"
+                                : "Confirmado",
+                            )
+                          }
+                          style={[
+                            styles.adminStatusBadge,
+                            appointment.status === "Confirmado"
+                              ? styles.adminStatusConfirmed
+                              : styles.adminStatusPending,
+                          ]}
+                        >
+                          <Text style={styles.adminStatusText}>{appointment.status}</Text>
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
             {activeTab === "juego" && (
               <GameSection
                 gameProgress={gameProgress}
@@ -2486,7 +2706,7 @@ export default function App() {
         onClose={() => setIsCreateDebtVisible(false)}
         onSubmit={handleAddDebtCard}
       />
-        <StatusBar style={"light"} />
+        <StatusBar style={"dark"} />
       </View>
     </AppBackground>
   );
@@ -2497,7 +2717,7 @@ const styles = StyleSheet.create({
   rootContainer: { paddingHorizontal: 0 },
   backgroundFrame: {
     flex: 1,
-    backgroundColor: "#050506",
+    backgroundColor: "#FFFFFF",
   },
   textureBand: {
     ...StyleSheet.absoluteFillObject,
@@ -2505,9 +2725,9 @@ const styles = StyleSheet.create({
   },
   textureNoise: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.02)",
+    backgroundColor: "rgba(255,255,255,0.55)",
   },
-  safeAreaDark: { backgroundColor: "rgba(0,0,0,0.15)" },
+  safeAreaDark: { backgroundColor: "rgba(255,255,255,0.88)" },
   safeAreaLight: { backgroundColor: "rgba(0,0,0,0.08)" },
   scrollContent: { padding: 20, paddingBottom: 120 },
   cardList: { gap: 16, marginBottom: 24 },
@@ -2596,13 +2816,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 20,
   },
-  panelDark: { backgroundColor: "rgba(18,18,24,0.72)", borderColor: "rgba(255,255,255,0.15)" },
+  panelDark: { backgroundColor: "#FFFFFF", borderColor: "#E2E8F0" },
   panelLight: { backgroundColor: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.18)" },
   panelTitle: { fontSize: 20, fontWeight: "800" },
-  panelTitleDark: { color: palette.white },
+  panelTitleDark: { color: "#0F172A" },
   panelTitleLight: { color: palette.black },
   panelSubTitle: { marginTop: 8, marginBottom: 16, fontSize: 13 },
-  panelSubTitleDark: { color: palette.silverMist },
+  panelSubTitleDark: { color: "#475569" },
   panelSubTitleLight: { color: palette.midnightSlate },
   innerTitle: { marginTop: 20, marginBottom: 8, fontSize: 16 },
   chartRow: { marginBottom: 14 },
@@ -2839,7 +3059,7 @@ const styles = StyleSheet.create({
   profileButton: {
     marginTop: 16,
     borderRadius: 10,
-    backgroundColor: "#000000",
+    backgroundColor: "#1D4ED8",
     alignItems: "center",
     paddingVertical: 12,
     shadowColor: "#000000",
@@ -2900,7 +3120,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 10,
   },
-  bottomNavDark: { backgroundColor: "#111111", borderColor: "#1F2937" },
+  bottomNavDark: { backgroundColor: "#FFFFFF", borderColor: "#CBD5E1" },
   bottomNavLight: { backgroundColor: palette.midnightSlate, borderColor: palette.black },
   navButton: {
     flex: 1,
@@ -2910,9 +3130,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 16,
   },
-  navButtonActive: { backgroundColor: palette.black },
-  navLabel: { color: palette.silverMist, fontSize: 11, fontWeight: "700" },
-  navLabelActive: { color: "#FFFFFF" },
+  navButtonActive: { backgroundColor: "#E2E8F0" },
+  navLabel: { color: "#64748B", fontSize: 11, fontWeight: "700" },
+  navLabelActive: { color: "#0F172A" },
 
   onboardingCard: {
     margin: 20,
@@ -3050,6 +3270,77 @@ const styles = StyleSheet.create({
   moodOptionText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
   moodOptionTextDark: { color: "#FFFFFF" },
   moodOptionTextActive: { color: "#FFFFFF" },
+  adminCard: {
+    marginTop: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
+    padding: 12,
+  },
+  adminInput: {
+    borderColor: "#CBD5E1",
+    color: "#0F172A",
+    backgroundColor: "#FFFFFF",
+  },
+  adminSectionTitle: {
+    marginTop: 14,
+    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  adminServiceRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  adminServiceName: {
+    flex: 1.25,
+  },
+  adminShortInput: {
+    flex: 0.7,
+  },
+  adminAppointmentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    padding: 10,
+    marginBottom: 8,
+    gap: 8,
+  },
+  adminAppointmentClient: {
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  adminAppointmentMeta: {
+    marginTop: 2,
+    color: "#475569",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  adminStatusBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+  },
+  adminStatusPending: {
+    backgroundColor: "#FEF3C7",
+    borderColor: "#F59E0B",
+  },
+  adminStatusConfirmed: {
+    backgroundColor: "#DCFCE7",
+    borderColor: "#22C55E",
+  },
+  adminStatusText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
   coachingCard: {
     marginTop: 8,
     borderRadius: 10,
